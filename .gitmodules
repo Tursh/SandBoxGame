@@ -1,0 +1,3 @@
+[submodule "CrossGameEngine"]
+	path = CrossGameEngine
+	url = https://github.com/tursh/crossgameengine

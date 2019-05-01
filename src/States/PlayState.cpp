@@ -3,14 +3,14 @@
 //
 
 #include <Utils/Log.h>
-#include "PlayState.h"
+#include "States/PlayState.h"
 
 void PlayState::tick()
 {
-    logInfo("tick");
+    world.tick();
 }
 
 void PlayState::draw()
 {
-    logInfo("Render");
+    world.render();
 }

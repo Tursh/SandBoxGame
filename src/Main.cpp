@@ -4,7 +4,7 @@
 #include <Utils/TimeUtils.h>
 #include <thread>
 #include <State/StateManager.h>
-#include "PlayState.h"
+#include "States/PlayState.h"
 
 void init()
 {
@@ -12,7 +12,7 @@ void init()
     CGE::IO::input::grabMouse();
     CGE::Utils::initTPSClock();
 
-    CGE::State::stateManager::setCurrentState(new PlayState());
+    CGE::State::stateManager::createCurrentState<PlayState>();
 }
 
 void loopTick()
@@ -20,7 +20,7 @@ void loopTick()
     auto display = CGE::IO::getDisplay();
     while (!display->shouldClose())
     {
-        while (CGE::Utils::shouldTick())
+        while (CGE::Utils::shouldTick() && !display->shouldClose())
             CGE::State::stateManager::getCurrentState()->tick();
     }
 }
@@ -46,6 +46,7 @@ int main()
     init();
     std::thread tickThread(loopTick);
     loopRender();
+    tickThread.join();
     terminate();
     return 0;
 }

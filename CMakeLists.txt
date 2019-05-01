@@ -8,6 +8,8 @@ set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/lib)
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
+set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DNDEBUG")
+
 add_subdirectory(CrossGameEngine)
 
 include_directories(CrossGameEngine/include)
@@ -40,7 +42,7 @@ endif ()
 
 add_executable(SandBoxGame
         src/Main.cpp
-        src/PlayState.cpp src/PlayState.h)
+        src/States/PlayState.cpp include/States/PlayState.h src/World/World.cpp include/World/World.h src/World/Chunk.cpp include/World/Chunk.h)
 
 add_custom_command(TARGET SandBoxGame PRE_BUILD
         COMMAND ${CMAKE_COMMAND} -E create_symlink

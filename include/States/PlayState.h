@@ -6,9 +6,11 @@
 
 
 #include <State/State.h>
+#include <World/World.h>
 
 class PlayState : public CGE::State::State
 {
+    World world;
 public:
     void tick() override;
 

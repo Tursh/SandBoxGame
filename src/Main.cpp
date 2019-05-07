@@ -9,7 +9,7 @@
 void init()
 {
     CGE::initEngine("Sand Box Game", 1280, 720, false);
-    CGE::IO::input::grabMouse();
+    //CGE::IO::input::grabMouse();
     CGE::Utils::initTPSClock();
 
     CGE::State::stateManager::createCurrentState<PlayState>();

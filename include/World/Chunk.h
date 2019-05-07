@@ -7,27 +7,26 @@
 
 #include <glm/vec3.hpp>
 #include <Loader/Models/TexturedModel.h>
-
-
-struct Bloc
-{
-    short ID;
-    //first 4 digits are the Block shape and 4 last are rotation
-    char state;
-};
+#include "Bloc.h"
 
 extern const unsigned int CHUNK_SIZE;
 
+class World;
+
 class Chunk
 {
+    World *world_;
+
+    glm::ivec3 chunkPosition_;
+
     Bloc *blocs_;
 
-    CGE::Loader::TexturedModel *texModel_;
+    std::shared_ptr<CGE::Loader::Model> model_;
 
     void loadToTexModel();
 
 public:
-    Chunk(Bloc *blocs);
+    Chunk(Bloc *blocs, World *world, glm::ivec3 &chunkPosition);
 
     void update();
 
@@ -35,7 +34,7 @@ public:
 
     void setBloc(glm::ivec3 &position, Bloc &newBloc);
 
-    Bloc getBloc(glm::ivec3 &position);
+    const Bloc &getBloc(glm::ivec3 &position);
 };
 
 

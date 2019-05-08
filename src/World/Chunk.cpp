@@ -22,43 +22,46 @@ loadFace(const Bloc &currentBloc, std::vector<float> &vertices, std::vector<floa
     const auto *faceIndices = std::get<1>(data);
 
     unsigned int index = vertices.size(),
-            indicesSize = indices.size();
+            indicesSize = indices.size(),
+            faceCount = indicesSize / 6;
 
     //TODO check state
 
-    std::copy(faceVertices, &faceVertices[Blocs::FACE_VERTICES_COUNT], std::back_inserter(vertices));
-    std::copy(faceIndices, &faceIndices[Blocs::FACE_INDICES_COUNT], std::back_inserter(indices));
+    std::copy(faceVertices, faceVertices + Blocs::FACE_VERTICES_COUNT, std::back_inserter(vertices));
+    std::copy(faceIndices, faceIndices + Blocs::FACE_INDICES_COUNT, std::back_inserter(indices));
 
     for (int i = index; i < vertices.size(); i += 3)
     {
-        vertices[i] += x;
-        vertices[i + 1] += y;
-        vertices[i + 2] += z;
+        vertices[i] += x * Blocs::CUBE_SIZE * 2;
+        vertices[i + 1] += y * Blocs::CUBE_SIZE * 2;
+        vertices[i + 2] += z * Blocs::CUBE_SIZE * 2;
     }
 
     glm::vec4 currentTexCoords = blocsTextures->getTextureCoords(currentBloc.ID);
+    currentTexCoords = {0.0625f, 1, 0.125f, 1 - 0.0625f};
     auto *texCoordsBuf = new float[4 * 2];
-    texCoordsBuf[0] = currentTexCoords.x;
-    texCoordsBuf[1] = currentTexCoords.y;
+    texCoordsBuf[0] = currentTexCoords.z;
+    texCoordsBuf[1] = currentTexCoords.w;
     texCoordsBuf[2] = currentTexCoords.x;
     texCoordsBuf[3] = currentTexCoords.w;
-    texCoordsBuf[4] = currentTexCoords.z;
-    texCoordsBuf[5] = currentTexCoords.w;
+    texCoordsBuf[4] = currentTexCoords.x;
+    texCoordsBuf[5] = currentTexCoords.y;
     texCoordsBuf[6] = currentTexCoords.z;
     texCoordsBuf[7] = currentTexCoords.y;
 
-    std::copy(texCoordsBuf, &texCoordsBuf[7], std::back_inserter(texCoords));
+    std::copy(texCoordsBuf, texCoordsBuf + 8, std::back_inserter(texCoords));
     delete[] texCoordsBuf;
 
     for (int i = indicesSize; i < indices.size(); ++i)
     {
-        indices[i] += index;
+        indices[i] += faceCount * 4;
     }
 
 }
 
 void Chunk::loadToTexModel()
 {
+
     //First get the six around this one
     Chunk **chunkList = world_->getAroundChunk(chunkPosition_);
 
@@ -111,7 +114,6 @@ void Chunk::loadToTexModel()
                     if (getBloc(blocPosition).ID == Blocs::AIR)
                         loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::RIGHT);
                 }
-
 
                 //Check extremities
                 if (y == 0)

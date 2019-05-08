@@ -10,7 +10,7 @@ namespace Blocs
             AIR = 0,
             DIRT = 1;
 
-    const float CUBE_SIZE = 1.0f;
+    const float CUBE_SIZE = 0.5f;
 
     const unsigned int FACE_VERTICES_COUNT = 4 * 3, FACE_INDICES_COUNT = 2 * 3;
 
@@ -51,7 +51,7 @@ namespace Blocs
     const unsigned int CUBE_INDICES[] =
             {
             0, 1, 2,
-            0, 2, 3
+            2, 3, 0
             };
 
     std::tuple<const float *, const unsigned int*> getFace(Face face)

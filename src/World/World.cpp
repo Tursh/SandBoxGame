@@ -21,25 +21,33 @@ void World::tick()
 
     camera_.rotation_.y += mouse.x;
     camera_.rotation_.x -= mouse.y;
-}
 
-std::shared_ptr<CGE::Loader::TexturedModel> texModel;
-glm::mat4 matrix(1);
+    if(CGE::IO::input::isKeyPressed(GLFW_KEY_W))
+        camera_.position_.x -= 0.1f;
+    if(CGE::IO::input::isKeyPressed(GLFW_KEY_S))
+        camera_.position_.x += 0.1f;
+    if(CGE::IO::input::isKeyPressed(GLFW_KEY_A))
+        camera_.position_.z += 0.1f;
+    if(CGE::IO::input::isKeyPressed(GLFW_KEY_D))
+        camera_.position_.z -= 0.1f;
+    if(CGE::IO::input::isKeyPressed(GLFW_KEY_SPACE))
+        camera_.position_.y += 0.1f;
+    if(CGE::IO::input::isKeyPressed(GLFW_KEY_LEFT_SHIFT))
+        camera_.position_.y -= 0.1f;
+}
 
 void World::render()
 {
     shader.start();
     shader.loadMatrix(CGE::Shader::VIEW, camera_.toViewMatrix());
-    matrix = glm::translate(matrix, {0, 0, -0.01f});
-    shader.loadMatrix(CGE::Shader::TRANSFORMATION, matrix);
-
+    glEnable(GL_DEPTH_TEST);
     for (auto &yChunks : chunks_)
         for (auto &zChunks : yChunks.second)
             for (auto &chunk : zChunks.second)
             {
                 chunk.second->render();
             }
-    texModel->render();
+    glDisable(GL_DEPTH_TEST);
     shader.stop();
 }
 
@@ -111,12 +119,11 @@ const Bloc &World::getBloc(glm::ivec3 position)
 
 World::World()
 {
-    texModel = CGE::Loader::resManager::getTexModel(1);
     Bloc *blocs = new Bloc[16 * 16 * 16];
     for(int i = 0; i < 16 * 16 * 16; ++i)
         blocs[i] = {1, 0};
     glm::ivec3 chunkPosition = {0, 0, 1};
-    chunks_[0][0][1] = new Chunk(blocs, this, chunkPosition);
+    chunks_[CHUNK_OFF_SET][CHUNK_OFF_SET][CHUNK_OFF_SET] = new Chunk(blocs, this, chunkPosition);
     auto display = CGE::IO::getDisplay();
     shader.start();
     shader.loadMatrix(CGE::Shader::PROJECTION, glm::perspectiveFov(45.0f, (float)display->width, (float)display->height, 0.1f, 100.0f));

@@ -32,4 +32,6 @@ struct Bloc
     short ID;
     //first 4 digits are the Block shape and 4 last are rotation
     char state;
+
+    bool operator ==(Bloc otherBloc);
 };

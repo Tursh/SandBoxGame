@@ -22,18 +22,20 @@ void World::tick()
     camera_.rotation_.y += mouse.x;
     camera_.rotation_.x -= mouse.y;
 
-    if(CGE::IO::input::isKeyPressed(GLFW_KEY_W))
+    if (CGE::IO::input::isKeyPressed(GLFW_KEY_W))
         camera_.position_.x -= 0.1f;
-    if(CGE::IO::input::isKeyPressed(GLFW_KEY_S))
+    if (CGE::IO::input::isKeyPressed(GLFW_KEY_S))
         camera_.position_.x += 0.1f;
-    if(CGE::IO::input::isKeyPressed(GLFW_KEY_A))
+    if (CGE::IO::input::isKeyPressed(GLFW_KEY_A))
         camera_.position_.z += 0.1f;
-    if(CGE::IO::input::isKeyPressed(GLFW_KEY_D))
+    if (CGE::IO::input::isKeyPressed(GLFW_KEY_D))
         camera_.position_.z -= 0.1f;
-    if(CGE::IO::input::isKeyPressed(GLFW_KEY_SPACE))
+    if (CGE::IO::input::isKeyPressed(GLFW_KEY_SPACE))
         camera_.position_.y += 0.1f;
-    if(CGE::IO::input::isKeyPressed(GLFW_KEY_LEFT_SHIFT))
+    if (CGE::IO::input::isKeyPressed(GLFW_KEY_LEFT_SHIFT))
         camera_.position_.y -= 0.1f;
+    if(CGE::IO::input::isKeyPressed(GLFW_KEY_E))
+        setBloc(camera_.position_, {0, 0});
 }
 
 void World::render()
@@ -41,13 +43,22 @@ void World::render()
     shader.start();
     shader.loadMatrix(CGE::Shader::VIEW, camera_.toViewMatrix());
     glEnable(GL_DEPTH_TEST);
+    glFrontFace(GL_CW);
+    glEnable(GL_CULL_FACE);
     for (auto &yChunks : chunks_)
         for (auto &zChunks : yChunks.second)
             for (auto &chunk : zChunks.second)
             {
-                chunk.second->render();
+                if(chunk.second->isLoaded())
+                {
+                    shader.loadMatrix(CGE::Shader::TRANSFORMATION,
+                                      glm::translate(glm::mat4(1), (glm::vec3) chunk.second->getChunkPosition() *
+                                                                   (float) CHUNK_SIZE));
+                    chunk.second->render();
+                }
             }
     glDisable(GL_DEPTH_TEST);
+    glDisable(GL_CULL_FACE);
     shader.stop();
 }
 
@@ -67,12 +78,12 @@ Chunk **World::getAroundChunk(glm::ivec3 chunkPosition)
 {
     auto **chunkList = new Chunk *[6];
 
-    chunkList[0] = getChunkByChunkPosition(chunkPosition + glm::ivec3(1, 0, 0));
-    chunkList[1] = getChunkByChunkPosition(chunkPosition + glm::ivec3(-1, 0, 0));
-    chunkList[2] = getChunkByChunkPosition(chunkPosition + glm::ivec3(0, 1, 0));
-    chunkList[3] = getChunkByChunkPosition(chunkPosition + glm::ivec3(0, -1, 0));
-    chunkList[4] = getChunkByChunkPosition(chunkPosition + glm::ivec3(0, 0, 1));
-    chunkList[5] = getChunkByChunkPosition(chunkPosition + glm::ivec3(0, 0, -1));
+    chunkList[0] = getChunkByChunkPosition(chunkPosition + glm::ivec3(-1, 0, 0));
+    chunkList[1] = getChunkByChunkPosition(chunkPosition + glm::ivec3(1, 0, 0));
+    chunkList[2] = getChunkByChunkPosition(chunkPosition + glm::ivec3(0, -1, 0));
+    chunkList[3] = getChunkByChunkPosition(chunkPosition + glm::ivec3(0, 1, 0));
+    chunkList[4] = getChunkByChunkPosition(chunkPosition + glm::ivec3(0, 0, -1));
+    chunkList[5] = getChunkByChunkPosition(chunkPosition + glm::ivec3(0, 0, 1));
 
     return chunkList;
 }
@@ -80,6 +91,7 @@ Chunk **World::getAroundChunk(glm::ivec3 chunkPosition)
 
 Chunk *World::getChunkByChunkPosition(glm::ivec3 chunkPosition)
 {
+    chunkPosition += CHUNK_OFF_SET;
     auto xChunks = chunks_.find(chunkPosition.x);
     if (xChunks != chunks_.end())
     {
@@ -120,12 +132,19 @@ const Bloc &World::getBloc(glm::ivec3 position)
 World::World()
 {
     Bloc *blocs = new Bloc[16 * 16 * 16];
-    for(int i = 0; i < 16 * 16 * 16; ++i)
+    for (int i = 0; i < 16 * 16 * 16; ++i)
         blocs[i] = {1, 0};
-    glm::ivec3 chunkPosition = {0, 0, 1};
+    glm::ivec3 chunkPosition = {0, 0, 0};
     chunks_[CHUNK_OFF_SET][CHUNK_OFF_SET][CHUNK_OFF_SET] = new Chunk(blocs, this, chunkPosition);
+    chunkPosition.x++;
+    Chunk *secondChunk = new Chunk(blocs, this, chunkPosition);
+    chunks_[CHUNK_OFF_SET + 1][CHUNK_OFF_SET][CHUNK_OFF_SET] = secondChunk;
+    secondChunk->updateChunksAround();
+
+
     auto display = CGE::IO::getDisplay();
     shader.start();
-    shader.loadMatrix(CGE::Shader::PROJECTION, glm::perspectiveFov(45.0f, (float)display->width, (float)display->height, 0.1f, 100.0f));
+    shader.loadMatrix(CGE::Shader::PROJECTION,
+                      glm::perspectiveFov(45.0f, (float) display->width, (float) display->height, 0.1f, 100.0f));
     shader.stop();
 }

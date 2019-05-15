@@ -51,11 +51,20 @@ namespace Blocs
     const unsigned int CUBE_INDICES[] =
             {
             0, 1, 2,
-            2, 3, 0
+            2, 3, 0,
+            //FOR RIGHT, TOP or BACK
+            0, 3, 2,
+            2, 1, 0
             };
 
     std::tuple<const float *, const unsigned int*> getFace(Face face)
     {
-        return std::make_tuple(&CUBE_VERTICES[face * FACE_VERTICES_COUNT], CUBE_INDICES);
+        int indicesOffset = (face == RIGHT || face == TOP || face == BACK) ? FACE_INDICES_COUNT : 0;
+        return std::make_tuple(CUBE_VERTICES + face * FACE_VERTICES_COUNT, CUBE_INDICES + indicesOffset);
     }
+}
+
+bool Bloc::operator==(Bloc otherBloc)
+{
+    return ID == otherBloc.ID && state == otherBloc.state;
 }

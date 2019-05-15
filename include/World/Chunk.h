@@ -13,7 +13,7 @@ extern const unsigned int CHUNK_SIZE;
 
 class World;
 
-class Chunk
+class Chunk : public CGE::Loader::TexturedModel
 {
     World *world_;
 
@@ -21,20 +21,28 @@ class Chunk
 
     Bloc *blocs_;
 
-    std::shared_ptr<CGE::Loader::Model> model_;
-
     void loadToTexModel();
+
+    void loadFace(const Bloc &currentBloc, std::vector<float> &vertices, std::vector<float> &texCoords,
+                  std::vector<unsigned int> &indices, int &x, int &y,
+                  int &z, Blocs::Face face);
 
 public:
     Chunk(Bloc *blocs, World *world, glm::ivec3 &chunkPosition);
 
+    //Reload the chunk
     void update();
 
-    void render();
+    //Reload the 6 chunk around this chunk
+    void updateChunksAround();
+
+    const glm::ivec3 &getChunkPosition() const;
 
     void setBloc(glm::ivec3 &position, Bloc &newBloc);
 
     const Bloc &getBloc(glm::ivec3 &position);
+
+    bool isLoaded();
 };
 
 

@@ -35,7 +35,7 @@ Chunk::loadFace(const Bloc &currentBloc, std::vector<float> &vertices, std::vect
         vertices[i + 2] += z * Blocs::CUBE_SIZE * 2;
     }
 
-    glm::vec4 currentTexCoords = texture_.get()->getTextureCoords(currentBloc.ID);
+    glm::vec4 currentTexCoords = texture_.get()->getTextureLimits(currentBloc.ID);
     currentTexCoords = {0.0625f, 1, 0.125f, 1 - 0.0625f};
     auto *texCoordsBuf = new float[4 * 2];
     texCoordsBuf[0] = currentTexCoords.z;
@@ -195,7 +195,7 @@ void Chunk::loadToTexModel()
 }
 
 Chunk::Chunk(Bloc *blocs, World *world, glm::ivec3 &chunkPosition)
-        : TexturedModel(nullptr, CGE::Loader::resManager::getTexture(1), CGE::Loader::Basic3DTexturedModel),
+        : TexturedModel(nullptr, CGE::Loader::resManager::getTexture(1), true),
           blocs_(blocs), world_(world), chunkPosition_(chunkPosition)
 {
     loadToTexModel();

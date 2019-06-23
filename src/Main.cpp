@@ -1,6 +1,6 @@
+#include <IO/Input.h>
 #include <iostream>
 #include <Engine.h>
-#include <IO/Input.h>
 #include <Utils/TimeUtils.h>
 #include <thread>
 #include <State/StateManager.h>
@@ -17,7 +17,7 @@ void init()
 
 void loopTick()
 {
-    auto display = CGE::IO::getDisplay();
+    auto display = CGE::IO::getWindow();
     while (!display->shouldClose())
     {
         while (CGE::Utils::shouldTick() && !display->shouldClose())
@@ -27,7 +27,7 @@ void loopTick()
 
 void loopRender()
 {
-    auto display = CGE::IO::getDisplay();
+    auto display = CGE::IO::getWindow();
 
     while (!display->shouldClose())
     {

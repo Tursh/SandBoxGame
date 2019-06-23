@@ -42,7 +42,15 @@ endif ()
 
 add_executable(SandBoxGame
         src/Main.cpp
-        src/States/PlayState.cpp include/States/PlayState.h src/World/World.cpp include/World/World.h src/World/Chunk.cpp include/World/Chunk.h include/World/Bloc.h src/World/Bloc.cpp)
+        src/States/PlayState.cpp
+        include/States/PlayState.h
+        src/World/World.cpp
+        include/World/World.h
+        src/World/Chunk.cpp
+        include/World/Chunk.h
+        include/World/Bloc.h
+        src/World/Bloc.cpp
+        src/World/Player.cpp)
 
 add_custom_command(TARGET SandBoxGame PRE_BUILD
         COMMAND ${CMAKE_COMMAND} -E create_symlink

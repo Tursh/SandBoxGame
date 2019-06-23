@@ -10,6 +10,8 @@
 #include <glm/vec3.hpp>
 #include <View/Camera.h>
 #include <Shader/ModelShader/BasicShader.h>
+#include <Utils/PerlinNoise.h>
+#include <World/Player.h>
 
 class World
 {
@@ -17,9 +19,13 @@ class World
 
     std::map<unsigned int, std::map<unsigned int, std::map<unsigned int, Chunk *>>> chunks_;
 
+    Entities::Player player_;
+
     CGE::View::Camera camera_;
 
     Chunk *getChunkByChunkPosition(glm::ivec3 chunkPosition);
+
+    CGE::Utils::PerlinNoise pn;
 public:
     World();
 

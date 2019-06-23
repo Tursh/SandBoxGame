@@ -5,9 +5,9 @@
 #include <glm/common.hpp>
 #include <glm/gtx/string_cast.hpp>
 #include <climits>
-#include <Utils/Log.h>
-#include <IO/Display.h>
 #include <IO/Input.h>
+#include <Utils/Log.h>
+#include <IO/Window.h>
 #include <Loader/RessourceManager.h>
 #include "World/World.h"
 
@@ -17,24 +17,12 @@ const unsigned int CHUNK_OFF_SET = UINT_MAX / 2;
 void World::tick()
 {
     //TODO create a world generator and check when the player move if chunks can be deleted
-    glm::vec2 mouse = CGE::IO::input::getCursorShifting();
 
-    camera_.rotation_.y += mouse.x;
-    camera_.rotation_.x -= mouse.y;
 
-    if (CGE::IO::input::isKeyPressed(GLFW_KEY_W))
-        camera_.position_.x -= 0.1f;
-    if (CGE::IO::input::isKeyPressed(GLFW_KEY_S))
-        camera_.position_.x += 0.1f;
-    if (CGE::IO::input::isKeyPressed(GLFW_KEY_A))
-        camera_.position_.z += 0.1f;
-    if (CGE::IO::input::isKeyPressed(GLFW_KEY_D))
-        camera_.position_.z -= 0.1f;
-    if (CGE::IO::input::isKeyPressed(GLFW_KEY_SPACE))
-        camera_.position_.y += 0.1f;
-    if (CGE::IO::input::isKeyPressed(GLFW_KEY_LEFT_SHIFT))
-        camera_.position_.y -= 0.1f;
-    if(CGE::IO::input::isKeyPressed(GLFW_KEY_E))
+    player_.move(0.25f, this);
+    camera_.followPlayer(&player_);
+
+    if (CGE::IO::input::isKeyPressed(GLFW_KEY_E))
         setBloc(camera_.position_, {0, 0});
 }
 
@@ -49,7 +37,7 @@ void World::render()
         for (auto &zChunks : yChunks.second)
             for (auto &chunk : zChunks.second)
             {
-                if(chunk.second->isLoaded())
+                if (chunk.second->isLoaded())
                 {
                     shader.loadMatrix(CGE::Shader::TRANSFORMATION,
                                       glm::translate(glm::mat4(1), (glm::vec3) chunk.second->getChunkPosition() *
@@ -65,7 +53,7 @@ void World::render()
 
 Chunk *World::getChunk(glm::ivec3 position)
 {
-    position = position / (int) CHUNK_SIZE + (int) CHUNK_OFF_SET;
+    position = position / (int) CHUNK_SIZE;
     return getChunkByChunkPosition(position);
 }
 
@@ -85,6 +73,7 @@ Chunk **World::getAroundChunk(glm::ivec3 chunkPosition)
     chunkList[4] = getChunkByChunkPosition(chunkPosition + glm::ivec3(0, 0, -1));
     chunkList[5] = getChunkByChunkPosition(chunkPosition + glm::ivec3(0, 0, 1));
 
+    Bloc *blocs = new Bloc[16 * 16 * 16];
     return chunkList;
 }
 
@@ -116,7 +105,8 @@ void World::setBloc(glm::ivec3 position, Bloc bloc)
     //Translate position to inside the chunk
     position -= position / (int) CHUNK_SIZE;
     //Set the bloc
-    chunk->setBloc(position, bloc);
+    if (chunk != nullptr)
+        chunk->setBloc(position, bloc);
 }
 
 const Bloc &World::getBloc(glm::ivec3 position)
@@ -124,27 +114,52 @@ const Bloc &World::getBloc(glm::ivec3 position)
     //Get the chunk where the Block is
     Chunk *chunk = getChunk(position);
     //Translate position to inside the chunk
-    position -= position / (int) CHUNK_SIZE;
+    position %= (int) CHUNK_SIZE;
+    if(position.x < 0)
+        position.x += 16;
+    if(position.y < 0)
+        position.y += 16;
+    if(position.z < 0)
+        position.z += 16;
     //return the bloc
-    return chunk->getBloc(position);
+    if (chunk != nullptr)
+        return chunk->getBloc(position);
+    else
+        return {Blocs::AIR, 0};
 }
 
 World::World()
+        : pn(1), player_(nullptr, {0, 50, 0})
 {
-    Bloc *blocs = new Bloc[16 * 16 * 16];
-    for (int i = 0; i < 16 * 16 * 16; ++i)
-        blocs[i] = {1, 0};
-    glm::ivec3 chunkPosition = {0, 0, 0};
-    chunks_[CHUNK_OFF_SET][CHUNK_OFF_SET][CHUNK_OFF_SET] = new Chunk(blocs, this, chunkPosition);
-    chunkPosition.x++;
-    Chunk *secondChunk = new Chunk(blocs, this, chunkPosition);
-    chunks_[CHUNK_OFF_SET + 1][CHUNK_OFF_SET][CHUNK_OFF_SET] = secondChunk;
-    secondChunk->updateChunksAround();
 
+    for (int i = -10; i <= 10; ++i)
+        for (int j = -10; j <= 10; ++j)
+        {
+            Bloc *blocs = new Bloc[16 * 16 * 16];
+            for (int k = 0; k < CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE; ++k)
+                blocs[k] = {0, 0};
+            for (int x = 0; x < CHUNK_SIZE; ++x)
+                for (int z = 0; z < CHUNK_SIZE; ++z)
+                {
+                    int y = pn.noise((double) (i * CHUNK_SIZE + x) / (double) (CHUNK_SIZE),
+                                     (double) (j * CHUNK_SIZE + z) / (double) (CHUNK_SIZE), 0) *
+                            CHUNK_SIZE;
+                    for (; y >= 0; --y)
+                    {
+                        blocs[x + CHUNK_SIZE * (z + CHUNK_SIZE * y)] = {1, 0};
+                    }
 
-    auto display = CGE::IO::getDisplay();
+                }
+            glm::ivec3 chunkPosition = {i, 0, j};
+            Chunk *newChunk = new Chunk(blocs, this, chunkPosition);
+            chunks_[CHUNK_OFF_SET + chunkPosition.x][CHUNK_OFF_SET + chunkPosition.y][CHUNK_OFF_SET +
+                                                                                      chunkPosition.z] = newChunk;
+            newChunk->updateChunksAround();
+        }
+
+    auto display = CGE::IO::getWindow();
     shader.start();
     shader.loadMatrix(CGE::Shader::PROJECTION,
-                      glm::perspectiveFov(45.0f, (float) display->width, (float) display->height, 0.1f, 100.0f));
+                      glm::perspectiveFov(45.0f, (float) display->getWidth(), (float) display->getHeight(), 0.1f, 1000.0f));
     shader.stop();
 }

@@ -15,17 +15,22 @@
 
 class World
 {
+private:
     CGE::Shader::BasicShader shader;
 
     std::map<unsigned int, std::map<unsigned int, std::map<unsigned int, Chunk *>>> chunks_;
 
-    Entities::Player player_;
+    std::vector<std::shared_ptr<CGE::Entities::Entity>> entities_;
+
+    Entities::Player *player_;
 
     CGE::View::Camera camera_;
 
     Chunk *getChunkByChunkPosition(glm::ivec3 chunkPosition);
 
     CGE::Utils::PerlinNoise pn;
+
+    const std::function<glm::vec3 (CGE::Entities::Entity*)> collisionFunction_;
 public:
     World();
 
@@ -36,12 +41,22 @@ public:
     Chunk *getChunk(glm::ivec3 position);
 
     Chunk *getChunk(const glm::vec3 &position);
+
     //Get the 6 chunks around a specific chunk
     Chunk **getAroundChunk(glm::ivec3 chunkPosition);
 
     void setBloc(glm::ivec3 position, Bloc bloc);
 
     const Bloc &getBloc(glm::ivec3 position);
+    
+    /**
+     * Return the list of hitbox in an aera
+     * @param area the to check for blocs
+     * @return the list of hitboxes
+     */
+    std::vector<Hitbox> getBlocHitboxs(Hitbox area);
+
+    void addEntity(std::shared_ptr<CGE::Entities::Entity> newEntity);
 };
 
 

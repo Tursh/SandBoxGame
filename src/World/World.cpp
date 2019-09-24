@@ -10,6 +10,8 @@
 #include <IO/Window.h>
 #include <Loader/RessourceManager.h>
 #include "World/World.h"
+#include <Utils/TimeUtils.h>
+#include <Text/TextRenderer.h>
 
 const unsigned int CHUNK_OFF_SET = UINT_MAX / 2;
 
@@ -18,12 +20,12 @@ void World::tick()
 {
     //TODO create a world generator and check when the player move if chunks can be deleted
 
-
-    player_.move(0.25f, this);
-    camera_.followPlayer(&player_);
-
-    if (CGE::IO::input::isKeyPressed(GLFW_KEY_E))
-        setBloc(camera_.position_, {0, 0});
+    player_->move(0.025f, this);
+    for (const auto &entity : entities_)
+    {
+        entity->update();
+    }
+    camera_.followPlayer(player_);
 }
 
 void World::render()
@@ -48,18 +50,22 @@ void World::render()
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
     shader.stop();
+    CGE::Text::textRenderer::renderText(glm::to_string(camera_.position_), -1, 0.95f, 0.1f, glm::vec3(1, 1, 1),
+                                        false);
 }
 
 
 Chunk *World::getChunk(glm::ivec3 position)
 {
-    position = position / (int) CHUNK_SIZE;
+    position = glm::floor((glm::vec3) position / (float) CHUNK_SIZE);
+    //logInfo("Chunk " << glm::to_string(position));
     return getChunkByChunkPosition(position);
 }
 
 Chunk *World::getChunk(const glm::vec3 &position)
 {
-    return getChunk(glm::round(position));
+    //logInfo("Player" << glm::to_string(position));
+    return getChunk((glm::ivec3) glm::floor(position));
 }
 
 Chunk **World::getAroundChunk(glm::ivec3 chunkPosition)
@@ -115,11 +121,11 @@ const Bloc &World::getBloc(glm::ivec3 position)
     Chunk *chunk = getChunk(position);
     //Translate position to inside the chunk
     position %= (int) CHUNK_SIZE;
-    if(position.x < 0)
+    if (position.x < 0)
         position.x += 16;
-    if(position.y < 0)
+    if (position.y < 0)
         position.y += 16;
-    if(position.z < 0)
+    if (position.z < 0)
         position.z += 16;
     //return the bloc
     if (chunk != nullptr)
@@ -128,9 +134,29 @@ const Bloc &World::getBloc(glm::ivec3 position)
         return {Blocs::AIR, 0};
 }
 
-World::World()
-        : pn(1), player_(nullptr, {0, 50, 0})
+static glm::vec3 checkCollision(CGE::Entities::Entity *entity, World *world)
 {
+
+    Hitbox entityHitbox = entity->getHitbox();
+    glm::vec3 movement = entity->getSpeed();
+
+    std::vector<Hitbox> blocHitboxes = world->getBlocHitboxs(entityHitbox.expand(1));
+
+    for (Hitbox hitbox : blocHitboxes)
+    {
+        for (int axis = 0; axis < 3; ++axis)
+            movement[axis] = hitbox.checkIfCollideInAxis(entityHitbox, axis, movement[axis]);
+    }
+
+    return entity->getOldPosition() + movement;
+}
+
+World::World()
+        : pn(1),
+          player_(new Entities::Player(nullptr, {0, 15, 0})),
+          collisionFunction_(std::bind(&checkCollision, std::placeholders::_1, this))
+{
+    addEntity(std::shared_ptr<CGE::Entities::Entity>(player_));
 
     for (int i = -10; i <= 10; ++i)
         for (int j = -10; j <= 10; ++j)
@@ -160,6 +186,33 @@ World::World()
     auto display = CGE::IO::getWindow();
     shader.start();
     shader.loadMatrix(CGE::Shader::PROJECTION,
-                      glm::perspectiveFov(45.0f, (float) display->getWidth(), (float) display->getHeight(), 0.1f, 1000.0f));
+                      glm::perspectiveFov(45.0f, (float) display->getWidth(), (float) display->getHeight(), 0.1f,
+                                          1000.0f));
     shader.stop();
+}
+
+void World::addEntity(std::shared_ptr<CGE::Entities::Entity> newEntity)
+{
+    entities_.push_back(newEntity);
+    newEntity->setCollisionFunc(collisionFunction_);
+}
+
+std::vector<Hitbox> World::getBlocHitboxs(Hitbox area)
+{
+    std::vector<Hitbox> hitboxes;
+
+    glm::ivec3 negLimit = glm::floor(area.getNegBorder());
+    glm::ivec3 posLimit = glm::floor(area.getPosBorder());
+
+    //Iterate through every blocs in the area
+    for (int x = negLimit.x; x < posLimit.x; ++x)
+        for (int y = negLimit.y; y < posLimit.y; ++y)
+            for (int z = negLimit.z; z < posLimit.z; ++z)
+            {
+                //If it's not air, there is a bloc, so an hitbox
+                if (getBloc({x, y, z}).ID != Blocs::AIR)
+                    hitboxes.push_back(Hitbox(x, x + 1, y, y + 1, z, z + 1));
+            }
+
+    return hitboxes;
 }

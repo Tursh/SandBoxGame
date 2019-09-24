@@ -4,14 +4,15 @@
 #include <Utils/TimeUtils.h>
 #include <thread>
 #include <State/StateManager.h>
+#include <Text/TextRenderer.h>
 #include "States/PlayState.h"
 
 void init()
 {
     CGE::initEngine("Sand Box Game", 1280, 720, false);
-    //CGE::IO::input::grabMouse();
+    CGE::Text::textRenderer::init("res/graphics/fonts/Archivo-Regular.ttf");
     CGE::Utils::initTPSClock();
-
+    //CGE::IO::input::grabMouse();
     CGE::State::stateManager::createCurrentState<PlayState>();
 }
 
@@ -20,8 +21,10 @@ void loopTick()
     auto display = CGE::IO::getWindow();
     while (!display->shouldClose())
     {
-        while (CGE::Utils::shouldTick() && !display->shouldClose())
+        while (!display->shouldClose() && CGE::Utils::shouldTick())
+        {
             CGE::State::stateManager::getCurrentState()->tick();
+        }
     }
 }
 
@@ -44,9 +47,12 @@ void terminate()
 int main()
 {
     init();
+    //Start asynchronously the tick and render loop
     std::thread tickThread(loopTick);
     loopRender();
+    //Wait for the two loops to end
     tickThread.join();
+
     terminate();
-    return 0;
+    return EXIT_SUCCESS;
 }

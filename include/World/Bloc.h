@@ -6,11 +6,25 @@
 
 #include <tuple>
 
+
+struct Bloc
+{
+    short ID;
+    //first 4 digits are the Block shape and 4 last are rotation
+    char state;
+
+    //Compare their ID and state
+    bool operator==(const Bloc &otherBloc) const;
+};
+
 namespace Blocs
 {
+
     extern const short
             AIR,
             DIRT;
+
+    extern const Bloc AIR_BLOC;
 
     extern const float CUBE_SIZE;
 
@@ -26,12 +40,3 @@ namespace Blocs
 
     std::tuple<const float *, const unsigned int *> getFace(Face face);
 }
-
-struct Bloc
-{
-    short ID;
-    //first 4 digits are the Block shape and 4 last are rotation
-    char state;
-
-    bool operator ==(Bloc otherBloc);
-};

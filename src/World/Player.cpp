@@ -10,6 +10,7 @@
 #include <World/Player.h>
 #include <World/World.h>
 #include <Loader/Models/TwoDAnimatedModel.h>
+#include <Text/TextRenderer.h>
 
 #define GLM_ENABLE_EXPERIMENTAL
 
@@ -21,7 +22,7 @@
 namespace Entities
 {
 
-    const float PLAYER_HEIGHT = 3, PLAYER_WIDTH = 2;
+    const glm::vec3 PLAYER_SIZE(1, 2, 1);
 
     Player::Player(unsigned int texModelID)
             : Entity(texModelID, glm::vec3(0, 0, 0.1f), glm::vec3(0.7853f * 2, 0, 0)) {}
@@ -31,70 +32,60 @@ namespace Entities
 
     void Player::move(float speed, World *world)
     {
-        //We start with a 3D vector of (0, 0, 0)
-        glm::vec3 relativeMovement(0);
 
-        //If there is a opened panel, the
+        //We start with a 3D vector of (0, 0, 0)
+        glm::vec3 relativeForces(0);
+
+        //If there is a opened panel, rotate camera depending on the mouse forces
         if (!CGE::IO::input::isPanelVisible())
         {
-            //I added this scope to reuse the variable name "rotation"
-            {
-                glm::vec2 mouse = CGE::IO::input::getCursorShifting();
-                glm::vec3 rotation(mouse.y, mouse.x, 0);
-                rotate(rotation);
-            }
+            //Get mouse input
+            glm::vec2 mouse = CGE::IO::input::getCursorShifting();
+            rotate({-mouse.y, mouse.x, 0});
 
-            //Get inputs
+
+            //Get key inputs
             if (CGE::IO::input::isKeyPressed(GLFW_KEY_W))
-                relativeMovement.z -= 1;
+                relativeForces.z -= 1;
             if (CGE::IO::input::isKeyPressed(GLFW_KEY_S))
-                relativeMovement.z += 1;
+                relativeForces.z += 1;
             if (CGE::IO::input::isKeyPressed(GLFW_KEY_A))
-                relativeMovement.x -= 1;
+                relativeForces.x -= 1;
             if (CGE::IO::input::isKeyPressed(GLFW_KEY_D))
-                relativeMovement.x += 1;
+                relativeForces.x += 1;
+            if (CGE::IO::input::isKeyPressed(GLFW_KEY_LEFT_SHIFT))
+                relativeForces.y -= 1;
+            if (CGE::IO::input::isKeyPressed(GLFW_KEY_SPACE))
+                relativeForces.y += 1;
+
         }
 
-        relativeMovement.y -= 1;
 
-        //If there was no movement
-        if (!(glm::length(relativeMovement) < 0.0001f))
-            relativeMovement = glm::normalize(relativeMovement);
 
-        relativeMovement *= speed;
+        //Normalize the relative forces so that the speed is the same in all orientations
+        if (!(glm::length(relativeForces) < 0.0001f))
+            relativeForces = glm::normalize(relativeForces);
 
-        //Get player rotation vector
-        glm::vec3 ar = getRotation();
+        relativeForces *= speed;
+
+        //Orientate the forces
+        glm::vec3 ar = getRenderRotation();
 
         auto s = (float) sin((double) ar.y);
         auto c = (float) cos((double) ar.y);
 
-        glm::vec3 movement = relativeMovement;
+        glm::vec3 forces = relativeForces;
 
-        movement.z = relativeMovement.x * s + relativeMovement.z * c;
-        movement.x = relativeMovement.x * c - relativeMovement.z * s;
+        forces.z = relativeForces.x * s + relativeForces.z * c;
+        forces.x = relativeForces.x * c - relativeForces.z * s;
 
-        //Get player position vector
-        glm::vec3 ap = getPosition();
+        addForce(1, forces);
 
-        glm::vec3 futurPosition = ap + movement;
+    }
 
-
-        const Bloc &floorBloc = world->getBloc(
-                {futurPosition.x, (int) futurPosition.y - 1, futurPosition.z});
-
-        if (floorBloc.ID != Blocs::AIR)
-        {
-            futurPosition.y = std::floor(futurPosition.y) + 0.5f;
-
-            if (CGE::IO::input::isKeyPressed(GLFW_KEY_SPACE))
-                futurPosition.y += 1;
-        }
-
-        movement = futurPosition - ap;
-
-        CGE::Entities::Entity::move(movement);
-
+    const glm::vec3 &Player::getSize()
+    {
+        return PLAYER_SIZE;
     }
 
 }

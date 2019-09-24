@@ -24,6 +24,8 @@ namespace Entities
                         glm::vec3 rotation = glm::vec3(0));
 
         void move(float speed, World *terrain);
+
+        virtual const glm::vec3 &getSize() override;
     };
 
 }

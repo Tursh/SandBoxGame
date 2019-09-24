@@ -12,6 +12,8 @@ class PlayState : public CGE::State::State
 {
     World world;
 public:
+    PlayState();
+
     void tick() override;
 
     void draw() override;

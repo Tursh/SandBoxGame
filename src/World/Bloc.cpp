@@ -10,6 +10,8 @@ namespace Blocs
             AIR = 0,
             DIRT = 1;
 
+    const Bloc AIR_BLOC = {AIR, 0};
+
     const float CUBE_SIZE = 0.5f;
 
     const unsigned int FACE_VERTICES_COUNT = 4 * 3, FACE_INDICES_COUNT = 2 * 3;
@@ -64,7 +66,7 @@ namespace Blocs
     }
 }
 
-bool Bloc::operator==(Bloc otherBloc)
+bool Bloc::operator==(const Bloc &otherBloc) const
 {
     return ID == otherBloc.ID && state == otherBloc.state;
 }

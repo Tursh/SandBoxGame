@@ -30,20 +30,6 @@ private:
 
     const std::function<glm::vec3(CGE::Entities::Entity *)> collisionFunction_;
 
-    /**
-     * Get the chunk at "chunkPosition"
-     * @param chunkPosition chunk location (in chunk position = bloc position / 16)
-     * @return The chunk at "chunkPosition"
-     */
-    Chunk *getChunkByChunkPosition(glm::ivec3 chunkPosition);
-
-    /**
-     * Translate the position in world to position in chunk
-     * @param blocPosition Bloc position in the world
-     * @return Bloc position in its chunk
-     */
-    glm::ivec3 getPositionInChunk(glm::ivec3 &blocPosition) const;
-
 public:
     World();
 
@@ -73,6 +59,20 @@ public:
 
     //Get the 6 chunks around a specific chunk
     Chunk **getAroundChunk(glm::ivec3 chunkPosition);
+
+    /**
+     * Get the chunk at "chunkPosition"
+     * @param chunkPosition chunk location (in chunk position = bloc position / 16)
+     * @return The chunk at "chunkPosition"
+     */
+    Chunk *getChunkByChunkPosition(glm::ivec3 chunkPosition);
+
+    /**
+     * Translate the position in world to position in chunk
+     * @param blocPosition Bloc position in the world
+     * @return Bloc position in its chunk
+     */
+    glm::ivec3 getPositionInChunk(glm::ivec3 &blocPosition) const;
 
     /**
      * Set a bloc at a specific location

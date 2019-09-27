@@ -59,6 +59,8 @@ void World::render()
 
     CGE::Text::textRenderer::renderText(glm::to_string(camera_.getRotationInNormalizedVector()), -1, 0.90f, 0.1f, glm::vec3(1, 1, 1),
                                         false);
+    CGE::Text::textRenderer::renderText(glm::to_string(glm::ivec3(camera_.position_) / 16), -1, 0.85f, 0.1f, glm::vec3(1, 1, 1),
+                                        false);
 }
 
 

@@ -59,8 +59,6 @@ Chunk::loadFace(const Bloc &currentBloc, std::vector<float> &vertices, std::vect
 
 void Chunk::loadToTexModel()
 {
-
-
     //First get the six around this one
     Chunk **chunkList = world_->getAroundChunk(chunkPosition_);
 
@@ -246,39 +244,39 @@ void Chunk::setBloc(glm::ivec3 &position, Bloc &newBloc)
         {
             glm::ivec3 chunkPosition = chunkPosition_;
             --chunkPosition.x;
-            Chunk *neighborChunk = world_->getChunk(chunkPosition);
+            Chunk *neighborChunk = world_->getChunkByChunkPosition(chunkPosition);
             if (neighborChunk != nullptr) neighborChunk->update();
         } else if (position.x == CHUNK_SIZE - 1)
         {
             glm::ivec3 chunkPosition = chunkPosition_;
             ++chunkPosition.x;
-            Chunk *neighborChunk = world_->getChunk(chunkPosition);
+            Chunk *neighborChunk = world_->getChunkByChunkPosition(chunkPosition);
             if (neighborChunk != nullptr) neighborChunk->update();
         }
         if (position.y == 0)
         {
             glm::ivec3 chunkPosition = chunkPosition_;
             --chunkPosition.y;
-            Chunk *neighborChunk = world_->getChunk(chunkPosition);
+            Chunk *neighborChunk = world_->getChunkByChunkPosition(chunkPosition);
             if (neighborChunk != nullptr) neighborChunk->update();
         } else if (position.y == CHUNK_SIZE - 1)
         {
             glm::ivec3 chunkPosition = chunkPosition_;
             ++chunkPosition.y;
-            Chunk *neighborChunk = world_->getChunk(chunkPosition);
+            Chunk *neighborChunk = world_->getChunkByChunkPosition(chunkPosition);
             if (neighborChunk != nullptr) neighborChunk->update();
         }
         if (position.z == 0)
         {
             glm::ivec3 chunkPosition = chunkPosition_;
             --chunkPosition.z;
-            Chunk *neighborChunk = world_->getChunk(chunkPosition);
+            Chunk *neighborChunk = world_->getChunkByChunkPosition(chunkPosition);
             if (neighborChunk != nullptr) neighborChunk->update();
         } else if (position.z == CHUNK_SIZE - 1)
         {
             glm::ivec3 chunkPosition = chunkPosition_;
             ++chunkPosition.z;
-            Chunk *neighborChunk = world_->getChunk(chunkPosition);
+            Chunk *neighborChunk = world_->getChunkByChunkPosition(chunkPosition);
             if (neighborChunk != nullptr) neighborChunk->update();
         }
     }

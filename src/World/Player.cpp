@@ -24,11 +24,15 @@ namespace Entities
 
     const glm::vec3 PLAYER_SIZE(1, 2, 1);
 
-    Player::Player(unsigned int texModelID)
-            : Entity(texModelID, glm::vec3(0, 0, 0.1f), glm::vec3(0.7853f * 2, 0, 0)) {}
+    const float hitCooldown = 0.5f;
 
-    Player::Player(CGE::Loader::TexturedModel *texModel, glm::vec3 position, glm::vec3 rotation)
-            : Entity(std::shared_ptr<CGE::Loader::TexturedModel>(texModel), position, rotation) {}
+    Player::Player(unsigned int texModelID, CGE::View::Camera &camera)
+            : Entity(texModelID, glm::vec3(0, 0, 0.1f), glm::vec3(0.7853f * 2, 0, 0)), camera_(camera) {}
+
+    Player::Player(CGE::Loader::TexturedModel *texModel, CGE::View::Camera &camera, glm::vec3 position,
+                   glm::vec3 rotation)
+            : Entity(std::shared_ptr<CGE::Loader::TexturedModel>(texModel), position, rotation),
+              camera_(camera) {}
 
     void Player::move(float speed, World *world)
     {
@@ -53,10 +57,15 @@ namespace Entities
                 relativeForces.x -= 1;
             if (CGE::IO::input::isKeyPressed(GLFW_KEY_D))
                 relativeForces.x += 1;
-            if (CGE::IO::input::isKeyPressed(GLFW_KEY_LEFT_SHIFT))
-                relativeForces.y -= 1;
-            if (CGE::IO::input::isKeyPressed(GLFW_KEY_SPACE))
-                relativeForces.y += 1;
+            //if (CGE::IO::input::isKeyPressed(GLFW_KEY_LEFT_SHIFT))
+            //    relativeForces.y -= 1;
+            if (CGE::IO::input::isKeyPressed(GLFW_KEY_SPACE) && isOnGround())
+            {
+                glm::vec3 speed = getSpeed();
+                speed.y = 0;
+                setSpeed(speed);
+                addForce(3, glm::vec3(0, 0.2f, 0));
+            }
 
         }
 
@@ -88,4 +97,27 @@ namespace Entities
         return PLAYER_SIZE;
     }
 
+    double lastHit = 0.0f;
+
+    void Player::checkAction(World *world)
+    {
+        if (CGE::IO::input::isButtonPressed(GLFW_MOUSE_BUTTON_1))
+        {
+            if (glfwGetTime() - lastHit > hitCooldown)
+            {
+                hit(world);
+                lastHit = glfwGetTime();
+            }
+        } else
+            lastHit = 0.0f;
+    }
+
+    void Player::hit(World *world)
+    {
+        glm::vec3 hitBlocPosition = world->getPickedBloc(6.0f);
+
+        world->setBloc(hitBlocPosition, Blocs::AIR_BLOC);
+
+        logInfo(glm::to_string(hitBlocPosition));
+    }
 }

@@ -15,6 +15,9 @@ struct Bloc
 
     //Compare their ID and state
     bool operator==(const Bloc &otherBloc) const;
+
+    //Compare their ID and state
+    bool operator!=(const Bloc &otherBloc) const;
 };
 
 namespace Blocs

@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.14)
 
-set(BUILD_SHARED_LIBS ON)
+set(BUILD_SHARED_LIBS OFF)
 
 #Set the output directory
 set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE})
@@ -34,7 +34,7 @@ endif ()
 
 if (NOT BUILD_SHARED_LIBS)
     if (NOT WIN32)
-        link_libraries(freetype GLEW glfw tinyxml2)
+        link_libraries(freetype GLEW glfw tinyxml2 pthread)
     else ()
         link_libraries(freetype glew32 glfw3 tinyxml2)
     endif ()

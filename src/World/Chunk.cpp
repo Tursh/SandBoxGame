@@ -30,9 +30,9 @@ Chunk::loadFace(const Bloc &currentBloc, std::vector<float> &vertices, std::vect
 
     for (int i = index; i < vertices.size(); i += 3)
     {
-        vertices[i] += x * Blocs::CUBE_SIZE * 2;
-        vertices[i + 1] += y * Blocs::CUBE_SIZE * 2;
-        vertices[i + 2] += z * Blocs::CUBE_SIZE * 2;
+        vertices[i] += x * Blocs::CUBE_SIZE;
+        vertices[i + 1] += y * Blocs::CUBE_SIZE;
+        vertices[i + 2] += z * Blocs::CUBE_SIZE;
     }
 
     glm::vec4 currentTexCoords = texture_.get()->getTextureLimits(currentBloc.ID);

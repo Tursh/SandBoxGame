@@ -12,7 +12,7 @@ namespace Blocs
 
     const Bloc AIR_BLOC = {AIR, 0};
 
-    const float CUBE_SIZE = 0.5f;
+    const float CUBE_SIZE = 1.0f;
 
     const unsigned int FACE_VERTICES_COUNT = 4 * 3, FACE_INDICES_COUNT = 2 * 3;
 
@@ -20,34 +20,34 @@ namespace Blocs
             {
                     //TOP
                     CUBE_SIZE, CUBE_SIZE, CUBE_SIZE,
-                    CUBE_SIZE, CUBE_SIZE, -CUBE_SIZE,
-                    -CUBE_SIZE, CUBE_SIZE, -CUBE_SIZE,
-                    -CUBE_SIZE, CUBE_SIZE, CUBE_SIZE,
+                    CUBE_SIZE, CUBE_SIZE, 0,
+                    0, CUBE_SIZE, 0,
+                    0, CUBE_SIZE, CUBE_SIZE,
                     //BOTTOM
-                    CUBE_SIZE, -CUBE_SIZE, CUBE_SIZE,
-                    CUBE_SIZE, -CUBE_SIZE, -CUBE_SIZE,
-                    -CUBE_SIZE, -CUBE_SIZE, -CUBE_SIZE,
-                    -CUBE_SIZE, -CUBE_SIZE, CUBE_SIZE,
+                    CUBE_SIZE, 0, CUBE_SIZE,
+                    CUBE_SIZE, 0, 0,
+                    0, 0, 0,
+                    0, 0, CUBE_SIZE,
                     //RIGHT
-                    CUBE_SIZE, -CUBE_SIZE, CUBE_SIZE,
-                    CUBE_SIZE, -CUBE_SIZE, -CUBE_SIZE,
-                    CUBE_SIZE, CUBE_SIZE, -CUBE_SIZE,
+                    CUBE_SIZE, 0, CUBE_SIZE,
+                    CUBE_SIZE, 0, 0,
+                    CUBE_SIZE, CUBE_SIZE, 0,
                     CUBE_SIZE, CUBE_SIZE, CUBE_SIZE,
                     //LEFT
-                    -CUBE_SIZE, -CUBE_SIZE, CUBE_SIZE,
-                    -CUBE_SIZE, -CUBE_SIZE, -CUBE_SIZE,
-                    -CUBE_SIZE, CUBE_SIZE, -CUBE_SIZE,
-                    -CUBE_SIZE, CUBE_SIZE, CUBE_SIZE,
+                    0, 0, CUBE_SIZE,
+                    0, 0, 0,
+                    0, CUBE_SIZE, 0,
+                    0, CUBE_SIZE, CUBE_SIZE,
                     //FRONT
-                    CUBE_SIZE, -CUBE_SIZE, CUBE_SIZE,
-                    -CUBE_SIZE, -CUBE_SIZE, CUBE_SIZE,
-                    -CUBE_SIZE, CUBE_SIZE, CUBE_SIZE,
+                    CUBE_SIZE, 0, CUBE_SIZE,
+                    0, 0, CUBE_SIZE,
+                    0, CUBE_SIZE, CUBE_SIZE,
                     CUBE_SIZE, CUBE_SIZE, CUBE_SIZE,
                     //BACK
-                    CUBE_SIZE, -CUBE_SIZE, -CUBE_SIZE,
-                    -CUBE_SIZE, -CUBE_SIZE, -CUBE_SIZE,
-                    -CUBE_SIZE, CUBE_SIZE, -CUBE_SIZE,
-                    CUBE_SIZE, CUBE_SIZE, -CUBE_SIZE,
+                    CUBE_SIZE, 0, 0,
+                    0, 0, 0,
+                    0, CUBE_SIZE, 0,
+                    CUBE_SIZE, CUBE_SIZE, 0,
             };
 
     const unsigned int CUBE_INDICES[] =
@@ -69,4 +69,9 @@ namespace Blocs
 bool Bloc::operator==(const Bloc &otherBloc) const
 {
     return ID == otherBloc.ID && state == otherBloc.state;
+}
+
+bool Bloc::operator!=(const Bloc &otherBloc) const
+{
+    return !(*this == otherBloc);
 }

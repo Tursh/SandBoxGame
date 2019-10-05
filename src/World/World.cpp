@@ -2,16 +2,14 @@
 // Created by tursh on 4/30/19.
 //
 
+#include "World/World.h"
 #include <glm/common.hpp>
 #include <glm/gtx/string_cast.hpp>
 #include <climits>
-#include <IO/Input.h>
-#include <Utils/Log.h>
 #include <IO/Window.h>
-#include <Loader/RessourceManager.h>
-#include "World/World.h"
 #include <Utils/TimeUtils.h>
 #include <Text/TextRenderer.h>
+#include <Utils/Log.h>
 
 const unsigned int CHUNK_OFF_SET = UINT_MAX / 2;
 
@@ -27,6 +25,7 @@ void World::tick()
     }
     camera_.followPlayer(player_);
     player_->checkAction(this);
+    chunkManager_.tick();
 }
 
 void World::render()
@@ -57,9 +56,11 @@ void World::render()
     CGE::Text::textRenderer::renderText("X", 0, 0, 0.2f, glm::vec3(1, 1, 1),
                                         false);
 
-    CGE::Text::textRenderer::renderText(glm::to_string(camera_.getRotationInNormalizedVector()), -1, 0.90f, 0.1f, glm::vec3(1, 1, 1),
+    CGE::Text::textRenderer::renderText(glm::to_string(camera_.getRotationInNormalizedVector()), -1, 0.90f, 0.1f,
+                                        glm::vec3(1, 1, 1),
                                         false);
-    CGE::Text::textRenderer::renderText(glm::to_string(glm::ivec3(camera_.position_) / 16), -1, 0.85f, 0.1f, glm::vec3(1, 1, 1),
+    CGE::Text::textRenderer::renderText(glm::to_string(getChunkPosition(camera_.position_)), -1, 0.85f, 0.1f,
+                                        glm::vec3(1, 1, 1),
                                         false);
 }
 
@@ -86,7 +87,6 @@ Chunk **World::getAroundChunk(glm::ivec3 chunkPosition)
     chunkList[4] = getChunkByChunkPosition(chunkPosition + glm::ivec3(0, 0, -1));
     chunkList[5] = getChunkByChunkPosition(chunkPosition + glm::ivec3(0, 0, 1));
 
-    Bloc *blocs = new Bloc[16 * 16 * 16];
     return chunkList;
 }
 
@@ -132,12 +132,11 @@ const Bloc &World::getBloc(glm::ivec3 position)
     if (chunk != nullptr)
         return chunk->getBloc(position);
     else
-        return {Blocs::AIR, 0};
+        return Blocs::AIR_BLOC;
 }
 
 static glm::vec3 checkCollision(CGE::Entities::Entity *entity, World *world)
 {
-
     Hitbox entityHitbox = entity->getHitbox();
     glm::vec3 movement = entity->getSpeed();
 
@@ -152,44 +151,32 @@ static glm::vec3 checkCollision(CGE::Entities::Entity *entity, World *world)
     return entity->getOldPosition() + movement;
 }
 
+
 World::World()
-        : pn(1),
-          player_(new Entities::Player(nullptr, camera_, {0, 15, 0})),
-          collisionFunction_(std::bind(&checkCollision, std::placeholders::_1, this))
+        : player_(new Entities::Player(nullptr, camera_, {0, 15, 0})),
+          collisionFunction_(std::bind(&checkCollision, std::placeholders::_1, this)),
+          chunkManager_(player_, this, chunks_)
 {
     addEntity(std::shared_ptr<CGE::Entities::Entity>(player_));
 
-    for (int i = -10; i <= 10; ++i)
-        for (int j = -10; j <= 10; ++j)
-        {
-            Bloc *blocs = new Bloc[16 * 16 * 16];
-            for (int k = 0; k < CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE; ++k)
-                blocs[k] = {0, 0};
-            for (int x = 0; x < CHUNK_SIZE; ++x)
-                for (int z = 0; z < CHUNK_SIZE; ++z)
-                {
-                    int y = pn.noise((double) (i * CHUNK_SIZE + x) / (double) (CHUNK_SIZE),
-                                     (double) (j * CHUNK_SIZE + z) / (double) (CHUNK_SIZE), 0) *
-                            CHUNK_SIZE;
-                    for (; y >= 0; --y)
-                    {
-                        blocs[x + CHUNK_SIZE * (z + CHUNK_SIZE * y)] = {1, 0};
-                    }
-
-                }
-            glm::ivec3 chunkPosition = {i, 0, j};
-            Chunk *newChunk = new Chunk(blocs, this, chunkPosition);
-            chunks_[CHUNK_OFF_SET + chunkPosition.x][CHUNK_OFF_SET + chunkPosition.y][CHUNK_OFF_SET +
-                                                                                      chunkPosition.z] = newChunk;
-            newChunk->updateChunksAround();
-        }
+    Bloc *blocs = new Bloc[(int)pow(CHUNK_SIZE, 3)];
+    for(int i = 0; i < CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE; ++i)
+        blocs[i] = {1, 0};
+    glm::ivec3 chunkPosition = {0, -1, 0};
+    Chunk *newChunk = new Chunk(blocs, this, chunkPosition);
+    chunks_[CHUNK_OFF_SET + chunkPosition.x][CHUNK_OFF_SET + chunkPosition.y][CHUNK_OFF_SET +
+                                                                              chunkPosition.z] = newChunk;
 
     auto display = CGE::IO::getWindow();
     shader.start();
+
     shader.loadMatrix(CGE::Shader::PROJECTION,
-                      glm::perspectiveFov(45.0f, (float) display->getWidth(), (float) display->getHeight(), 0.1f,
-                                          1000.0f));
+                       glm::perspectiveFov(45.0f, (float) display->getWidth(), (float) display->getHeight(), 0.1f,
+                                           1000.0f)
+    );
     shader.stop();
+
+
 }
 
 void World::addEntity(std::shared_ptr<CGE::Entities::Entity> newEntity)
@@ -213,7 +200,8 @@ std::vector<Hitbox> World::getBlocHitboxs(Hitbox area)
                 //TODO: get the chunk then check inside the chunk (for better performance)
                 //If it's not air, there is a bloc, so an hitbox
                 if (getBloc({x, y, z}).ID != Blocs::AIR)
-                    hitboxes.emplace_back(x, x + 1, y, y + 1, z, z + 1);
+                    hitboxes.push_back(
+                            Hitbox((float) x, (float) x + 1, (float) y, (float) y + 1, (float) z, (float) z + 1));
             }
 
     return hitboxes;
@@ -230,12 +218,8 @@ glm::ivec3 World::getPickedBloc(float raySize)
                    rayOrientation.y > 0.0f,
                    rayOrientation.z > 0.0f};
 
-    int i = 0;
-
     while (true)
     {
-        ++i;
-        logInfo(i << ": " << glm::to_string(rayPosition));
         //Calculate the distance between the closest possible bloc from the ray position
         glm::vec3 delta;
         for (int axis = 0; axis < 3; ++axis)
@@ -270,21 +254,19 @@ glm::ivec3 World::getPickedBloc(float raySize)
         }
 
         //If there is no bloc
-        if(raySize < 0.0f)
+        if (raySize < 0.0f)
             return glm::ivec3(INT_MAX);
 
 
         blocPosition = glm::floor(rayPosition);
 
-        if(getBloc(blocPosition) != Blocs::AIR_BLOC)
+        if (getBloc(blocPosition) != Blocs::AIR_BLOC)
             return blocPosition;
 
     }
-
-
 }
 
-glm::ivec3 World::getPositionInChunk(glm::ivec3 &blocPosition) const
+glm::ivec3 World::getPositionInChunk(glm::ivec3 blocPosition)
 {
     blocPosition %= (int) CHUNK_SIZE;
     if (blocPosition.x < 0)
@@ -295,4 +277,22 @@ glm::ivec3 World::getPositionInChunk(glm::ivec3 &blocPosition) const
         blocPosition.z += 16;
 
     return blocPosition;
+}
+
+glm::ivec3 World::getChunkPosition(glm::ivec3 blocPosition)
+{
+    glm::ivec3 chunkPosition = blocPosition / 16;
+
+    for (int axis = 0; axis < 3; ++axis)
+        chunkPosition[axis] -= blocPosition[axis] < 0 ? 1 : 0;
+
+    return chunkPosition;
+}
+
+void World::addChunk(Chunk *newChunk)
+{
+    const glm::ivec3 &chunkPosition = newChunk->getChunkPosition();
+    chunks_[CHUNK_OFF_SET + chunkPosition.x]
+    [CHUNK_OFF_SET + chunkPosition.y]
+    [CHUNK_OFF_SET + chunkPosition.z] = newChunk;
 }

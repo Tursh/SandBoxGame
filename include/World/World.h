@@ -4,8 +4,9 @@
 
 #pragma once
 
-#include "Bloc.h"
-#include "Chunk.h"
+#include "World/Terrain/Bloc.h"
+#include "World/Terrain/Chunk.h"
+#include "World/Terrain/ChunkManager.h"
 #include <map>
 #include <glm/vec3.hpp>
 #include <View/Camera.h>
@@ -26,9 +27,9 @@ private:
 
     CGE::View::Camera camera_;
 
-    CGE::Utils::PerlinNoise pn;
-
     const std::function<glm::vec3(CGE::Entities::Entity *)> collisionFunction_;
+
+    ChunkManager chunkManager_;
 
 public:
     World();
@@ -42,6 +43,8 @@ public:
      * Render the terrain and the entities
      */
     void render();
+
+    void addChunk(Chunk *chunk);
 
     /**
      * Get the chunk where the bloc at "position" location
@@ -72,7 +75,14 @@ public:
      * @param blocPosition Bloc position in the world
      * @return Bloc position in its chunk
      */
-    glm::ivec3 getPositionInChunk(glm::ivec3 &blocPosition) const;
+    static glm::ivec3 getPositionInChunk(glm::ivec3 blocPosition);
+
+    /**
+     * Get the position of the chunk that the bloc is located
+     * @param blocPosition The position of the bloc in the world
+     * @return The position of the chunk
+     */
+    static glm::ivec3 getChunkPosition(glm::ivec3 blocPosition);
 
     /**
      * Set a bloc at a specific location

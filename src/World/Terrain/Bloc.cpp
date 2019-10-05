@@ -2,7 +2,7 @@
 // Created by tursh on 5/2/19.
 //
 
-#include <World/Bloc.h>
+#include <World/Terrain/Bloc.h>
 
 namespace Blocs
 {

@@ -11,7 +11,7 @@ void init()
 {
     CGE::initEngine("Sand Box Game", 1280, 720, false);
     CGE::Text::textRenderer::init("res/graphics/fonts/Archivo-Regular.ttf");
-    CGE::Utils::initTPSClock();
+    CGE::Utils::TPSClock::init();
     //CGE::IO::input::grabMouse();
     CGE::State::stateManager::createCurrentState<PlayState>();
 }
@@ -21,7 +21,7 @@ void loopTick()
     auto display = CGE::IO::getWindow();
     while (!display->shouldClose())
     {
-        while (!display->shouldClose() && CGE::Utils::shouldTick())
+        while (!display->shouldClose() && CGE::Utils::TPSClock::shouldTick())
         {
             CGE::State::stateManager::getCurrentState()->tick();
         }

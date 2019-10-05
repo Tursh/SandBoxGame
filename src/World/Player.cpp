@@ -57,15 +57,17 @@ namespace Entities
                 relativeForces.x -= 1;
             if (CGE::IO::input::isKeyPressed(GLFW_KEY_D))
                 relativeForces.x += 1;
-            //if (CGE::IO::input::isKeyPressed(GLFW_KEY_LEFT_SHIFT))
-            //    relativeForces.y -= 1;
-            if (CGE::IO::input::isKeyPressed(GLFW_KEY_SPACE) && isOnGround())
-            {
-                glm::vec3 speed = getSpeed();
-                speed.y = 0;
-                setSpeed(speed);
-                addForce(3, glm::vec3(0, 0.2f, 0));
-            }
+            if (CGE::IO::input::isKeyPressed(GLFW_KEY_LEFT_SHIFT))
+                relativeForces.y -= 1;
+            if (CGE::IO::input::isKeyPressed(GLFW_KEY_SPACE))
+                relativeForces.y += 1;
+            //if (CGE::IO::input::isKeyPressed(GLFW_KEY_SPACE) && isOnGround())
+            //{
+            //    glm::vec3 speed = getSpeed();
+            //    speed.y = 0;
+            //    setSpeed(speed);
+            //    addForce(3, glm::vec3(0, 0.2f, 0));
+            //}
 
         }
 
@@ -75,7 +77,7 @@ namespace Entities
         if (!(glm::length(relativeForces) < 0.0001f))
             relativeForces = glm::normalize(relativeForces);
 
-        relativeForces *= speed;
+        relativeForces *= speed * (CGE::IO::input::isKeyPressed(GLFW_KEY_LEFT_CONTROL) ? 2.0f : 1.0f);
 
         //Orientate the forces
         glm::vec3 ar = getRenderRotation();
@@ -117,7 +119,5 @@ namespace Entities
         glm::vec3 hitBlocPosition = world->getPickedBloc(6.0f);
 
         world->setBloc(hitBlocPosition, Blocs::AIR_BLOC);
-
-        logInfo(glm::to_string(hitBlocPosition));
     }
 }

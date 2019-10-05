@@ -3,7 +3,7 @@
 //
 
 #include <Utils/Log.h>
-#include "World/Chunk.h"
+#include "World/Terrain/Chunk.h"
 #include <World/World.h>
 #include <Loader/RessourceManager.h>
 
@@ -28,7 +28,7 @@ Chunk::loadFace(const Bloc &currentBloc, std::vector<float> &vertices, std::vect
     std::copy(faceVertices, faceVertices + Blocs::FACE_VERTICES_COUNT, std::back_inserter(vertices));
     std::copy(faceIndices, faceIndices + Blocs::FACE_INDICES_COUNT, std::back_inserter(indices));
 
-    for (int i = index; i < vertices.size(); i += 3)
+    for (unsigned int i = index; i < vertices.size(); i += 3)
     {
         vertices[i] += x * Blocs::CUBE_SIZE;
         vertices[i + 1] += y * Blocs::CUBE_SIZE;
@@ -59,6 +59,9 @@ Chunk::loadFace(const Bloc &currentBloc, std::vector<float> &vertices, std::vect
 
 void Chunk::loadToTexModel()
 {
+    if(empty_)
+        return;
+
     //First get the six around this one
     Chunk **chunkList = world_->getAroundChunk(chunkPosition_);
 
@@ -185,11 +188,20 @@ void Chunk::loadToTexModel()
                         loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::FRONT);
                 }
             }
+
+    delete[] chunkList;
+
     CGE::Loader::Data<float> verticesData(vertices.data(), vertices.size());
     CGE::Loader::Data<float> texCoordsData(texCoords.data(), texCoords.size());
     CGE::Loader::Data<unsigned int> indicesData(indices.data(), indices.size());
 
-    CGE::Loader::DataToVAO(&model_, verticesData, texCoordsData, indicesData, true);
+    if (indices.empty())
+    {
+        empty_ = true;
+        return;
+    }
+
+    CGE::Loader::DataToVAO(model_, verticesData, texCoordsData, indicesData, true);
 }
 
 Chunk::Chunk(Bloc *blocs, World *world, glm::ivec3 &chunkPosition)
@@ -197,6 +209,12 @@ Chunk::Chunk(Bloc *blocs, World *world, glm::ivec3 &chunkPosition)
           blocs_(blocs), world_(world), chunkPosition_(chunkPosition)
 {
     loadToTexModel();
+}
+
+Chunk::~Chunk()
+{
+    unload();
+    delete[] blocs_;
 }
 
 void Chunk::update()
@@ -207,12 +225,13 @@ void Chunk::update()
 
 void Chunk::updateChunksAround()
 {
-    auto neiborChunk = world_->getAroundChunk(chunkPosition_);
+    auto neighborChunks = world_->getAroundChunk(chunkPosition_);
     for (int i = 0; i < 6; ++i)
     {
-        if (neiborChunk[i] != nullptr)
-            neiborChunk[i]->update();
+        if (neighborChunks[i] != nullptr)
+            neighborChunks[i]->update();
     }
+    delete[] neighborChunks;
 }
 
 void Chunk::setBloc(glm::ivec3 &position, Bloc &newBloc)
@@ -232,6 +251,9 @@ void Chunk::setBloc(glm::ivec3 &position, Bloc &newBloc)
 
     if (currentBloc == newBloc)
         return;
+
+    if(empty_ && newBloc != Blocs::AIR_BLOC)
+        empty_ = false;
 
     currentBloc = newBloc;
     update();
@@ -305,4 +327,10 @@ const glm::ivec3 &Chunk::getChunkPosition() const
 bool Chunk::isLoaded()
 {
     return model_ != nullptr;
+}
+
+void Chunk::unload()
+{
+    if (!empty_ && isLoaded())
+        model_.reset();
 }

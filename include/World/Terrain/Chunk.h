@@ -21,6 +21,8 @@ class Chunk : public CGE::Loader::TexturedModel
 
     Bloc *blocs_;
 
+    bool empty_ = false;
+
     void loadToTexModel();
 
     void loadFace(const Bloc &currentBloc, std::vector<float> &vertices, std::vector<float> &texCoords,
@@ -30,14 +32,30 @@ class Chunk : public CGE::Loader::TexturedModel
 public:
     Chunk(Bloc *blocs, World *world, glm::ivec3 &chunkPosition);
 
-    //Reload the chunk
+    ~Chunk();
+
+    /**
+     * Reload the textured model
+     */
     void update();
 
-    //Reload the 6 chunk around this chunk
+    /**
+     * Unload the textured model of the chunk
+     */
+    void unload();
+
+    /**
+     * Reload the 6 chunks that share borders with this chunk
+     */
     void updateChunksAround();
 
     const glm::ivec3 &getChunkPosition() const;
 
+    /**
+     * Set the bloc at this position in the chunk
+     * @param position The position in the chunk
+     * @param newBloc The new bloc
+     */
     void setBloc(glm::ivec3 &position, Bloc &newBloc);
 
     const Bloc &getBloc(glm::ivec3 &position);

@@ -25,7 +25,6 @@ void World::tick()
     }
     camera_.followPlayer(player_);
     player_->checkAction(this);
-    chunkManager_.tick();
 }
 
 void World::render()
@@ -39,7 +38,7 @@ void World::render()
         for (auto &zChunks : yChunks.second)
             for (auto &chunk : zChunks.second)
             {
-                if (chunk.second->isLoaded())
+                if (!chunk.second->isEmpty() && chunk.second->isLoaded())
                 {
                     shader.loadMatrix(CGE::Shader::TRANSFORMATION,
                                       glm::translate(glm::mat4(1), (glm::vec3) chunk.second->getChunkPosition() *
@@ -50,6 +49,12 @@ void World::render()
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
     shader.stop();
+
+    CGE::Text::textRenderer::renderText("FPS: " + std::to_string(CGE::Utils::getFPS()).substr(0, 4) + " TPS: " +
+                                        std::to_string(CGE::Utils::TPSClock::getTPS()).substr(0, 4), 0.66f, 0.95f, 0.1f,
+                                        glm::vec3(1, 1, 1),
+                                        false);
+
     CGE::Text::textRenderer::renderText(glm::to_string(camera_.position_), -1, 0.95f, 0.1f, glm::vec3(1, 1, 1),
                                         false);
 
@@ -159,8 +164,8 @@ World::World()
 {
     addEntity(std::shared_ptr<CGE::Entities::Entity>(player_));
 
-    Bloc *blocs = new Bloc[(int)pow(CHUNK_SIZE, 3)];
-    for(int i = 0; i < CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE; ++i)
+    Bloc *blocs = new Bloc[(int) pow(CHUNK_SIZE, 3)];
+    for (int i = 0; i < CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE; ++i)
         blocs[i] = {1, 0};
     glm::ivec3 chunkPosition = {0, -1, 0};
     Chunk *newChunk = new Chunk(blocs, this, chunkPosition);
@@ -171,12 +176,12 @@ World::World()
     shader.start();
 
     shader.loadMatrix(CGE::Shader::PROJECTION,
-                       glm::perspectiveFov(45.0f, (float) display->getWidth(), (float) display->getHeight(), 0.1f,
-                                           1000.0f)
+                      glm::perspectiveFov(45.0f, (float) display->getWidth(), (float) display->getHeight(), 0.1f,
+                                          1000.0f)
     );
     shader.stop();
 
-
+    chunkManager_.start();
 }
 
 void World::addEntity(std::shared_ptr<CGE::Entities::Entity> newEntity)
@@ -295,4 +300,49 @@ void World::addChunk(Chunk *newChunk)
     chunks_[CHUNK_OFF_SET + chunkPosition.x]
     [CHUNK_OFF_SET + chunkPosition.y]
     [CHUNK_OFF_SET + chunkPosition.z] = newChunk;
+}
+
+World::~World()
+{
+    chunkManager_.stop();
+}
+
+void World::deleteChunk(Chunk *chunk)
+{
+    if (rendering_)
+    {
+        chunksToDelete_.push_back(chunk);
+    } else
+    {
+        if (!chunksToDelete_.empty())
+            if (chunksToDelete_.back() == chunk)
+                chunksToDelete_.pop_back();
+
+        const glm::ivec3 &chunkPosition = chunk->getChunkPosition();
+        auto xChunks = chunks_.find(chunkPosition.x);
+        if (xChunks != chunks_.end())
+        {
+            auto yChunks = xChunks->second.find(chunkPosition.y);
+            if (yChunks != xChunks->second.end())
+            {
+                auto zChunks = yChunks->second.find(chunkPosition.z);
+                if (zChunks != yChunks->second.end())
+                {
+                    yChunks->second.erase(chunkPosition.z);
+                    delete chunk;
+                } else goto end;
+                if (yChunks->second.empty())
+                    xChunks->second.erase(chunkPosition.y);
+            } else goto end;
+            if (xChunks->second.empty())
+                chunks_.erase(chunkPosition.x);
+        } else goto end;
+
+        end:
+        if (!chunksToDelete_.empty())
+        {
+            deleteChunk(chunksToDelete_.back());
+        }
+
+    }
 }

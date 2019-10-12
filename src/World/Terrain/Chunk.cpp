@@ -83,7 +83,7 @@ void Chunk::loadToTexModel()
                 if (x == 0)
                 {
                     blocPosition = {CHUNK_SIZE - 1, y, z};
-                    if (chunkList[0] == nullptr || chunkList[0]->getBloc(blocPosition).ID == Blocs::AIR)
+                    if (chunkList[0] != nullptr && chunkList[0]->getBloc(blocPosition).ID == Blocs::AIR)
                     {
                         loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::LEFT);
                     }
@@ -96,7 +96,7 @@ void Chunk::loadToTexModel()
                 } else if (x == CHUNK_SIZE - 1)
                 {
                     blocPosition = {0, y, z};
-                    if (chunkList[1] == nullptr || chunkList[1]->getBloc(blocPosition).ID == Blocs::AIR)
+                    if (chunkList[1] != nullptr && chunkList[1]->getBloc(blocPosition).ID == Blocs::AIR)
                     {
                         loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::RIGHT);
                     }
@@ -119,7 +119,7 @@ void Chunk::loadToTexModel()
                 if (y == 0)
                 {
                     blocPosition = {x, CHUNK_SIZE - 1, z};
-                    if (chunkList[2] == nullptr || chunkList[2]->getBloc(blocPosition).ID == Blocs::AIR)
+                    if (chunkList[2] != nullptr && chunkList[2]->getBloc(blocPosition).ID == Blocs::AIR)
                     {
                         loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::BOTTOM);
                     }
@@ -132,7 +132,7 @@ void Chunk::loadToTexModel()
                 } else if (y == CHUNK_SIZE - 1)
                 {
                     blocPosition = {x, 0, z};
-                    if (chunkList[3] == nullptr || chunkList[3]->getBloc(blocPosition).ID == Blocs::AIR)
+                    if (chunkList[3] != nullptr && chunkList[3]->getBloc(blocPosition).ID == Blocs::AIR)
                     {
                         loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::TOP);
                     }
@@ -156,7 +156,7 @@ void Chunk::loadToTexModel()
                 if (z == 0)
                 {
                     blocPosition = {x, y, CHUNK_SIZE - 1};
-                    if (chunkList[4] == nullptr || chunkList[4]->getBloc(blocPosition).ID == Blocs::AIR)
+                    if (chunkList[4] != nullptr && chunkList[4]->getBloc(blocPosition).ID == Blocs::AIR)
                     {
                         loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::BACK);
                     }
@@ -169,7 +169,7 @@ void Chunk::loadToTexModel()
                 } else if (z == CHUNK_SIZE - 1)
                 {
                     blocPosition = {x, y, 0};
-                    if (chunkList[5] == nullptr || chunkList[5]->getBloc(blocPosition).ID == Blocs::AIR)
+                    if (chunkList[5] != nullptr && chunkList[5]->getBloc(blocPosition).ID == Blocs::AIR)
                     {
                         loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::FRONT);
                     }
@@ -333,4 +333,9 @@ void Chunk::unload()
 {
     if (!empty_ && isLoaded())
         model_.reset();
+}
+
+bool Chunk::isEmpty()
+{
+    return empty_;
 }

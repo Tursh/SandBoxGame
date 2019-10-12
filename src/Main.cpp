@@ -41,6 +41,7 @@ void loopRender()
 
 void terminate()
 {
+    CGE::State::stateManager::deleteCurrentState();
     CGE::stopEngine();
 }
 

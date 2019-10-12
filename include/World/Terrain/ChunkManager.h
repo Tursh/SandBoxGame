@@ -16,7 +16,7 @@
  * How?: Load chunk that are close enough and unload too far ones
  */
 
-class ChunkManager
+class ChunkManager : public CGE::Utils::ThreadProcess
 {
 
     Entities::Player *player_;
@@ -26,7 +26,7 @@ class ChunkManager
     /**
      * Distance in chunks before the chunk do not need to be loaded
      */
-    int radius_ = 5;
+    int radius_ = 7;
 
     bool *loaded;
 
@@ -36,7 +36,11 @@ class ChunkManager
 
     std::vector<glm::ivec3> chunkToLoad_;
 
+    World *world_;
+
     WorldGenerator worldGenerator_;
+
+    void run() override;
 
 public:
     ChunkManager(Entities::Player *player,

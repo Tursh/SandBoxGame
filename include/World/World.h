@@ -31,8 +31,14 @@ private:
 
     ChunkManager chunkManager_;
 
+    bool rendering_;
+
+    std::vector<Chunk *> chunksToDelete_;
+
 public:
     World();
+
+    ~World();
 
     /**
      * Update the terrain and entities
@@ -108,6 +114,8 @@ public:
      * @return The bloc location / If not bloc, return glm::ivec3(INT_MAX)
      */
     glm::ivec3 getPickedBloc(float raySize);
+
+    void deleteChunk(Chunk *chunk);
 };
 
 

@@ -61,6 +61,8 @@ public:
     const Bloc &getBloc(glm::ivec3 &position);
 
     bool isLoaded();
+
+    bool isEmpty();
 };
 
 

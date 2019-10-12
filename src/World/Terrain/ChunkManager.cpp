@@ -10,13 +10,14 @@
 #include "World/World.h"
 #include <glm/gtx/string_cast.hpp>
 #include <Loader/RessourceManager.h>
+#include <IO/Window.h>
 
 std::shared_ptr<CGE::Loader::Texture> tex;
 
 ChunkManager::ChunkManager(Entities::Player *player,
                            World *world,
                            std::map<unsigned int, std::map<unsigned int, std::map<unsigned int, Chunk *>>> &chunks)
-        : player_(player), chunks_(chunks), worldGenerator_(world, *this)
+        : player_(player), chunks_(chunks), worldGenerator_(world, *this), world_(world)
 {
     tex = CGE::Loader::resManager::getTexture(1);
     CGE::Utils::TPSClock::init(2);
@@ -41,17 +42,16 @@ void ChunkManager::tick()
     {
         glm::ivec3 playerChunkPosition = World::getChunkPosition(player_->getPosition());
 
-        if(centerChunkPosition_ == playerChunkPosition)
+        if (centerChunkPosition_ == playerChunkPosition)
             return;
 
-         centerChunkPosition_ = playerChunkPosition;
+        centerChunkPosition_ = playerChunkPosition;
 
         //Create loaded array
         int diameter = radius_ * 2 + 1;
         for (int i = 0; i < chunkCount_; ++i)
             loaded[i] = false;
 
-        start:
         for (auto &chunkMapMap : chunks_)
             for (auto &chunkMap : chunkMapMap.second)
                 for (auto &chunkPair : chunkMap.second)
@@ -67,20 +67,20 @@ void ChunkManager::tick()
                     for (int axis = 0; axis < 3; ++axis)
                         if (absDelta[axis] > radius_ + 2)
                         {
-                            std::get<1>(chunkMap).erase(std::get<0>(chunkPair));
-                            delete chunk;
-                            goto start;
+                            world_->deleteChunk(chunk);
+                            continue;
                         }
 
 
-                    if(absDelta.x < radius_ && absDelta.y < radius_ && absDelta.z < radius_)
+                    if (absDelta.x <= radius_ && absDelta.y <= radius_ && absDelta.z <= radius_)
                     {
                         relativeChunkPosition += radius_;
-                        int index = relativeChunkPosition.x + diameter * (relativeChunkPosition.y + diameter * relativeChunkPosition.z);
-                        if (0 < index && index < chunkCount_)
+                        int index = relativeChunkPosition.x +
+                                    diameter * (relativeChunkPosition.y + diameter * relativeChunkPosition.z);
+                        if (0 <= index && index < chunkCount_)
                             loaded[index] = true;
                         else
-                            logError("This should be unreachable code");
+                        logError("This should be unreachable code");
                     }
                 }
 
@@ -131,4 +131,12 @@ glm::vec3 ChunkManager::getChunkToLoad()
     glm::ivec3 chunkPosition = chunkToLoad_.back();
     chunkToLoad_.pop_back();
     return chunkPosition;
+}
+
+void ChunkManager::run()
+{
+    while (running_)
+    {
+        tick();
+    }
 }

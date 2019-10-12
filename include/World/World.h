@@ -19,7 +19,7 @@ class World
 private:
     CGE::Shader::BasicShader shader;
 
-    std::map<unsigned int, std::map<unsigned int, std::map<unsigned int, Chunk *>>> chunks_;
+    std::map<int, std::map<int, std::map<int, Chunk *>>> chunks_;
 
     std::vector<std::shared_ptr<CGE::Entities::Entity>> entities_;
 
@@ -34,6 +34,8 @@ private:
     bool rendering_;
 
     std::vector<Chunk *> chunksToDelete_;
+
+    void deleteBufferedChunks();
 
 public:
     World();

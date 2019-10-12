@@ -37,26 +37,25 @@ void WorldGenerator::run()
         for (int x = 0; x < CHUNK_SIZE; ++x)
             for (int z = 0; z < CHUNK_SIZE; ++z)
             {
-                if (chunkPosition.y == 0)
+                if (chunkPosition.y >= 0)
                 {
-                    int y = pn.noise((double) (chunkPosition.x * CHUNK_SIZE + x) / (double) (CHUNK_SIZE),
-                                     (double) (chunkPosition.z * CHUNK_SIZE + z) / (double) (CHUNK_SIZE), 0) *
-                            CHUNK_SIZE;
-                    for (; y >= 0; --y)
+                    int groundLevel = pn.noise((double) (chunkPosition.x * CHUNK_SIZE + x) / (double) (CHUNK_SIZE * 4),
+                                     (double) (chunkPosition.z * CHUNK_SIZE + z) / (double) (CHUNK_SIZE * 4), 0) *
+                            CHUNK_SIZE * 6;
+                    for (int y = std::min<int>(groundLevel - CHUNK_SIZE * chunkPosition.y, CHUNK_SIZE - 1); y >= 0; --y)
                     {
-                        blocs[x + CHUNK_SIZE * (z + CHUNK_SIZE * y)] = {1, 0};
+                        blocs[x + CHUNK_SIZE * (z + CHUNK_SIZE * y)] = {(short)(y + chunkPosition.y * CHUNK_SIZE < groundLevel - 3 ? 2 : 1), 0};
                     }
                 } else if (chunkPosition.y < 0)
                 {
                     for (int y = 0; y < CHUNK_SIZE; ++y)
                     {
-                        blocs[x + CHUNK_SIZE * (z + CHUNK_SIZE * y)] = {1, 0};
+                        blocs[x + CHUNK_SIZE * (z + CHUNK_SIZE * y)] = {2, 0};
                     }
                 }
 
             }
 
-        //TODO: Check why there are untracked chunks
         Chunk *newChunk = new Chunk(blocs, world_, chunkPosition);
         world_->addChunk(newChunk);
         newChunk->updateChunksAround();

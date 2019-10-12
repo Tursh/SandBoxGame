@@ -16,12 +16,12 @@ std::shared_ptr<CGE::Loader::Texture> tex;
 
 ChunkManager::ChunkManager(Entities::Player *player,
                            World *world,
-                           std::map<unsigned int, std::map<unsigned int, std::map<unsigned int, Chunk *>>> &chunks)
+                           std::map<int, std::map<int, std::map<int, Chunk *>>> &chunks)
         : player_(player), chunks_(chunks), worldGenerator_(world, *this), world_(world)
 {
     tex = CGE::Loader::resManager::getTexture(1);
     CGE::Utils::TPSClock::init(2);
-    CGE::Utils::TPSClock::setTPS(1, 2);
+    CGE::Utils::TPSClock::setTPS(2, 2);
 
     int diameter = radius_ * 2 + 1;
     chunkCount_ = (int) pow(diameter, 3);
@@ -52,9 +52,11 @@ void ChunkManager::tick()
         for (int i = 0; i < chunkCount_; ++i)
             loaded[i] = false;
 
-        for (auto &chunkMapMap : chunks_)
+        auto chunks = chunks_;
+
+        for (auto &chunkMapMap : chunks)
             for (auto &chunkMap : chunkMapMap.second)
-                for (auto &chunkPair : chunkMap.second)
+                for (auto chunkPair : chunkMap.second)
                 {
                     //Get position relative to player
                     Chunk *chunk = chunkPair.second;

@@ -6,13 +6,14 @@
 #include "World/Terrain/Chunk.h"
 #include <World/World.h>
 #include <Loader/RessourceManager.h>
+#include <GLFW/glfw3.h>
 
 const unsigned int CHUNK_SIZE = 16;
 
 void
 Chunk::loadFace(const Bloc &currentBloc, std::vector<float> &vertices, std::vector<float> &texCoords,
-                std::vector<unsigned int> &indices, int &x, int &y,
-                int &z, Blocs::Face face)
+                std::vector<unsigned int> &indices, const int &x, const int &y,
+                const int &z, Blocs::Face face)
 {
     //Get vertices and indices
     auto data = Blocs::getFace(face);
@@ -28,15 +29,15 @@ Chunk::loadFace(const Bloc &currentBloc, std::vector<float> &vertices, std::vect
     std::copy(faceVertices, faceVertices + Blocs::FACE_VERTICES_COUNT, std::back_inserter(vertices));
     std::copy(faceIndices, faceIndices + Blocs::FACE_INDICES_COUNT, std::back_inserter(indices));
 
-    for (unsigned int i = index; i < vertices.size(); i += 3)
+    for (unsigned int i = index; i < (unsigned int)vertices.size(); i += 3)
     {
-        vertices[i] += x * Blocs::CUBE_SIZE;
-        vertices[i + 1] += y * Blocs::CUBE_SIZE;
-        vertices[i + 2] += z * Blocs::CUBE_SIZE;
+        vertices[i] += (float) x * Blocs::CUBE_SIZE;
+        vertices[i + 1] += (float) y * Blocs::CUBE_SIZE;
+        vertices[i + 2] += (float) z * Blocs::CUBE_SIZE;
     }
 
     glm::vec4 currentTexCoords = texture_.get()->getTextureLimits(currentBloc.ID);
-    currentTexCoords = {0.0625f, 1, 0.125f, 1 - 0.0625f};
+    //currentTexCoords = {0.0625f, 1, 0.125f, 1 - 0.0625f};
     auto *texCoordsBuf = new float[4 * 2];
     texCoordsBuf[0] = currentTexCoords.z;
     texCoordsBuf[1] = currentTexCoords.w;
@@ -50,11 +51,138 @@ Chunk::loadFace(const Bloc &currentBloc, std::vector<float> &vertices, std::vect
     std::copy(texCoordsBuf, texCoordsBuf + 8, std::back_inserter(texCoords));
     delete[] texCoordsBuf;
 
-    for (int i = indicesSize; i < indices.size(); ++i)
+    for (unsigned int i = indicesSize; i < (unsigned int)indices.size(); ++i)
     {
         indices[i] += faceCount * 4;
     }
+}
 
+void Chunk::loadBloc(const glm::ivec3 &position, std::vector<float> &vertices, std::vector<float> &texCoords,
+                     std::vector<unsigned int> &indices, Chunk **chunkList)
+{
+    const Bloc &currentBloc = getBloc(position);
+
+    if (currentBloc.ID == Blocs::AIR)
+        return;
+
+    const int &x = position.x, &y = position.y, &z = position.z;
+
+    //Check extremities
+    if (position.x == 0)
+    {
+        glm::ivec3 blocPosition = position;
+        blocPosition.x = CHUNK_SIZE - 1;
+        if (chunkList[0] != nullptr && chunkList[0]->getBloc(blocPosition).ID == Blocs::AIR)
+        {
+            loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::LEFT);
+        }
+        blocPosition.x = x + 1;
+        if (getBloc(blocPosition).ID == Blocs::AIR)
+        {
+            loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::RIGHT);
+        }
+
+    } else if (x == CHUNK_SIZE - 1)
+    {
+        glm::ivec3 blocPosition = position;
+        blocPosition.x = 0;
+        if (chunkList[1] != nullptr && chunkList[1]->getBloc(blocPosition).ID == Blocs::AIR)
+        {
+            loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::RIGHT);
+        }
+        blocPosition.x = x - 1;
+        if (getBloc(blocPosition).ID == Blocs::AIR)
+        {
+            loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::LEFT);
+        }
+    } else
+    {
+        glm::ivec3 blocPosition = position;
+        blocPosition.x = x - 1;
+        if (getBloc(blocPosition).ID == Blocs::AIR)
+            loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::LEFT);
+        blocPosition.x = x + 1;
+        if (getBloc(blocPosition).ID == Blocs::AIR)
+            loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::RIGHT);
+    }
+
+    //Check extremities
+    if (y == 0)
+    {
+        glm::ivec3 blocPosition = position;
+        blocPosition.y = CHUNK_SIZE - 1;
+        if (chunkList[2] != nullptr && chunkList[2]->getBloc(blocPosition).ID == Blocs::AIR)
+        {
+            loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::BOTTOM);
+        }
+        blocPosition.y = y + 1;
+        if (getBloc(blocPosition).ID == Blocs::AIR)
+        {
+            loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::TOP);
+        }
+
+    } else if (y == CHUNK_SIZE - 1)
+    {
+        glm::ivec3 blocPosition = position;
+        blocPosition.y = 0;
+        if (chunkList[3] != nullptr && chunkList[3]->getBloc(blocPosition).ID == Blocs::AIR)
+        {
+            loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::TOP);
+        }
+        blocPosition.y = y - 1;
+        if (getBloc(blocPosition).ID == Blocs::AIR)
+        {
+            loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::BOTTOM);
+        }
+    } else
+    {
+        glm::ivec3 blocPosition = position;
+        blocPosition.y = y - 1;
+        if (getBloc(blocPosition).ID == Blocs::AIR)
+            loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::BOTTOM);
+        blocPosition.y = y + 1;
+        if (getBloc(blocPosition).ID == Blocs::AIR)
+            loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::TOP);
+    }
+
+    //Check extremities
+    if (z == 0)
+    {
+        glm::ivec3 blocPosition = position;
+        blocPosition.z = CHUNK_SIZE - 1;
+        if (chunkList[4] != nullptr && chunkList[4]->getBloc(blocPosition).ID == Blocs::AIR)
+        {
+            loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::BACK);
+        }
+        blocPosition.z = z + 1;
+        if (getBloc(blocPosition).ID == Blocs::AIR)
+        {
+            loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::FRONT);
+        }
+
+    } else if (z == CHUNK_SIZE - 1)
+    {
+        glm::ivec3 blocPosition = position;
+        blocPosition.z = 0;
+        if (chunkList[5] != nullptr && chunkList[5]->getBloc(blocPosition).ID == Blocs::AIR)
+        {
+            loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::FRONT);
+        }
+        blocPosition.z = z - 1;
+        if (getBloc(blocPosition).ID == Blocs::AIR)
+        {
+            loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::BACK);
+        }
+    } else
+    {
+        glm::ivec3 blocPosition = position;
+        blocPosition.z = z - 1;
+        if (getBloc(blocPosition).ID == Blocs::AIR)
+            loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::BACK);
+        blocPosition.z = z + 1;
+        if (getBloc(blocPosition).ID == Blocs::AIR)
+            loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::FRONT);
+    }
 }
 
 void Chunk::loadToTexModel()
@@ -75,118 +203,7 @@ void Chunk::loadToTexModel()
             for (int z = 0; z < CHUNK_SIZE; ++z)
             {
                 glm::ivec3 blocPosition = {x, y, z};
-                const Bloc &currentBloc = getBloc(blocPosition);
-                if (currentBloc.ID == Blocs::AIR)
-                    continue;
-
-                //Check extremities
-                if (x == 0)
-                {
-                    blocPosition = {CHUNK_SIZE - 1, y, z};
-                    if (chunkList[0] != nullptr && chunkList[0]->getBloc(blocPosition).ID == Blocs::AIR)
-                    {
-                        loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::LEFT);
-                    }
-                    blocPosition.x = x + 1;
-                    if (getBloc(blocPosition).ID == Blocs::AIR)
-                    {
-                        loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::RIGHT);
-                    }
-
-                } else if (x == CHUNK_SIZE - 1)
-                {
-                    blocPosition = {0, y, z};
-                    if (chunkList[1] != nullptr && chunkList[1]->getBloc(blocPosition).ID == Blocs::AIR)
-                    {
-                        loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::RIGHT);
-                    }
-                    blocPosition.x = x - 1;
-                    if (getBloc(blocPosition).ID == Blocs::AIR)
-                    {
-                        loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::LEFT);
-                    }
-                } else
-                {
-                    blocPosition = {x - 1, y, z};
-                    if (getBloc(blocPosition).ID == Blocs::AIR)
-                        loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::LEFT);
-                    blocPosition.x = x + 1;
-                    if (getBloc(blocPosition).ID == Blocs::AIR)
-                        loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::RIGHT);
-                }
-
-                //Check extremities
-                if (y == 0)
-                {
-                    blocPosition = {x, CHUNK_SIZE - 1, z};
-                    if (chunkList[2] != nullptr && chunkList[2]->getBloc(blocPosition).ID == Blocs::AIR)
-                    {
-                        loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::BOTTOM);
-                    }
-                    blocPosition.y = y + 1;
-                    if (getBloc(blocPosition).ID == Blocs::AIR)
-                    {
-                        loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::TOP);
-                    }
-
-                } else if (y == CHUNK_SIZE - 1)
-                {
-                    blocPosition = {x, 0, z};
-                    if (chunkList[3] != nullptr && chunkList[3]->getBloc(blocPosition).ID == Blocs::AIR)
-                    {
-                        loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::TOP);
-                    }
-                    blocPosition.y = y - 1;
-                    if (getBloc(blocPosition).ID == Blocs::AIR)
-                    {
-                        loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::BOTTOM);
-                    }
-                } else
-                {
-                    blocPosition = {x, y - 1, z};
-                    if (getBloc(blocPosition).ID == Blocs::AIR)
-                        loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::BOTTOM);
-                    blocPosition.y = y + 1;
-                    if (getBloc(blocPosition).ID == Blocs::AIR)
-                        loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::TOP);
-                }
-
-
-                //Check extremities
-                if (z == 0)
-                {
-                    blocPosition = {x, y, CHUNK_SIZE - 1};
-                    if (chunkList[4] != nullptr && chunkList[4]->getBloc(blocPosition).ID == Blocs::AIR)
-                    {
-                        loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::BACK);
-                    }
-                    blocPosition.z = z + 1;
-                    if (getBloc(blocPosition).ID == Blocs::AIR)
-                    {
-                        loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::FRONT);
-                    }
-
-                } else if (z == CHUNK_SIZE - 1)
-                {
-                    blocPosition = {x, y, 0};
-                    if (chunkList[5] != nullptr && chunkList[5]->getBloc(blocPosition).ID == Blocs::AIR)
-                    {
-                        loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::FRONT);
-                    }
-                    blocPosition.z = z - 1;
-                    if (getBloc(blocPosition).ID == Blocs::AIR)
-                    {
-                        loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::BACK);
-                    }
-                } else
-                {
-                    blocPosition = {x, y, z - 1};
-                    if (getBloc(blocPosition).ID == Blocs::AIR)
-                        loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::BACK);
-                    blocPosition.z = z + 1;
-                    if (getBloc(blocPosition).ID == Blocs::AIR)
-                        loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::FRONT);
-                }
+                loadBloc(blocPosition, vertices, texCoords, indices, chunkList);
             }
 
     delete[] chunkList;
@@ -209,6 +226,7 @@ Chunk::Chunk(Bloc *blocs, World *world, glm::ivec3 &chunkPosition)
           blocs_(blocs), world_(world), chunkPosition_(chunkPosition)
 {
     loadToTexModel();
+    a = glfwGetTime();
 }
 
 Chunk::~Chunk()
@@ -304,7 +322,7 @@ void Chunk::setBloc(glm::ivec3 &position, Bloc &newBloc)
     }
 }
 
-const Bloc &Chunk::getBloc(glm::ivec3 &position)
+const Bloc &Chunk::getBloc(const glm::ivec3 &position)
 {
 #ifndef NDEBUG
     if (0 > position.x || position.x > CHUNK_SIZE)
@@ -339,3 +357,4 @@ bool Chunk::isEmpty()
 {
     return empty_;
 }
+

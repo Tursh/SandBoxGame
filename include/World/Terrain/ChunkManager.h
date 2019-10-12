@@ -21,12 +21,12 @@ class ChunkManager : public CGE::Utils::ThreadProcess
 
     Entities::Player *player_;
 
-    std::map<unsigned int, std::map<unsigned int, std::map<unsigned int, Chunk *>>> &chunks_;
+    std::map<int, std::map<int, std::map<int, Chunk *>>> &chunks_;
 
     /**
      * Distance in chunks before the chunk do not need to be loaded
      */
-    int radius_ = 7;
+    int radius_ = 10;
 
     bool *loaded;
 
@@ -45,7 +45,7 @@ class ChunkManager : public CGE::Utils::ThreadProcess
 public:
     ChunkManager(Entities::Player *player,
             World *world,
-            std::map<unsigned int, std::map<unsigned int, std::map<unsigned int, Chunk *>>> &chunks);
+            std::map<int, std::map<int, std::map<int, Chunk *>>> &chunks);
 
     ~ChunkManager();
 

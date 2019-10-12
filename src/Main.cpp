@@ -1,11 +1,9 @@
-#include <IO/Input.h>
-#include <iostream>
+#include "States/PlayState.h"
 #include <Engine.h>
 #include <Utils/TimeUtils.h>
 #include <thread>
 #include <State/StateManager.h>
 #include <Text/TextRenderer.h>
-#include "States/PlayState.h"
 
 void init()
 {

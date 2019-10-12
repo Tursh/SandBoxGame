@@ -11,9 +11,6 @@
 #include <Text/TextRenderer.h>
 #include <Utils/Log.h>
 
-const unsigned int CHUNK_OFF_SET = UINT_MAX / 2;
-
-
 void World::tick()
 {
     //TODO create a world generator and check when the player move if chunks can be deleted
@@ -25,10 +22,12 @@ void World::tick()
     }
     camera_.followPlayer(player_);
     player_->checkAction(this);
+    deleteBufferedChunks();
 }
 
 void World::render()
 {
+    rendering_ = true;
     shader.start();
     shader.loadMatrix(CGE::Shader::VIEW, camera_.toViewMatrix());
     glEnable(GL_DEPTH_TEST);
@@ -49,6 +48,7 @@ void World::render()
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
     shader.stop();
+    rendering_ = false;
 
     CGE::Text::textRenderer::renderText("FPS: " + std::to_string(CGE::Utils::getFPS()).substr(0, 4) + " TPS: " +
                                         std::to_string(CGE::Utils::TPSClock::getTPS()).substr(0, 4), 0.66f, 0.95f, 0.1f,
@@ -61,7 +61,7 @@ void World::render()
     CGE::Text::textRenderer::renderText("X", 0, 0, 0.2f, glm::vec3(1, 1, 1),
                                         false);
 
-    CGE::Text::textRenderer::renderText(glm::to_string(camera_.getRotationInNormalizedVector()), -1, 0.90f, 0.1f,
+    CGE::Text::textRenderer::renderText(glm::to_string(player_->getSpeed()), -1, 0.90f, 0.1f,
                                         glm::vec3(1, 1, 1),
                                         false);
     CGE::Text::textRenderer::renderText(glm::to_string(getChunkPosition(camera_.position_)), -1, 0.85f, 0.1f,
@@ -98,7 +98,6 @@ Chunk **World::getAroundChunk(glm::ivec3 chunkPosition)
 
 Chunk *World::getChunkByChunkPosition(glm::ivec3 chunkPosition)
 {
-    chunkPosition += CHUNK_OFF_SET;
     auto xChunks = chunks_.find(chunkPosition.x);
     if (xChunks != chunks_.end())
     {
@@ -153,12 +152,13 @@ static glm::vec3 checkCollision(CGE::Entities::Entity *entity, World *world)
             movement[axis] = hitbox.checkIfCollideInAxis(entityHitbox, axis, movement[axis]);
     }
 
+    entity->setSpeed(movement);
     return entity->getOldPosition() + movement;
 }
 
 
 World::World()
-        : player_(new Entities::Player(nullptr, camera_, {0, 15, 0})),
+        : player_(new Entities::Player(nullptr, camera_, {12550700 / 64.0f, 60, 0000000000})),
           collisionFunction_(std::bind(&checkCollision, std::placeholders::_1, this)),
           chunkManager_(player_, this, chunks_)
 {
@@ -169,8 +169,7 @@ World::World()
         blocs[i] = {1, 0};
     glm::ivec3 chunkPosition = {0, -1, 0};
     Chunk *newChunk = new Chunk(blocs, this, chunkPosition);
-    chunks_[CHUNK_OFF_SET + chunkPosition.x][CHUNK_OFF_SET + chunkPosition.y][CHUNK_OFF_SET +
-                                                                              chunkPosition.z] = newChunk;
+    chunks_[chunkPosition.x][chunkPosition.y][chunkPosition.z] = newChunk;
 
     auto display = CGE::IO::getWindow();
     shader.start();
@@ -242,7 +241,7 @@ glm::ivec3 World::getPickedBloc(float raySize)
         //X
         if (absSteps.x < absSteps.y && absSteps.x < absSteps.z)
         {
-            rayPosition += rayOrientation * (absSteps.x + (sens[0] ? 0 : 0.0001f));
+            rayPosition += rayOrientation * (absSteps.x + (sens[0] ? 0 : 0.001f));
             raySize -= (sens[0]) ? 1 : -1 * absSteps.x;
         }
             //Y
@@ -297,9 +296,9 @@ glm::ivec3 World::getChunkPosition(glm::ivec3 blocPosition)
 void World::addChunk(Chunk *newChunk)
 {
     const glm::ivec3 &chunkPosition = newChunk->getChunkPosition();
-    chunks_[CHUNK_OFF_SET + chunkPosition.x]
-    [CHUNK_OFF_SET + chunkPosition.y]
-    [CHUNK_OFF_SET + chunkPosition.z] = newChunk;
+    chunks_[chunkPosition.x]
+    [chunkPosition.y]
+    [chunkPosition.z] = newChunk;
 }
 
 World::~World()
@@ -309,40 +308,40 @@ World::~World()
 
 void World::deleteChunk(Chunk *chunk)
 {
-    if (rendering_)
-    {
-        chunksToDelete_.push_back(chunk);
-    } else
-    {
-        if (!chunksToDelete_.empty())
-            if (chunksToDelete_.back() == chunk)
-                chunksToDelete_.pop_back();
+    chunksToDelete_.push_back(chunk);
+}
 
-        const glm::ivec3 &chunkPosition = chunk->getChunkPosition();
-        auto xChunks = chunks_.find(chunkPosition.x);
-        if (xChunks != chunks_.end())
+void World::deleteBufferedChunks()
+{
+    if(chunksToDelete_.empty() || rendering_)
+        return;
+
+    Chunk *chunk = chunksToDelete_.back();
+    chunksToDelete_.pop_back();
+
+    const glm::ivec3 &chunkPosition = chunk->getChunkPosition();
+    auto xChunks = chunks_.find(chunkPosition.x);
+    if (xChunks != chunks_.end())
+    {
+        auto yChunks = xChunks->second.find(chunkPosition.y);
+        if (yChunks != xChunks->second.end())
         {
-            auto yChunks = xChunks->second.find(chunkPosition.y);
-            if (yChunks != xChunks->second.end())
+            auto zChunks = yChunks->second.find(chunkPosition.z);
+            if (zChunks != yChunks->second.end())
             {
-                auto zChunks = yChunks->second.find(chunkPosition.z);
-                if (zChunks != yChunks->second.end())
-                {
-                    yChunks->second.erase(chunkPosition.z);
-                    delete chunk;
-                } else goto end;
-                if (yChunks->second.empty())
-                    xChunks->second.erase(chunkPosition.y);
+                delete chunk;
+                yChunks->second.erase(chunkPosition.z);
             } else goto end;
-            if (xChunks->second.empty())
-                chunks_.erase(chunkPosition.x);
+            if (yChunks->second.empty())
+                xChunks->second.erase(chunkPosition.y);
         } else goto end;
+        if (xChunks->second.empty())
+            chunks_.erase(chunkPosition.x);
+    } else goto end;
 
-        end:
-        if (!chunksToDelete_.empty())
-        {
-            deleteChunk(chunksToDelete_.back());
-        }
-
+    end:
+    if (!chunksToDelete_.empty())
+    {
+        deleteBufferedChunks();
     }
 }

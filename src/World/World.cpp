@@ -22,12 +22,10 @@ void World::tick()
     }
     camera_.followPlayer(player_);
     player_->checkAction(this);
-    deleteBufferedChunks();
 }
 
 void World::render()
 {
-    rendering_ = true;
     shader.start();
     shader.loadMatrix(CGE::Shader::VIEW, camera_.toViewMatrix());
     glEnable(GL_DEPTH_TEST);
@@ -35,20 +33,20 @@ void World::render()
     glEnable(GL_CULL_FACE);
     for (auto &yChunks : chunks_)
         for (auto &zChunks : yChunks.second)
-            for (auto &chunk : zChunks.second)
+            for (auto &chunkPair : zChunks.second)
             {
-                if (!chunk.second->isEmpty() && chunk.second->isLoaded())
+                auto chunk = chunkPair.second;
+                if (chunk != nullptr && chunk->isLoaded())
                 {
                     shader.loadMatrix(CGE::Shader::TRANSFORMATION,
-                                      glm::translate(glm::mat4(1), (glm::vec3) chunk.second->getChunkPosition() *
+                                      glm::translate(glm::mat4(1), (glm::vec3) chunk->getChunkPosition() *
                                                                    (float) CHUNK_SIZE));
-                    chunk.second->render();
+                    chunk->render();
                 }
             }
     glDisable(GL_DEPTH_TEST);
     glDisable(GL_CULL_FACE);
     shader.stop();
-    rendering_ = false;
 
     CGE::Text::textRenderer::renderText("FPS: " + std::to_string(CGE::Utils::getFPS()).substr(0, 4) + " TPS: " +
                                         std::to_string(CGE::Utils::TPSClock::getTPS()).substr(0, 4), 0.66f, 0.95f, 0.1f,
@@ -67,6 +65,7 @@ void World::render()
     CGE::Text::textRenderer::renderText(glm::to_string(getChunkPosition(camera_.position_)), -1, 0.85f, 0.1f,
                                         glm::vec3(1, 1, 1),
                                         false);
+    deleteBufferedChunks();
 }
 
 
@@ -158,7 +157,7 @@ static glm::vec3 checkCollision(CGE::Entities::Entity *entity, World *world)
 
 
 World::World()
-        : player_(new Entities::Player(nullptr, camera_, {12550700 / 64.0f, 60, 0000000000})),
+        : player_(new Entities::Player(nullptr, camera_, {0, 60, 0})),
           collisionFunction_(std::bind(&checkCollision, std::placeholders::_1, this)),
           chunkManager_(player_, this, chunks_)
 {
@@ -313,7 +312,7 @@ void World::deleteChunk(Chunk *chunk)
 
 void World::deleteBufferedChunks()
 {
-    if(chunksToDelete_.empty() || rendering_)
+    if(chunksToDelete_.empty())
         return;
 
     Chunk *chunk = chunksToDelete_.back();

@@ -31,8 +31,6 @@ private:
 
     ChunkManager chunkManager_;
 
-    bool rendering_;
-
     std::vector<Chunk *> chunksToDelete_;
 
     void deleteBufferedChunks();

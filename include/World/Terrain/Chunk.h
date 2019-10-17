@@ -31,7 +31,6 @@ class Chunk : public CGE::Loader::TexturedModel
     void loadFace(const Bloc &currentBloc, std::vector<float> &vertices, std::vector<float> &texCoords,
                   std::vector<unsigned int> &indices, const int &x, const int &y, const int &z, Blocs::Face face);
 
-    double a;
 public:
     Chunk(Bloc *blocs, World *world, glm::ivec3 &chunkPosition);
 

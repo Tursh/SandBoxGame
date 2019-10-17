@@ -226,7 +226,6 @@ Chunk::Chunk(Bloc *blocs, World *world, glm::ivec3 &chunkPosition)
           blocs_(blocs), world_(world), chunkPosition_(chunkPosition)
 {
     loadToTexModel();
-    a = glfwGetTime();
 }
 
 Chunk::~Chunk()

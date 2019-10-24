@@ -6,9 +6,10 @@
 #include "World/Terrain/Chunk.h"
 #include <World/World.h>
 #include <Loader/RessourceManager.h>
-#include <GLFW/glfw3.h>
 
 const unsigned int CHUNK_SIZE = 16;
+
+/*
 
 void
 Chunk::loadFace(const Bloc &currentBloc, std::vector<float> &vertices, std::vector<float> &texCoords,
@@ -26,10 +27,10 @@ Chunk::loadFace(const Bloc &currentBloc, std::vector<float> &vertices, std::vect
 
     //TODO check state
 
-    std::copy(faceVertices, faceVertices + Blocs::FACE_VERTICES_COUNT, std::back_inserter(vertices));
-    std::copy(faceIndices, faceIndices + Blocs::FACE_INDICES_COUNT, std::back_inserter(indices));
+    std::copy(faceVertices, faceVertices + Blocs::POSITION_PER_FACE, std::back_inserter(vertices));
+    std::copy(faceIndices, faceIndices + Blocs::INDICES_PER_FACE, std::back_inserter(indices));
 
-    for (unsigned int i = index; i < (unsigned int)vertices.size(); i += 3)
+    for (unsigned int i = index; i < (unsigned int) vertices.size(); i += 3)
     {
         vertices[i] += (float) x * Blocs::CUBE_SIZE;
         vertices[i + 1] += (float) y * Blocs::CUBE_SIZE;
@@ -37,24 +38,25 @@ Chunk::loadFace(const Bloc &currentBloc, std::vector<float> &vertices, std::vect
     }
 
     glm::vec4 currentTexCoords = texture_.get()->getTextureLimits(currentBloc.ID);
-    //currentTexCoords = {0.0625f, 1, 0.125f, 1 - 0.0625f};
-    auto *texCoordsBuf = new float[4 * 2];
-    texCoordsBuf[0] = currentTexCoords.z;
-    texCoordsBuf[1] = currentTexCoords.w;
-    texCoordsBuf[2] = currentTexCoords.x;
-    texCoordsBuf[3] = currentTexCoords.w;
-    texCoordsBuf[4] = currentTexCoords.x;
-    texCoordsBuf[5] = currentTexCoords.y;
-    texCoordsBuf[6] = currentTexCoords.z;
-    texCoordsBuf[7] = currentTexCoords.y;
+    float texCoordsBuf[4 * 2] =
+            {
+                    currentTexCoords.z,
+                    currentTexCoords.w,
+                    currentTexCoords.x,
+                    currentTexCoords.w,
+                    currentTexCoords.x,
+                    currentTexCoords.y,
+                    currentTexCoords.z,
+                    currentTexCoords.y,
+            };
 
     std::copy(texCoordsBuf, texCoordsBuf + 8, std::back_inserter(texCoords));
-    delete[] texCoordsBuf;
 
-    for (unsigned int i = indicesSize; i < (unsigned int)indices.size(); ++i)
+    for (unsigned int i = indicesSize; i < (unsigned int) indices.size(); ++i)
     {
         indices[i] += faceCount * 4;
     }
+
 }
 
 void Chunk::loadBloc(const glm::ivec3 &position, std::vector<float> &vertices, std::vector<float> &texCoords,
@@ -184,14 +186,58 @@ void Chunk::loadBloc(const glm::ivec3 &position, std::vector<float> &vertices, s
             loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::FRONT);
     }
 }
+*/
+
+// For a lack of pow function for integers
+static int pow(int base, int power)
+{
+    int ans = 1;
+    for (int i = 0; i < power; ++i)
+        ans *= base;
+    return ans;
+}
+
+static std::array<const Bloc *, 6>
+getBlocNeighbors(const glm::ivec3 &blocPosition, const Bloc *bloc, Chunk **neighborChunks)
+{
+    std::array<const Bloc *, 6> neighbors{};
+
+    for (int axis = 0; axis < 3; ++axis)
+    {
+        //-
+        if (blocPosition[axis] == 0)
+        {
+            if (neighborChunks[axis * 2] != nullptr)
+            {
+                glm::ivec3 neighborsPosition = blocPosition;
+                neighborsPosition[axis] = CHUNK_SIZE - 1;
+                neighbors[axis * 2] = &(neighborChunks[axis * 2]->getBloc(neighborsPosition));
+            }
+        } else
+            neighbors[axis * 2] = bloc - pow(CHUNK_SIZE, axis);
+        //+
+        if (blocPosition[axis] == CHUNK_SIZE - 1)
+        {
+            if (neighborChunks[axis * 2] != nullptr)
+            {
+                glm::ivec3 neighborsPosition = blocPosition;
+                neighborsPosition[axis] = 0;
+                neighbors[axis * 2 + 1] = &(neighborChunks[axis * 2 + 1]->getBloc(neighborsPosition));
+            }
+        } else
+            neighbors[axis * 2 + 1] = bloc + pow(CHUNK_SIZE, axis);
+    }
+
+    return neighbors;
+}
 
 void Chunk::loadToTexModel()
 {
-    if(empty_)
+    if (empty_)
         return;
 
     //First get the six around this one
-    Chunk **chunkList = world_->getAroundChunk(chunkPosition_);
+    Chunk **neighborChunks = world_->getAroundChunk(chunkPosition_);
 
     //Create vertex arrays
     std::vector<float> vertices;
@@ -203,10 +249,31 @@ void Chunk::loadToTexModel()
             for (int z = 0; z < CHUNK_SIZE; ++z)
             {
                 glm::ivec3 blocPosition = {x, y, z};
-                loadBloc(blocPosition, vertices, texCoords, indices, chunkList);
+                Bloc *currentBloc =
+                        blocs_ + blocPosition.x + CHUNK_SIZE * (blocPosition.z + CHUNK_SIZE * blocPosition.y);
+
+                //If it's a bloc of air there is nothing to load
+                if (currentBloc->ID == Blocs::AIR)
+                    continue;
+
+                //Get bloc neighbors
+                std::array<const Bloc *, 6> neighbors = getBlocNeighbors(blocPosition, currentBloc, neighborChunks);
+
+                bool isObstructed = true;
+                for (int i = 0; i < 6; ++i)
+                {
+                    if (neighbors[i] == nullptr || neighbors[i]->ID || neighbors[i]->state)
+                        isObstructed = false;
+                }
+
+                glm::vec4 blocTexCoords = texture_->getTextureLimits(currentBloc->ID);
+
+                if (!isObstructed)
+                    Blocs::loadBloc(vertices, texCoords, indices, blocPosition, currentBloc, neighbors.data(),
+                                    blocTexCoords);
             }
 
-    delete[] chunkList;
+    delete[] neighborChunks;
 
     CGE::Loader::Data<float> verticesData(vertices.data(), vertices.size());
     CGE::Loader::Data<float> texCoordsData(texCoords.data(), texCoords.size());
@@ -220,6 +287,7 @@ void Chunk::loadToTexModel()
 
     CGE::Loader::DataToVAO(model_, verticesData, texCoordsData, indicesData, true);
 }
+
 
 Chunk::Chunk(Bloc *blocs, World *world, glm::ivec3 &chunkPosition)
         : TexturedModel(nullptr, CGE::Loader::resManager::getTexture(1), true),
@@ -269,7 +337,7 @@ void Chunk::setBloc(glm::ivec3 &position, Bloc &newBloc)
     if (currentBloc == newBloc)
         return;
 
-    if(empty_ && newBloc != Blocs::AIR_BLOC)
+    if (empty_ && newBloc != Blocs::AIR_BLOC)
         empty_ = false;
 
     currentBloc = newBloc;
@@ -321,7 +389,7 @@ void Chunk::setBloc(glm::ivec3 &position, Bloc &newBloc)
     }
 }
 
-const Bloc &Chunk::getBloc(const glm::ivec3 &position)
+const Bloc &Chunk::getBloc(const glm::ivec3 &position) const
 {
 #ifndef NDEBUG
     if (0 > position.x || position.x > CHUNK_SIZE)
@@ -356,4 +424,3 @@ bool Chunk::isEmpty()
 {
     return empty_;
 }
-

@@ -60,7 +60,7 @@ public:
      */
     void setBloc(glm::ivec3 &position, Bloc &newBloc);
 
-    const Bloc &getBloc(const glm::ivec3 &position);
+    const Bloc &getBloc(const glm::ivec3 &position) const;
 
     bool isLoaded();
 

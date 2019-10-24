@@ -66,7 +66,11 @@ public:
      */
     Chunk *getChunk(const glm::vec3 &position);
 
-    //Get the 6 chunks around a specific chunk
+    /**
+     * Get neighbor chunks around the chunk at 'chunkPosition'
+     * @param chunkPosition Chunk position to get neighbors
+     * @return Chunk array (x-, x+, y-, y+, z-, z+)
+     */
     Chunk **getAroundChunk(glm::ivec3 chunkPosition);
 
     /**

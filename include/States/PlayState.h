@@ -7,6 +7,8 @@
 
 #include <State/State.h>
 #include <World/World.h>
+#include <GUI/Panel.h>
+#include <GLFW/glfw3.h>
 
 class PlayState : public CGE::State::State
 {
@@ -18,6 +20,9 @@ public:
 
     void draw() override;
 
+    CGE::GUI::Panel *pausePanel;
+
+    void keyCallback(GLFWwindow *window, int key, int action);
 };
 
 

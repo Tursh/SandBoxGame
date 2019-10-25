@@ -108,7 +108,7 @@ namespace Blocs
 
         const float *faceVertices = CUBE_FACE_VERTICES + face * POSITION_PER_FACE;
         positions.insert(positions.end(), faceVertices, faceVertices + POSITION_PER_FACE);
-        for (unsigned int i = positions.size() - POSITION_PER_FACE - 1; i < (unsigned int) positions.size(); ++i)
+        for (unsigned int i = positions.size() - POSITION_PER_FACE; i < (unsigned int) positions.size(); ++i)
             positions[i] += CUBE_SIZE * blocPosition[i % POSITION_PER_VERTEX];
 
         float texCoordsBuf[TEX_COORDS_PER_FACE] =
@@ -141,7 +141,7 @@ namespace Blocs
         for (unsigned int i = positions.size() - POSITION_PER_TRIANGLE; i < (unsigned int) positions.size(); ++i)
             positions[i] += blocPosition[i % POSITION_PER_VERTEX];
 
-        glm::vec2 texSize = {texCoordsOffset.z - texCoordsOffset.x, texCoordsOffset.w - texCoordsOffset.y };
+        glm::vec2 texSize = {texCoordsOffset.z - texCoordsOffset.x, texCoordsOffset.w - texCoordsOffset.y};
 
         float texCoordsBuf[TEX_COORDS_PER_TRIANGLE] =
                 {
@@ -154,6 +154,24 @@ namespace Blocs
                 };
 
         texCoords.insert(texCoords.end(), texCoordsBuf, texCoordsBuf + TEX_COORDS_PER_TRIANGLE);
+    }
+
+    static unsigned int
+    loadVertex(std::vector<float> &positions, std::vector<float> &texCoords, glm::vec3 &vertexPosition,
+               glm::ivec3 &blocPosition, glm::vec4 &texCoordsOffset)
+    {
+        glm::vec2 texSize = {texCoordsOffset.z - texCoordsOffset.x, texCoordsOffset.w - texCoordsOffset.y};
+
+        float vertexTexCoords[TEX_COORDS_PER_VERTEX] =
+                {texCoordsOffset.x + vertexPosition.x / CUBE_SIZE * texSize.x,
+                 texCoordsOffset.y + vertexPosition.z / CUBE_SIZE * texSize.y};
+        texCoords.insert(texCoords.end(), vertexTexCoords, vertexTexCoords + TEX_COORDS_PER_VERTEX);
+
+        vertexPosition += (CUBE_SIZE * (glm::vec3) blocPosition);
+        const float *vertexPositions = glm::value_ptr(vertexPosition);
+        positions.insert(positions.end(), vertexPositions, vertexPositions + POSITION_PER_VERTEX);
+
+        return positions.size() / POSITION_PER_VERTEX - 1;
     }
 
     void loadBloc(std::vector<float> &positions, std::vector<float> &texCoords, std::vector<unsigned int> &indices,
@@ -174,8 +192,6 @@ namespace Blocs
         int cornerFlagCount = xpzp + xnzp + xpzn + xnzn;
         int midCount = midX + midZ; //We don't count midY because of the way the bloc are made
 
-        bool xNeg = !xnzn || !xnzp, zNeg = !xnzn || !xpzn, xzSame = !xnzn || !xpzp;
-
         //If there are no corner up and the midY flag is down, then it should be a air bloc
         if (cornerFlagCount == 4 && !midY)
         {
@@ -184,12 +200,14 @@ namespace Blocs
             return;
         }
 
+        bool xn = !xnzn || !xnzp, zNeg = !xnzn || !xpzn, xz = !xnzn || !xpzp;
+
         //Bottom
         if (neighbors[2 + invY] == nullptr || neighbors[2 + invY]->ID == Blocs::AIR)
         {
             if (midY)
                 loadFace(positions, texCoords, indices, blocPosition, BOTTOM, texCoordsOffset); //Load face bottom 0
-            else if (!midX && !midZ)
+            else if (midCount == 0)
             {
                 if (cornerFlagCount <= 2)
                     loadFace(positions, texCoords, indices, blocPosition, BOTTOM,
@@ -201,7 +219,7 @@ namespace Blocs
                     int i = 0;
                     for (int point = 0; point < 4; ++point)
                     {
-                        if ((shape >> point) & 1)
+                        if ((shape >> (3 - point)) & 1)
                         {
                             std::copy(CUBE_VERTEX_POSITIONS + point * POSITION_PER_VERTEX,
                                       CUBE_VERTEX_POSITIONS + (point + 1) * POSITION_PER_VERTEX,
@@ -210,55 +228,79 @@ namespace Blocs
                         }
                     }
                     loadTriangle(positions, texCoords, indices, blocPosition,
-                            triangleVertexPositions, texCoordsOffset, xNeg);
+                                 triangleVertexPositions, texCoordsOffset, !xn);
                 }
             } else
             {
                 //If there is only one corner up, face bottom 1 has to be drawn
                 if (cornerFlagCount == 3)
                 {
-
-                    float midFaceTriangleVertexPositions[POSITION_PER_VERTEX * 3];
-
-                    for (int i = 0; i < 4; ++i)
+                    unsigned int startIndex = positions.size() / 3;
                     {
-                        //To make triangle drawn in clockwise direction
-                        int point = xNeg ? i : 3 - i;
-
-                        if ((shape >> point) & 1)
-                            std::copy(CUBE_VERTEX_POSITIONS + point * POSITION_PER_VERTEX,
-                                      CUBE_VERTEX_POSITIONS + (point + 1) * POSITION_PER_VERTEX,
-                                      midFaceTriangleVertexPositions + point * POSITION_PER_VERTEX);
+                        float triangleVertexPositions[POSITION_PER_VERTEX * 3];
+                        int i = 0;
+                        for (int point = 0; point < 4; ++point)
+                        {
+                            if ((shape >> (3 - point)) & 1)
+                            {
+                                std::copy(CUBE_VERTEX_POSITIONS + point * POSITION_PER_VERTEX,
+                                          CUBE_VERTEX_POSITIONS + (point + 1) * POSITION_PER_VERTEX,
+                                          triangleVertexPositions + i * POSITION_PER_VERTEX);
+                                ++i;
+                            }
+                        }
+                        loadTriangle(positions, texCoords, indices, blocPosition,
+                                     triangleVertexPositions, texCoordsOffset, !xn);
                     }
-                    loadTriangle(positions, texCoords, indices, blocPosition, midFaceTriangleVertexPositions,
-                                 texCoordsOffset);
-
                     //If there is only on mid flag, load face bottom 2
                     if (midCount == 1)
                     {
                         //Add the missing vertex
-                        float newVertex[POSITION_PER_VERTEX];
-                        newVertex[0] = blocPosition.x * CUBE_SIZE + (midX ? CUBE_SIZE / 2 : xNeg ? CUBE_SIZE : 0);
-                        newVertex[1] = blocPosition.y * CUBE_SIZE;
-                        newVertex[2] = blocPosition.z * CUBE_SIZE + (midZ ? CUBE_SIZE / 2 : zNeg ? CUBE_SIZE : 0);
-                        positions.insert(positions.end(), newVertex, newVertex + POSITION_PER_VERTEX);
+                        glm::vec3 vertexPosition = {midX ? CUBE_SIZE / 2 : xn ? CUBE_SIZE : 0, 0,
+                                                    midZ ? CUBE_SIZE / 2 : zNeg ? CUBE_SIZE : 0};
+                        loadVertex(positions, texCoords, vertexPosition, blocPosition, texCoordsOffset);
 
                         //Create new triangle from existing positions
-                        unsigned int newIndices[VERTICES_PER_TRIANGLE];
-                        for (int i = positions.size() / POSITION_PER_VERTEX - 5;
+                        for (int i = startIndex;
                              i < positions.size() / POSITION_PER_VERTEX; ++i)
                         {
                             //If the vertex is not the corner up, we use it to make the second triangle
-                            if (!((positions[i * 3] == blocPosition.x && xNeg)
-                                  && (positions[i * 3 + 2] == blocPosition.z && zNeg)))
+                            if (!(((positions[i * 3] == blocPosition.x) ^ !xn)
+                                  && ((positions[i * 3 + 2] == blocPosition.z) ^ !zNeg)))
                                 indices.push_back(i);
                         }
+                        //If the corner up is a zn we need to flip the indices so it renders it in clockwise direction
+                        if (zNeg)
+                            std::iter_swap(indices.end() - 3, indices.end() - 1);
                     }
 
-                    //If the 2 mid flags are up, load face bottom 3 (stair face)
+                        //If the 2 mid flags are up, load face bottom 3 (stair face)
                     else if (midCount == 2)
                     {
-                        
+
+                        //We have to add 3 vertex to add 2 triangles
+                        glm::vec3 vertex1Position = {xn ? CUBE_SIZE : 0, 0, 0.5f};
+                        loadVertex(positions, texCoords, vertex1Position, blocPosition, texCoordsOffset);
+
+                        glm::vec3 vertex2Position = {CUBE_SIZE / 2, 0, CUBE_SIZE / 2};
+                        loadVertex(positions, texCoords, vertex2Position, blocPosition, texCoordsOffset);
+
+                        glm::vec3 vertex3Position = {0.5f, 0, zNeg ? CUBE_SIZE : 0};
+                        loadVertex(positions, texCoords, vertex3Position, blocPosition, texCoordsOffset);
+
+                        for (int j = 0; j < 2; ++j)
+                            for (int i = startIndex; i < positions.size() / 3; ++i)
+                            {
+                                int bottomIndex = i - startIndex;
+                                if ((bottomIndex < 3
+                                     && ((!j && !xn ^ (bool) bottomIndex)
+                                     || (j && xz && (bottomIndex & 1))))
+                                    || ((bottomIndex == 3) ^ j || bottomIndex == 4))
+                                    indices.push_back(i);
+                            }
+                        if (xz)
+                            for (int j = 0; j < 2; ++j)
+                                std::iter_swap(indices.end() - 3 - 2 * j, indices.end() - 1 - 2 * j);
                     }
                 }
 

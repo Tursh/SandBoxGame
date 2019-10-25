@@ -166,8 +166,20 @@ World::World()
     Bloc *blocs = new Bloc[(int) pow(CHUNK_SIZE, 3)];
     for (int i = 0; i < CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE; ++i)
         blocs[i] = Blocs::AIR_BLOC;
-    blocs[0] = {1, 0B00000000};
-    blocs[2] = {1, 0B00000111};
+    //blocs[0] = {1, 0B00000000};
+    //blocs[2] = {1, 0B00001110};
+    //blocs[4] = {1, 0B00001101};
+    //blocs[6] = {1, 0B00001011};
+    //blocs[8] = {1, 0B00000111};
+    //blocs[2 + CHUNK_SIZE * 2] = {1, 0B00011110};
+    //blocs[4 + CHUNK_SIZE * 2] = {1, 0B00011101};
+    //blocs[6 + CHUNK_SIZE * 2] = {1, 0B00011011};
+    //blocs[8 + CHUNK_SIZE * 2] = {1, 0B00010111};
+    blocs[0] = {1, 0B01011110};
+    blocs[2 + CHUNK_SIZE * 3] = {1, 0B01011110};
+    blocs[4 + CHUNK_SIZE * 3] = {1, 0B01011101};
+    blocs[6 + CHUNK_SIZE * 3] = {1, 0B01011011};
+    blocs[8 + CHUNK_SIZE * 3] = {1, 0B01010111};
 
     glm::ivec3 chunkPosition = {0, 0, 0};
     Chunk *newChunk = new Chunk(blocs, this, chunkPosition);

@@ -89,6 +89,14 @@ namespace Blocs
                     2, 1, 0
             };
 
+    const unsigned int STAIR_INDICES[4][6]=
+            {
+                    {4,3,2,5,4,1},
+                    {2,3,4,0,4,5},
+                    {0,3,4,2,4,5},
+                    {4,3,0,5,4,1}
+            };
+
     std::tuple<const float *, const unsigned int *> getFace(Face face)
     {
         int indicesOffset = (face == RIGHT || face == TOP || face == BACK) ? INDICES_PER_FACE : 0;
@@ -200,7 +208,7 @@ namespace Blocs
             return;
         }
 
-        bool xn = !xnzn || !xnzp, zNeg = !xnzn || !xpzn, xz = !xnzn || !xpzp;
+        bool xn = !xnzn || !xnzp, zn = !xnzn || !xpzn, xz = !xnzn || !xpzp;
 
         //Bottom
         if (neighbors[2 + invY] == nullptr || neighbors[2 + invY]->ID == Blocs::AIR)
@@ -257,7 +265,7 @@ namespace Blocs
                     {
                         //Add the missing vertex
                         glm::vec3 vertexPosition = {midX ? CUBE_SIZE / 2 : xn ? CUBE_SIZE : 0, 0,
-                                                    midZ ? CUBE_SIZE / 2 : zNeg ? CUBE_SIZE : 0};
+                                                    midZ ? CUBE_SIZE / 2 : zn ? CUBE_SIZE : 0};
                         loadVertex(positions, texCoords, vertexPosition, blocPosition, texCoordsOffset);
 
                         //Create new triangle from existing positions
@@ -266,11 +274,11 @@ namespace Blocs
                         {
                             //If the vertex is not the corner up, we use it to make the second triangle
                             if (!(((positions[i * 3] == blocPosition.x) ^ !xn)
-                                  && ((positions[i * 3 + 2] == blocPosition.z) ^ !zNeg)))
+                                  && ((positions[i * 3 + 2] == blocPosition.z) ^ !zn)))
                                 indices.push_back(i);
                         }
                         //If the corner up is a zn we need to flip the indices so it renders it in clockwise direction
-                        if (zNeg)
+                        if (zn)
                             std::iter_swap(indices.end() - 3, indices.end() - 1);
                     }
 
@@ -285,25 +293,16 @@ namespace Blocs
                         glm::vec3 vertex2Position = {CUBE_SIZE / 2, 0, CUBE_SIZE / 2};
                         loadVertex(positions, texCoords, vertex2Position, blocPosition, texCoordsOffset);
 
-                        glm::vec3 vertex3Position = {0.5f, 0, zNeg ? CUBE_SIZE : 0};
+                        glm::vec3 vertex3Position = {0.5f, 0, zn ? CUBE_SIZE : 0};
                         loadVertex(positions, texCoords, vertex3Position, blocPosition, texCoordsOffset);
 
-                        for (int j = 0; j < 2; ++j)
-                            for (int i = startIndex; i < positions.size() / 3; ++i)
-                            {
-                                int bottomIndex = i - startIndex;
-                                if ((bottomIndex < 3
-                                     && ((!j && !xn ^ (bool) bottomIndex)
-                                     || (j && xz && (bottomIndex & 1))))
-                                    || ((bottomIndex == 3) ^ j || bottomIndex == 4))
-                                    indices.push_back(i);
-                            }
-                        if (xz)
-                            for (int j = 0; j < 2; ++j)
-                                std::iter_swap(indices.end() - 3 - 2 * j, indices.end() - 1 - 2 * j);
+                        const unsigned int *stairIndices = STAIR_INDICES[!xn * 2 + !zn];
+                        indices.insert(indices.end(), stairIndices, stairIndices + VERTICES_PER_TRIANGLE * 2);
+
+                        for(int i = indices.size() - VERTICES_PER_TRIANGLE * 2; i < indices.size(); ++i)
+                            indices[i] += startIndex;
                     }
                 }
-
             }
         }
 

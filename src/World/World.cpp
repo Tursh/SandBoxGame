@@ -176,21 +176,21 @@ World::World()
     blocs[4 + CHUNK_SIZE * 2] = {1, 0B00011101};
     blocs[6 + CHUNK_SIZE * 2] = {1, 0B00011011};
     blocs[8 + CHUNK_SIZE * 2] = {1, 0B00010111};
-
+    
     blocs[2 + CHUNK_SIZE * 4] = {1, 0B01011110};
     blocs[4 + CHUNK_SIZE * 4] = {1, 0B01011101};
     blocs[6 + CHUNK_SIZE * 4] = {1, 0B01011011};
     blocs[8 + CHUNK_SIZE * 4] = {1, 0B01010111};
-
-    //blocs[2 + CHUNK_SIZE * 6] = {1, 0B00011100};
-    //blocs[4 + CHUNK_SIZE * 6] = {1, 0B00011001};
-    //blocs[6 + CHUNK_SIZE * 6] = {1, 0B00010011};
-    //blocs[8 + CHUNK_SIZE * 6] = {1, 0B00010110};
-//
-    //blocs[2 + CHUNK_SIZE * 8] = {1, 0B00011110};
-    //blocs[4 + CHUNK_SIZE * 8] = {1, 0B00011101};
-    //blocs[6 + CHUNK_SIZE * 8] = {1, 0B00011011};
-    //blocs[8 + CHUNK_SIZE * 8] = {1, 0B00010111};
+    
+    blocs[2 + CHUNK_SIZE * 6] = {1, 0B00011100};
+    blocs[4 + CHUNK_SIZE * 6] = {1, 0B00011001};
+    blocs[6 + CHUNK_SIZE * 6] = {1, 0B00010011};
+    blocs[8 + CHUNK_SIZE * 6] = {1, 0B00010110};
+    
+    blocs[2 + CHUNK_SIZE * 8] = {1, 0B00011110};
+    blocs[4 + CHUNK_SIZE * 8] = {1, 0B00011101};
+    blocs[6 + CHUNK_SIZE * 8] = {1, 0B00011011};
+    blocs[8 + CHUNK_SIZE * 8] = {1, 0B00010111};
 
     glm::ivec3 chunkPosition = {0, 0, 0};
     Chunk *newChunk = new Chunk(blocs, this, chunkPosition);

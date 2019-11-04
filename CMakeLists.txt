@@ -52,7 +52,10 @@ add_executable(SandBoxGame
         src/World/Terrain/Bloc.cpp
         src/World/Player.cpp
         src/World/Terrain/ChunkManager.cpp
-        src/World/Terrain/WorldGenerator.cpp include/Inventory/Items/Item.cpp include/Inventory/Items/Item.h include/Inventory/Inventory.cpp include/Inventory/Inventory.h)
+        src/World/Terrain/WorldGenerator.cpp
+        src/Inventory/Items/Item.cpp
+        src/Inventory/Inventory.cpp
+        src/Inventory/Items/ItemManager.cpp)
 
 add_custom_command(TARGET SandBoxGame PRE_BUILD
         COMMAND ${CMAKE_COMMAND} -E create_symlink

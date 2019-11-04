@@ -1,1 +1,6 @@
-#ID: NAME - DESCRIPTION - VOLUME - WEIGHT
+#ID: TYPE - NAME - VOLUME (m^3) - WEIGHT (kg) - DESCRIPTION
+#Type 0 = resource item, 1 = bloc, 2 = Tool, 3 = wearable
+
+0: 0 - Pebbles - 0.05 - 2 - Tiny rocks
+1: 0 - Dirt - 0.05 - 0.5 - Just dirt
+2: 0 - Wood Chips -

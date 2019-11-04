@@ -1,0 +1,34 @@
+#Wood
+
+Ground                  -Hand-> Branch;
+Tree-Branch             -Hand-> Branch;
+Tree-Log                -Appropriate Tool (Axe)-> Log;
+                        -Inappropriate Tool (Hand)-> Wood Chips;
+
+Branch                  -Craft-> Fruit, Leaf, Sticks;
+Log                     -Craft-> Unrefined Planks;
+Log                     -BandSaw-> Plank;
+
+10x Wood Chips + 10x Wax-Craft-> Unrefined Plywood;
+10x Wood Chips + 2x Glue-Press-> Plywood;
+
+#Stone
+
+Ground                  -Hand-> Pebble, Sharp Rock;
+
+Rock Blocks             -Rough Pick-> Sharp Rocks, 5% Rock Dust;
+Rock Blocks             -Precise Pick-> Rock Brick, 20% Hard Rock, 20% Rock Dust;
+
+2x Pebbles              -Craft-> 2x Sharp Rocks, 20% Rock Dust;
+2x Rock Bricks          -Craft-> 2x Sharp Rocks, 50% Rock Dust;
+
+2x Sharp Rocks          -Craft-> Sharp Rock, 50% Rock Dust;
+
+Rock Dust + Wax         -Craft-> Cement Mix;
+
+Cement + Sharp Rocks    -Craft-> Cobblestone;
+Cement + Rock Brick     -Craft-> Rock Brick Block;
+10x Cement Mix          -Craft-> Cement Block;
+
+Pebble + Sharp Rocks
++ Wood Chips            -Campfire-> Active fire (for 10 secs);

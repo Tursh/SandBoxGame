@@ -18,23 +18,36 @@ bool Inventory::addItem(Item *newItem)
 
 const Item *Inventory::getItem(int index)
 {
-	return items_[index];
+	return items_[index].second;
 }
 
-Item *Inventory::removeItem(int index)
+
+Inventory::Slot Inventory::removeItem(int index, int quantity)
 {
-	Item *item = items_[index];
-	items_
-
-	return nullptr;
+    Slot slot = items_[index];
+    if(slot.first < quantity)
+    {
+        slot.first -= quantity;
+        return std::make_pair(quantity, slot.second);
+    }
+    else
+    {
+        items_.erase(items_.begin() + index);
+        return slot;
+    }
 }
+
 
 void Inventory::swapItemWithMouseItem(int index)
 {
-
+    Slot temp = mouseItem_;
+    mouseItem_ = items_[index];
+    items_[index] = temp;
 }
 
-Item *Inventory::getItemFromMouseItem()
+Inventory::Slot Inventory::getItemFromMouseItem()
 {
-	return nullptr;
+    Slot temp = mouseItem_;
+    mouseItem_ = {0, nullptr};
+	return temp;
 }

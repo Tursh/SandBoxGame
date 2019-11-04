@@ -1,0 +1,4 @@
+| 0 | 0 | Pebbles     | 0.05 | 2 | Small round rocks                   | Picked up on the ground                                                                              |
+| 1 | 0 | Sharp Rocks | 0.05 | 2 | Small pointy rocks                  | Picked up on the ground/by smashing a pebble on the ground/from picking with a pickaxe on stone bloc |
+| 2 | 0 | Rock Dust   | 0.05 | 2 | Little particles of rock bunched up | When obtaining Sharp Rocks 1/25 chance of dropping/ grinding/hamering any stone item                 |
+| 3 | 0 | Wood Chips  |      |   |                                     |                                                                                                      |

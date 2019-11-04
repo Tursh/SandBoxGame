@@ -9,6 +9,9 @@
 
 class Inventory
 {
+    //*< <quantity, item>
+    typedef std::pair<unsigned int, Item> Slot;
+
 	float maxWeight_;
 
 	float maxVolume_;
@@ -17,31 +20,39 @@ class Inventory
 
 	float volume_;
 
-	std::vector<std::tuple<unsigned int, Item*>> items_;
+	std::vector<Slot> items_;
 
-	Item *mouseItem_;
+	Slot mouseSlot_;
 
 public:
 	/**
-	 * Add item to inventory
+	 * Add a quantity of item in the inventory
 	 * @param newItem Item to add
-	 * @return Item added succesfully (not full)
+	 * @param quantity How many item to add
+	 * @return The rest of the item that could not be added (inventory full)
 	 */
-	bool addItem(Item *newItem);
+	unsigned int addItem(Item newItem, unsigned int quantity = 1);
 
 	/**
 	 * Return item at index
 	 * @param index Index of item
 	 * @return item at index
 	 */
-	const Item  *getItem(int index);
+	const Item getItem(int index);
 
 	/**
-	 * Clear item in index and returns it
-	 * @param index Index of item to clear
-	 * @return Item at index
+	 * Return the item slot
+	 * @param index item index in inventory
+	 * @return Item Slot <quantity and item>
 	 */
-	Item *removeItem(int index);
+	const Slot &getItemSlot(int index);
+
+	/**
+	 * Clear item at index and returns it
+	 * @param index Index of item to clear
+	 * @return Item slot at index <quantity and item>
+	 */
+	Slot removeItem(int index, int quantity = 1);
 
 	/**
 	 * Swap item in index with mouseItem
@@ -53,6 +64,6 @@ public:
 	 * Return item from mouse item and reset mouse item
 	 * @return item stored in mouseItem
 	 */
-	Item *getItemFromMouseItem();
+	Slot getItemFromMouseItem();
 
 };

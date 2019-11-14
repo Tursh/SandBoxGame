@@ -43,13 +43,9 @@ endif ()
 add_executable(SandBoxGame
         src/Main.cpp
         src/States/PlayState.cpp
-        include/States/PlayState.h
         src/World/World.cpp
-        include/World/World.h
         src/World/Terrain/Chunk.cpp
-        include/World/Terrain/Chunk.h
-        include/World/Terrain/Bloc.h
-        src/World/Terrain/Bloc.cpp
+        src/World/Terrain/Block.cpp
         src/World/Player.cpp
         src/World/Terrain/ChunkManager.cpp
         src/World/Terrain/WorldGenerator.cpp)

@@ -11,27 +11,27 @@
 #include <glm/vec2.hpp>
 
 
-struct Bloc
+struct Block
 {
 	short ID;
-	//first 4 digits are the Block shape and 4 last are rotation
+	//first 4 digits are the Blockk shape and 4 last are rotation
 	char state;
 	
 	//Compare their ID and state
-	bool operator==(const Bloc &otherBloc) const;
+	bool operator==(const Block &otherBlock) const;
 	
 	//Compare their ID and state
-	bool operator!=(const Bloc &otherBloc) const;
+	bool operator!=(const Block &otherBlock) const;
 };
 
-namespace Blocs
+namespace Blocks
 {
 	
 	extern const short
 			AIR,
 			DIRT;
 	
-	extern const Bloc AIR_BLOC;
+	extern const Block AIR_BLOC;
 	
 	extern const float CUBE_SIZE;
 	
@@ -48,14 +48,14 @@ namespace Blocs
 	std::tuple<const glm::vec3 *, const unsigned int *> getFace(Face face);
 	
 	/**
-	 * Load a bloc to vertices and texture coordinates
+	 * Load a block to vertices and texture coordinates
 	 * @param positions Vertices list to load to
 	 * @param texCoords Texture coordinates list to load to
-	 * @param blocPosition The position of the bloc
-	 * @param blocToLoad The bloc to load
-	 * @param neighbors The bloc neighbors (x+, x-, y+, y-, z+, z-)
+	 * @param blockPosition The position of the block
+	 * @param blockToLoad The block to load
+	 * @param neighbors The block neighbors (x+, x-, y+, y-, z+, z-)
 	 */
 	void
-	loadBloc(std::vector<glm::vec3> &positions, std::vector<glm::vec2> &texCoords, std::vector<unsigned int> &indices,
-			 glm::ivec3 &blocPosition, Bloc *blocToLoad, const Bloc **neighbors, glm::vec4 &texCoordsOffset);
+	loadBlock(std::vector<glm::vec3> &positions, std::vector<glm::vec2> &texCoords, std::vector<unsigned int> &indices,
+			 glm::ivec3 &blockPosition, Block *blockToLoad, const Block **neighbors, glm::vec4 &texCoordsOffset);
 }

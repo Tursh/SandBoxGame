@@ -5,15 +5,15 @@
 #define GLM_FORCE_ONLY_XYZW
 #include <glm/glm.hpp>
 
-#include <World/Terrain/Bloc.h>
+#include <World/Terrain/Block.h>
 
-namespace Blocs
+namespace Blocks
 {
 	const short
 			AIR = 0,
 			DIRT = 1;
 	
-	const Bloc AIR_BLOC = {AIR, 0};
+	const Block AIR_BLOC = {AIR, 0};
 	
 	const float CUBE_SIZE = 1.0f;
 	
@@ -107,7 +107,7 @@ namespace Blocs
 	
 	static void
 	loadFace(std::vector<glm::vec3> &positions, std::vector<glm::vec2> &texCoords, std::vector<unsigned int> &indices,
-			 glm::ivec3 &blocPosition, Face face, glm::vec4 blocTexCoordsOffset)
+			 glm::ivec3 &blockPosition, Face face, glm::vec4 blockTexCoordsOffset)
 	{
 		const unsigned int *faceIndices =
 				CUBE_FACE_INDICES + ((face == RIGHT || face == TOP || face == BACK) ? INDICES_PER_FACE : 0);
@@ -119,18 +119,18 @@ namespace Blocs
 		const glm::vec3 *faceVertices = CUBE_FACE_VERTICES + face * VERTICES_PER_FACE;
 		positions.insert(positions.end(), faceVertices, faceVertices + VERTICES_PER_FACE);
 		for (unsigned int i = positions.size() - VERTICES_PER_FACE; i < (unsigned int) positions.size(); ++i)
-			positions[i] += (blocPosition.operator*=(CUBE_SIZE));
+			positions[i] += (blockPosition.operator*=(CUBE_SIZE));
 		
 		glm::vec2 texCoordsBuf[VERTICES_PER_FACE] =
 				{
-						{blocTexCoordsOffset.z,
-								blocTexCoordsOffset.w},
-						{blocTexCoordsOffset.x,
-								blocTexCoordsOffset.w},
-						{blocTexCoordsOffset.x,
-								blocTexCoordsOffset.y},
-						{blocTexCoordsOffset.z,
-								blocTexCoordsOffset.y},
+						{blockTexCoordsOffset.z,
+								blockTexCoordsOffset.w},
+						{blockTexCoordsOffset.x,
+								blockTexCoordsOffset.w},
+						{blockTexCoordsOffset.x,
+								blockTexCoordsOffset.y},
+						{blockTexCoordsOffset.z,
+								blockTexCoordsOffset.y},
 				};
 		
 		texCoords.insert(texCoords.end(), texCoordsBuf, texCoordsBuf + VERTICES_PER_FACE);
@@ -139,7 +139,7 @@ namespace Blocs
 	static void
 	loadTriangle(std::vector<glm::vec3> &positions, std::vector<glm::vec2> &texCoords,
 				 std::vector<unsigned int> &indices,
-				 glm::ivec3 &blocPosition,
+				 glm::ivec3 &blockPosition,
 				 glm::vec3 *triangleVertexPositions, glm::vec4 &texCoordsOffset, bool invIndices = false)
 	{
 		indices.insert(indices.end(),
@@ -150,7 +150,7 @@ namespace Blocs
 		
 		positions.insert(positions.end(), triangleVertexPositions, triangleVertexPositions + VERTICES_PER_TRIANGLE);
 		for (unsigned int i = positions.size() - VERTICES_PER_TRIANGLE; i < (unsigned int) positions.size(); ++i)
-			positions[i] += blocPosition;
+			positions[i] += blockPosition;
 		
 		glm::vec2 texSize = {texCoordsOffset.z - texCoordsOffset.x, texCoordsOffset.w - texCoordsOffset.y};
 		
@@ -170,7 +170,7 @@ namespace Blocs
 	
 	static unsigned int
 	loadVertex(std::vector<glm::vec3> &positions, std::vector<glm::vec2> &texCoords, glm::vec3 &vertexPosition,
-			   glm::ivec3 &blocPosition, glm::vec4 &texCoordsOffset)
+			   glm::ivec3 &blockPosition, glm::vec4 &texCoordsOffset)
 	{
 		glm::vec2 texSize = {texCoordsOffset.z - texCoordsOffset.x, texCoordsOffset.w - texCoordsOffset.y};
 		
@@ -179,18 +179,18 @@ namespace Blocs
 				 texCoordsOffset.y + vertexPosition.z / CUBE_SIZE * texSize.y};
 		texCoords.push_back(vertexTexCoord);
 		
-		positions.push_back(vertexPosition + ((glm::vec3)(blocPosition) * CUBE_SIZE));
+		positions.push_back(vertexPosition + ((glm::vec3)(blockPosition) * CUBE_SIZE));
 		
 		return positions.size() - 1;
 	}
 	
 	
 	void
-	loadBloc(std::vector<glm::vec3> &positions, std::vector<glm::vec2> &texCoords, std::vector<unsigned int> &indices,
-			 glm::ivec3 &blocPosition, Bloc *blocToLoad, const Bloc **neighbors, glm::vec4 &texCoordsOffset)
+	loadBlock(std::vector<glm::vec3> &positions, std::vector<glm::vec2> &texCoords, std::vector<unsigned int> &indices,
+			 glm::ivec3 &blockPosition, Block *blockToLoad, const Block **neighbors, glm::vec4 &texCoordsOffset)
 	{
 		
-		char &shape = blocToLoad->state;
+		char &shape = blockToLoad->state;
 		//Get flags
 		bool xnzn = shape & 1;
 		bool xnzp = (shape >> 1) & 1;
@@ -202,27 +202,27 @@ namespace Blocs
 		bool invY = (shape >> 7) & 1;
 		
 		int cornerFlagCount = xpzp + xnzp + xpzn + xnzn;
-		int midCount = midX + midZ; //We don't count midY because of the way the bloc are made
+		int midCount = midX + midZ; //We don't count midY because of the way the block are made
 		
-		//If there are no corner up and the midY flag is down, then it should be a air bloc
+		//If there are no corner up and the midY flag is down, then it should be a air block
 		if (cornerFlagCount == 4 && !midY)
 		{
-			blocToLoad->ID = Blocs::AIR;
-			blocToLoad->state = 0;
+			blockToLoad->ID = Blocks::AIR;
+			blockToLoad->state = 0;
 			return;
 		}
 		
 		bool xn = !xnzn || !xnzp, zn = !xnzn || !xpzn, xz = !xnzn || !xpzp;
 		
 		//Bottom
-		if (neighbors[2 + invY] == nullptr || neighbors[2 + invY]->ID == Blocs::AIR)
+		if (neighbors[2 + invY] == nullptr || neighbors[2 + invY]->ID == Blocks::AIR)
 		{
 			if (midY)
-				loadFace(positions, texCoords, indices, blocPosition, BOTTOM, texCoordsOffset); //Load face bottom 0
+				loadFace(positions, texCoords, indices, blockPosition, BOTTOM, texCoordsOffset); //Load face bottom 0
 			else if (midCount == 0)
 			{
 				if (cornerFlagCount <= 2)
-					loadFace(positions, texCoords, indices, blocPosition, BOTTOM,
+					loadFace(positions, texCoords, indices, blockPosition, BOTTOM,
 							 texCoordsOffset); //Load face bottom 0
 				else
 				{
@@ -239,7 +239,7 @@ namespace Blocs
 							++i;
 						}
 					}
-					loadTriangle(positions, texCoords, indices, blocPosition,
+					loadTriangle(positions, texCoords, indices, blockPosition,
 								 triangleVertexPositions, texCoordsOffset, !xn);
 				}
 			} else
@@ -261,7 +261,7 @@ namespace Blocs
 								++i;
 							}
 						}
-						loadTriangle(positions, texCoords, indices, blocPosition,
+						loadTriangle(positions, texCoords, indices, blockPosition,
 									 triangleVertexPositions, texCoordsOffset, !xn);
 					}
 					//If there is only on mid flag, load face bottom 2
@@ -270,15 +270,15 @@ namespace Blocs
 						//Add the missing vertex
 						glm::vec3 vertexPosition = {midX ? CUBE_SIZE / 2 : xn ? CUBE_SIZE : 0, 0,
 													midZ ? CUBE_SIZE / 2 : zn ? CUBE_SIZE : 0};
-						loadVertex(positions, texCoords, vertexPosition, blocPosition, texCoordsOffset);
+						loadVertex(positions, texCoords, vertexPosition, blockPosition, texCoordsOffset);
 						
 						//Create new triangle from existing positions
 						for (int i = startIndex;
 							 i < positions.size(); ++i)
 						{
 							//If the vertex is not the corner up, we use it to make the second triangle
-							if (!(((positions[i].x == blocPosition.x) ^ !xn)
-								  && ((positions[i].z == blocPosition.z) ^ !zn)))
+							if (!(((positions[i].x == blockPosition.x) ^ !xn)
+								  && ((positions[i].z == blockPosition.z) ^ !zn)))
 								indices.push_back(i);
 						}
 						//If the corner up is a zn we need to flip the indices so it renders it in clockwise direction
@@ -292,13 +292,13 @@ namespace Blocs
 						
 						//We have to add 3 vertex to add 2 triangles
 						glm::vec3 vertex1Position = {xn ? CUBE_SIZE : 0, 0, 0.5f};
-						loadVertex(positions, texCoords, vertex1Position, blocPosition, texCoordsOffset);
+						loadVertex(positions, texCoords, vertex1Position, blockPosition, texCoordsOffset);
 						
 						glm::vec3 vertex2Position = {CUBE_SIZE / 2, 0, CUBE_SIZE / 2};
-						loadVertex(positions, texCoords, vertex2Position, blocPosition, texCoordsOffset);
+						loadVertex(positions, texCoords, vertex2Position, blockPosition, texCoordsOffset);
 						
 						glm::vec3 vertex3Position = {0.5f, 0, zn ? CUBE_SIZE : 0};
-						loadVertex(positions, texCoords, vertex3Position, blocPosition, texCoordsOffset);
+						loadVertex(positions, texCoords, vertex3Position, blockPosition, texCoordsOffset);
 						
 						const unsigned int *stairIndices = STAIR_INDICES[!xn * 2 + !zn];
 						indices.insert(indices.end(), stairIndices, stairIndices + VERTICES_PER_TRIANGLE * 2);
@@ -322,12 +322,12 @@ namespace Blocs
 	
 }
 
-bool Bloc::operator==(const Bloc &otherBloc) const
+bool Block::operator==(const Block &otherBlock) const
 {
-	return ID == otherBloc.ID && state == otherBloc.state;
+	return ID == otherBlock.ID && state == otherBlock.state;
 }
 
-bool Bloc::operator!=(const Bloc &otherBloc) const
+bool Block::operator!=(const Block &otherBlock) const
 {
-	return !(*this == otherBloc);
+	return !(*this == otherBlock);
 }

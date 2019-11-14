@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "World/Terrain/Bloc.h"
+#include "World/Terrain/Block.h"
 #include "World/Terrain/Chunk.h"
 #include "World/Terrain/ChunkManager.h"
 #include <map>
@@ -53,16 +53,16 @@ public:
     void addChunk(Chunk *chunk);
 
     /**
-     * Get the chunk where the bloc at "position" location
-     * @param position bloc location
-     * @return the chunk where the bloc is located
+     * Get the chunk where the block at "position" location
+     * @param position block location
+     * @return the chunk where the block is located
      */
     Chunk *getChunk(glm::ivec3 position);
 
     /**
-     * Get the chunk where the bloc at "position" location
-     * @param position bloc location
-     * @return the chunk where the bloc is located
+     * Get the chunk where the block at "position" location
+     * @param position block location
+     * @return the chunk where the block is located
      */
     Chunk *getChunk(const glm::vec3 &position);
 
@@ -75,49 +75,49 @@ public:
 
     /**
      * Get the chunk at "chunkPosition"
-     * @param chunkPosition chunk location (in chunk position = bloc position / 16)
+     * @param chunkPosition chunk location (in chunk position = block position / 16)
      * @return The chunk at "chunkPosition"
      */
     Chunk *getChunkByChunkPosition(glm::ivec3 chunkPosition);
 
     /**
      * Translate the position in world to position in chunk
-     * @param blocPosition Bloc position in the world
-     * @return Bloc position in its chunk
+     * @param blockPosition Block position in the world
+     * @return Block position in its chunk
      */
-    static glm::ivec3 getPositionInChunk(glm::ivec3 blocPosition);
+    static glm::ivec3 getPositionInChunk(glm::ivec3 blockPosition);
 
     /**
-     * Get the position of the chunk that the bloc is located
-     * @param blocPosition The position of the bloc in the world
+     * Get the position of the chunk that the block is located
+     * @param blockPosition The position of the block in the world
      * @return The position of the chunk
      */
-    static glm::ivec3 getChunkPosition(glm::ivec3 blocPosition);
+    static glm::ivec3 getChunkPosition(glm::ivec3 blockPosition);
 
     /**
-     * Set a bloc at a specific location
-     * @param position Where the bloc will be placed
-     * @param bloc The bloc
+     * Set a block at a specific location
+     * @param position Where the block will be placed
+     * @param block The block
      */
-    void setBloc(glm::ivec3 position, Bloc bloc);
+    void setBlock(glm::ivec3 position, Block block);
 
-    const Bloc &getBloc(glm::ivec3 position);
+    const Block &getBlock(glm::ivec3 position);
 
     /**
      * Return the list of hitbox in an area
-     * @param area The to check for blocs
-     * @return The list of bloc hitboxes
+     * @param area The to check for blocks
+     * @return The list of block hitboxes
      */
-    std::vector<Hitbox> getBlocHitboxs(Hitbox area);
+    std::vector<Hitbox> getBlockHitboxs(Hitbox area);
 
     void addEntity(std::shared_ptr<CGE::Entities::Entity> newEntity);
 
     /**
-     * Get the position of the bloc the camera is looking at
+     * Get the position of the block the camera is looking at
      * @param raySize The maximum distance from the camera
-     * @return The bloc location / If not bloc, return glm::ivec3(INT_MAX)
+     * @return The block location / If not block, return glm::ivec3(INT_MAX)
      */
-    glm::ivec3 getPickedBloc(float raySize);
+    glm::ivec3 getPickedBlock(float raySize);
 
     void deleteChunk(Chunk *chunk);
 };

@@ -13,12 +13,12 @@ const unsigned int CHUNK_SIZE = 16;
 /*
 
 void
-Chunk::loadFace(const Bloc &currentBloc, std::vector<float> &vertices, std::vector<float> &texCoords,
+Chunk::loadFace(const Block &currentBlock, std::vector<float> &vertices, std::vector<float> &texCoords,
                 std::vector<unsigned int> &indices, const int &x, const int &y,
-                const int &z, Blocs::Face face)
+                const int &z, Blocks::Face face)
 {
     //Get vertices and indices
-    auto data = Blocs::getFace(face);
+    auto data = Blocks::getFace(face);
     const auto *faceVertices = std::get<0>(data);
     const auto *faceIndices = std::get<1>(data);
 
@@ -28,17 +28,17 @@ Chunk::loadFace(const Bloc &currentBloc, std::vector<float> &vertices, std::vect
 
     //TODO check state
 
-    std::copy(faceVertices, faceVertices + Blocs::POSITION_PER_FACE, std::back_inserter(vertices));
-    std::copy(faceIndices, faceIndices + Blocs::INDICES_PER_FACE, std::back_inserter(indices));
+    std::copy(faceVertices, faceVertices + Blocks::POSITION_PER_FACE, std::back_inserter(vertices));
+    std::copy(faceIndices, faceIndices + Blocks::INDICES_PER_FACE, std::back_inserter(indices));
 
     for (unsigned int i = index; i < (unsigned int) vertices.size(); i += 3)
     {
-        vertices[i] += (float) x * Blocs::CUBE_SIZE;
-        vertices[i + 1] += (float) y * Blocs::CUBE_SIZE;
-        vertices[i + 2] += (float) z * Blocs::CUBE_SIZE;
+        vertices[i] += (float) x * Blocks::CUBE_SIZE;
+        vertices[i + 1] += (float) y * Blocks::CUBE_SIZE;
+        vertices[i + 2] += (float) z * Blocks::CUBE_SIZE;
     }
 
-    glm::vec4 currentTexCoords = texture_.get()->getTextureLimits(currentBloc.ID);
+    glm::vec4 currentTexCoords = texture_.get()->getTextureLimits(currentBlock.ID);
     float texCoordsBuf[4 * 2] =
             {
                     currentTexCoords.z,
@@ -60,12 +60,12 @@ Chunk::loadFace(const Bloc &currentBloc, std::vector<float> &vertices, std::vect
 
 }
 
-void Chunk::loadBloc(const glm::ivec3 &position, std::vector<float> &vertices, std::vector<float> &texCoords,
+void Chunk::loadBlock(const glm::ivec3 &position, std::vector<float> &vertices, std::vector<float> &texCoords,
                      std::vector<unsigned int> &indices, Chunk **chunkList)
 {
-    const Bloc &currentBloc = getBloc(position);
+    const Block &currentBlock = getBlock(position);
 
-    if (currentBloc.ID == Blocs::AIR)
+    if (currentBlock.ID == Blocks::AIR)
         return;
 
     const int &x = position.x, &y = position.y, &z = position.z;
@@ -73,118 +73,118 @@ void Chunk::loadBloc(const glm::ivec3 &position, std::vector<float> &vertices, s
     //Check extremities
     if (position.x == 0)
     {
-        glm::ivec3 blocPosition = position;
-        blocPosition.x = CHUNK_SIZE - 1;
-        if (chunkList[0] != nullptr && chunkList[0]->getBloc(blocPosition).ID == Blocs::AIR)
+        glm::ivec3 blockPosition = position;
+        blockPosition.x = CHUNK_SIZE - 1;
+        if (chunkList[0] != nullptr && chunkList[0]->getBlock(blockPosition).ID == Blocks::AIR)
         {
-            loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::LEFT);
+            loadFace(currentBlock, vertices, texCoords, indices, x, y, z, Blocks::LEFT);
         }
-        blocPosition.x = x + 1;
-        if (getBloc(blocPosition).ID == Blocs::AIR)
+        blockPosition.x = x + 1;
+        if (getBlock(blockPosition).ID == Blocks::AIR)
         {
-            loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::RIGHT);
+            loadFace(currentBlock, vertices, texCoords, indices, x, y, z, Blocks::RIGHT);
         }
 
     } else if (x == CHUNK_SIZE - 1)
     {
-        glm::ivec3 blocPosition = position;
-        blocPosition.x = 0;
-        if (chunkList[1] != nullptr && chunkList[1]->getBloc(blocPosition).ID == Blocs::AIR)
+        glm::ivec3 blockPosition = position;
+        blockPosition.x = 0;
+        if (chunkList[1] != nullptr && chunkList[1]->getBlock(blockPosition).ID == Blocks::AIR)
         {
-            loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::RIGHT);
+            loadFace(currentBlock, vertices, texCoords, indices, x, y, z, Blocks::RIGHT);
         }
-        blocPosition.x = x - 1;
-        if (getBloc(blocPosition).ID == Blocs::AIR)
+        blockPosition.x = x - 1;
+        if (getBlock(blockPosition).ID == Blocks::AIR)
         {
-            loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::LEFT);
+            loadFace(currentBlock, vertices, texCoords, indices, x, y, z, Blocks::LEFT);
         }
     } else
     {
-        glm::ivec3 blocPosition = position;
-        blocPosition.x = x - 1;
-        if (getBloc(blocPosition).ID == Blocs::AIR)
-            loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::LEFT);
-        blocPosition.x = x + 1;
-        if (getBloc(blocPosition).ID == Blocs::AIR)
-            loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::RIGHT);
+        glm::ivec3 blockPosition = position;
+        blockPosition.x = x - 1;
+        if (getBlock(blockPosition).ID == Blocks::AIR)
+            loadFace(currentBlock, vertices, texCoords, indices, x, y, z, Blocks::LEFT);
+        blockPosition.x = x + 1;
+        if (getBlock(blockPosition).ID == Blocks::AIR)
+            loadFace(currentBlock, vertices, texCoords, indices, x, y, z, Blocks::RIGHT);
     }
 
     //Check extremities
     if (y == 0)
     {
-        glm::ivec3 blocPosition = position;
-        blocPosition.y = CHUNK_SIZE - 1;
-        if (chunkList[2] != nullptr && chunkList[2]->getBloc(blocPosition).ID == Blocs::AIR)
+        glm::ivec3 blockPosition = position;
+        blockPosition.y = CHUNK_SIZE - 1;
+        if (chunkList[2] != nullptr && chunkList[2]->getBlock(blockPosition).ID == Blocks::AIR)
         {
-            loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::BOTTOM);
+            loadFace(currentBlock, vertices, texCoords, indices, x, y, z, Blocks::BOTTOM);
         }
-        blocPosition.y = y + 1;
-        if (getBloc(blocPosition).ID == Blocs::AIR)
+        blockPosition.y = y + 1;
+        if (getBlock(blockPosition).ID == Blocks::AIR)
         {
-            loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::TOP);
+            loadFace(currentBlock, vertices, texCoords, indices, x, y, z, Blocks::TOP);
         }
 
     } else if (y == CHUNK_SIZE - 1)
     {
-        glm::ivec3 blocPosition = position;
-        blocPosition.y = 0;
-        if (chunkList[3] != nullptr && chunkList[3]->getBloc(blocPosition).ID == Blocs::AIR)
+        glm::ivec3 blockPosition = position;
+        blockPosition.y = 0;
+        if (chunkList[3] != nullptr && chunkList[3]->getBlock(blockPosition).ID == Blocks::AIR)
         {
-            loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::TOP);
+            loadFace(currentBlock, vertices, texCoords, indices, x, y, z, Blocks::TOP);
         }
-        blocPosition.y = y - 1;
-        if (getBloc(blocPosition).ID == Blocs::AIR)
+        blockPosition.y = y - 1;
+        if (getBlock(blockPosition).ID == Blocks::AIR)
         {
-            loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::BOTTOM);
+            loadFace(currentBlock, vertices, texCoords, indices, x, y, z, Blocks::BOTTOM);
         }
     } else
     {
-        glm::ivec3 blocPosition = position;
-        blocPosition.y = y - 1;
-        if (getBloc(blocPosition).ID == Blocs::AIR)
-            loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::BOTTOM);
-        blocPosition.y = y + 1;
-        if (getBloc(blocPosition).ID == Blocs::AIR)
-            loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::TOP);
+        glm::ivec3 blockPosition = position;
+        blockPosition.y = y - 1;
+        if (getBlock(blockPosition).ID == Blocks::AIR)
+            loadFace(currentBlock, vertices, texCoords, indices, x, y, z, Blocks::BOTTOM);
+        blockPosition.y = y + 1;
+        if (getBlock(blockPosition).ID == Blocks::AIR)
+            loadFace(currentBlock, vertices, texCoords, indices, x, y, z, Blocks::TOP);
     }
 
     //Check extremities
     if (z == 0)
     {
-        glm::ivec3 blocPosition = position;
-        blocPosition.z = CHUNK_SIZE - 1;
-        if (chunkList[4] != nullptr && chunkList[4]->getBloc(blocPosition).ID == Blocs::AIR)
+        glm::ivec3 blockPosition = position;
+        blockPosition.z = CHUNK_SIZE - 1;
+        if (chunkList[4] != nullptr && chunkList[4]->getBlock(blockPosition).ID == Blocks::AIR)
         {
-            loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::BACK);
+            loadFace(currentBlock, vertices, texCoords, indices, x, y, z, Blocks::BACK);
         }
-        blocPosition.z = z + 1;
-        if (getBloc(blocPosition).ID == Blocs::AIR)
+        blockPosition.z = z + 1;
+        if (getBlock(blockPosition).ID == Blocks::AIR)
         {
-            loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::FRONT);
+            loadFace(currentBlock, vertices, texCoords, indices, x, y, z, Blocks::FRONT);
         }
 
     } else if (z == CHUNK_SIZE - 1)
     {
-        glm::ivec3 blocPosition = position;
-        blocPosition.z = 0;
-        if (chunkList[5] != nullptr && chunkList[5]->getBloc(blocPosition).ID == Blocs::AIR)
+        glm::ivec3 blockPosition = position;
+        blockPosition.z = 0;
+        if (chunkList[5] != nullptr && chunkList[5]->getBlock(blockPosition).ID == Blocks::AIR)
         {
-            loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::FRONT);
+            loadFace(currentBlock, vertices, texCoords, indices, x, y, z, Blocks::FRONT);
         }
-        blocPosition.z = z - 1;
-        if (getBloc(blocPosition).ID == Blocs::AIR)
+        blockPosition.z = z - 1;
+        if (getBlock(blockPosition).ID == Blocks::AIR)
         {
-            loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::BACK);
+            loadFace(currentBlock, vertices, texCoords, indices, x, y, z, Blocks::BACK);
         }
     } else
     {
-        glm::ivec3 blocPosition = position;
-        blocPosition.z = z - 1;
-        if (getBloc(blocPosition).ID == Blocs::AIR)
-            loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::BACK);
-        blocPosition.z = z + 1;
-        if (getBloc(blocPosition).ID == Blocs::AIR)
-            loadFace(currentBloc, vertices, texCoords, indices, x, y, z, Blocs::FRONT);
+        glm::ivec3 blockPosition = position;
+        blockPosition.z = z - 1;
+        if (getBlock(blockPosition).ID == Blocks::AIR)
+            loadFace(currentBlock, vertices, texCoords, indices, x, y, z, Blocks::BACK);
+        blockPosition.z = z + 1;
+        if (getBlock(blockPosition).ID == Blocks::AIR)
+            loadFace(currentBlock, vertices, texCoords, indices, x, y, z, Blocks::FRONT);
     }
 }
 */
@@ -198,35 +198,35 @@ static int pow(int base, int power)
 	return ans;
 }
 
-static std::array<const Bloc *, 6>
-getBlocNeighbors(const glm::ivec3 &blocPosition, const Bloc *bloc, Chunk **neighborChunks)
+static std::array<const Block *, 6>
+getBlockNeighbors(const glm::ivec3 &blockPosition, const Block *block, Chunk **neighborChunks)
 {
-	std::array<const Bloc *, 6> neighbors{};
+	std::array<const Block *, 6> neighbors{};
 	
 	for (int axis = 0; axis < 3; ++axis)
 	{
 		//-
-		if (blocPosition[axis] == 0)
+		if (blockPosition[axis] == 0)
 		{
 			if (neighborChunks[axis * 2] != nullptr)
 			{
-				glm::ivec3 neighborsPosition = blocPosition;
+				glm::ivec3 neighborsPosition = blockPosition;
 				neighborsPosition[axis] = CHUNK_SIZE - 1;
-				neighbors[axis * 2] = &(neighborChunks[axis * 2]->getBloc(neighborsPosition));
+				neighbors[axis * 2] = &(neighborChunks[axis * 2]->getBlock(neighborsPosition));
 			}
 		} else
-			neighbors[axis * 2] = bloc - pow(CHUNK_SIZE, axis);
+			neighbors[axis * 2] = block - pow(CHUNK_SIZE, axis);
 		//+
-		if (blocPosition[axis] == CHUNK_SIZE - 1)
+		if (blockPosition[axis] == CHUNK_SIZE - 1)
 		{
 			if (neighborChunks[axis * 2] != nullptr)
 			{
-				glm::ivec3 neighborsPosition = blocPosition;
+				glm::ivec3 neighborsPosition = blockPosition;
 				neighborsPosition[axis] = 0;
-				neighbors[axis * 2 + 1] = &(neighborChunks[axis * 2 + 1]->getBloc(neighborsPosition));
+				neighbors[axis * 2 + 1] = &(neighborChunks[axis * 2 + 1]->getBlock(neighborsPosition));
 			}
 		} else
-			neighbors[axis * 2 + 1] = bloc + pow(CHUNK_SIZE, axis);
+			neighbors[axis * 2 + 1] = block + pow(CHUNK_SIZE, axis);
 	}
 	
 	return neighbors;
@@ -249,16 +249,16 @@ void Chunk::loadToTexModel()
 		for (int y = 0; y < CHUNK_SIZE; ++y)
 			for (int z = 0; z < CHUNK_SIZE; ++z)
 			{
-				glm::ivec3 blocPosition = {x, y, z};
-				Bloc *currentBloc =
-						blocs_ + blocPosition.x + CHUNK_SIZE * (blocPosition.z + CHUNK_SIZE * blocPosition.y);
+				glm::ivec3 blockPosition = {x, y, z};
+				Block *currentBlock =
+						blocks_ + blockPosition.x + CHUNK_SIZE * (blockPosition.z + CHUNK_SIZE * blockPosition.y);
 				
-				//If it's a bloc of air there is nothing to load
-				if (currentBloc->ID == Blocs::AIR)
+				//If it's a block of air there is nothing to load
+				if (currentBlock->ID == Blocks::AIR)
 					continue;
 				
-				//Get bloc neighbors
-				std::array<const Bloc *, 6> neighbors = getBlocNeighbors(blocPosition, currentBloc, neighborChunks);
+				//Get block neighbors
+				std::array<const Block *, 6> neighbors = getBlockNeighbors(blockPosition, currentBlock, neighborChunks);
 				
 				bool isObstructed = true;
 				for (int i = 0; i < 6; ++i)
@@ -267,11 +267,11 @@ void Chunk::loadToTexModel()
 						isObstructed = false;
 				}
 				
-				glm::vec4 blocTexCoords = texture_->getTextureLimits(currentBloc->ID);
+				glm::vec4 blockTexCoords = texture_->getTextureLimits(currentBlock->ID);
 				
 				if (!isObstructed)
-					Blocs::loadBloc(vertices, texCoords, indices, blocPosition, currentBloc, neighbors.data(),
-									blocTexCoords);
+					Blocks::loadBlock(vertices, texCoords, indices, blockPosition, currentBlock, neighbors.data(),
+									blockTexCoords);
 			}
 	
 	delete[] neighborChunks;
@@ -293,9 +293,9 @@ void Chunk::loadToTexModel()
 }
 
 
-Chunk::Chunk(Bloc *blocs, World *world, glm::ivec3 &chunkPosition)
+Chunk::Chunk(Block *blocks, World *world, glm::ivec3 &chunkPosition)
 		: TexturedModel(nullptr, CGE::Loader::resManager::getTexture(1), true),
-		  blocs_(blocs), world_(world), chunkPosition_(chunkPosition)
+		  blocks_(blocks), world_(world), chunkPosition_(chunkPosition)
 {
 	loadToTexModel();
 }
@@ -303,12 +303,12 @@ Chunk::Chunk(Bloc *blocs, World *world, glm::ivec3 &chunkPosition)
 Chunk::~Chunk()
 {
 	unload();
-	delete[] blocs_;
+	delete[] blocks_;
 }
 
 void Chunk::update()
 {
-	//Reload the Blocs to the textured model
+	//Reload the Blocks to the textured model
 	loadToTexModel();
 }
 
@@ -323,33 +323,33 @@ void Chunk::updateChunksAround()
 	delete[] neighborChunks;
 }
 
-void Chunk::setBloc(glm::ivec3 &position, Bloc &newBloc)
+void Chunk::setBlock(glm::ivec3 &position, Block &newBlock)
 {
 #ifndef NDEBUG
 	if (0 > position.x || position.x > CHUNK_SIZE) logError(
-			"The bloc you are trying to get is not in this chunk. Axis: x")
+			"The block you are trying to get is not in this chunk. Axis: x")
 	
 	if (0 > position.y || position.y > CHUNK_SIZE) logError(
-			"The bloc you are trying to get is not in this chunk. Axis: y")
+			"The block you are trying to get is not in this chunk. Axis: y")
 	
 	if (0 > position.z || position.z > CHUNK_SIZE) logError(
-			"The bloc you are trying to get is not in this chunk. Axis: z")
+			"The block you are trying to get is not in this chunk. Axis: z")
 #endif
 	
-	Bloc &currentBloc = blocs_[position.x + CHUNK_SIZE * (position.z + CHUNK_SIZE * position.y)];
+	Block &currentBlock = blocks_[position.x + CHUNK_SIZE * (position.z + CHUNK_SIZE * position.y)];
 	
-	if (currentBloc == newBloc)
+	if (currentBlock == newBlock)
 		return;
 	
-	if (empty_ && newBloc != Blocs::AIR_BLOC)
+	if (empty_ && newBlock != Blocks::AIR_BLOC)
 		empty_ = false;
 	
-	currentBloc = newBloc;
+	currentBlock = newBlock;
 	update();
 	
-	// If the new bloc is air than check if it is at the extremities
-	// of the chunk and update the chunks that are touching that bloc.
-	if (newBloc.ID == Blocs::AIR)
+	// If the new block is air than check if it is at the extremities
+	// of the chunk and update the chunks that are touching that block.
+	if (newBlock.ID == Blocks::AIR)
 	{
 		if (position.x == 0)
 		{
@@ -393,19 +393,19 @@ void Chunk::setBloc(glm::ivec3 &position, Bloc &newBloc)
 	}
 }
 
-const Bloc &Chunk::getBloc(const glm::ivec3 &position) const
+const Block &Chunk::getBlock(const glm::ivec3 &position) const
 {
 #ifndef NDEBUG
 	if (0 > position.x || position.x > CHUNK_SIZE) logError(
-			"The bloc you are trying to get is not in this chunk. Axis: x")
+			"The block you are trying to get is not in this chunk. Axis: x")
 	
 	if (0 > position.y || position.y > CHUNK_SIZE) logError(
-			"The bloc you are trying to get is not in this chunk. Axis: y")
+			"The block you are trying to get is not in this chunk. Axis: y")
 	
 	if (0 > position.z || position.z > CHUNK_SIZE) logError(
-			"The bloc you are trying to get is not in this chunk. Axis: z")
+			"The block you are trying to get is not in this chunk. Axis: z")
 #endif
-	return blocs_[position.x + CHUNK_SIZE * (position.z + CHUNK_SIZE * position.y)];
+	return blocks_[position.x + CHUNK_SIZE * (position.z + CHUNK_SIZE * position.y)];
 }
 
 const glm::ivec3 &Chunk::getChunkPosition() const

@@ -28,7 +28,7 @@ namespace Entities
 		void move(float speed, World *terrain);
 		
 		/**
-		 * Activate all player actions (ex: hit bloc, open inventory, etc...
+		 * Activate all player actions (ex: hit block, open inventory, etc...
 		 */
 		void checkAction(World *world);
 		

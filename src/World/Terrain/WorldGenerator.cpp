@@ -5,7 +5,7 @@
 */
 
 #include <Utils/Log.h>
-#include <World/Terrain/Bloc.h>
+#include <World/Terrain/Block.h>
 #include <World/Terrain/Chunk.h>
 #include "World/Terrain/WorldGenerator.h"
 #include <World/World.h>
@@ -28,10 +28,10 @@ void WorldGenerator::run()
             continue;
         }
 
-        //Create the bloc matrix and fill it with air
-        Bloc *blocs = new Bloc[16 * 16 * 16];
+        //Create the block matrix and fill it with air
+        Block *blocks = new Block[16 * 16 * 16];
         for (int k = 0; k < CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE; ++k)
-            blocs[k] = {0, 0};
+            blocks[k] = {0, 0};
 
 
         for (int x = 0; x < CHUNK_SIZE; ++x)
@@ -44,19 +44,19 @@ void WorldGenerator::run()
                             CHUNK_SIZE * 6;
                     for (int y = std::min<int>(groundLevel - CHUNK_SIZE * chunkPosition.y, CHUNK_SIZE - 1); y >= 0; --y)
                     {
-                        blocs[x + CHUNK_SIZE * (z + CHUNK_SIZE * y)] = {(short)(y + chunkPosition.y * CHUNK_SIZE < groundLevel - 3 ? 2 : 1), 0};
+                        blocks[x + CHUNK_SIZE * (z + CHUNK_SIZE * y)] = {(short)(y + chunkPosition.y * CHUNK_SIZE < groundLevel - 3 ? 2 : 1), 0};
                     }
                 } else if (chunkPosition.y < 0)
                 {
                     for (int y = 0; y < CHUNK_SIZE; ++y)
                     {
-                        blocs[x + CHUNK_SIZE * (z + CHUNK_SIZE * y)] = {2, 0};
+                        blocks[x + CHUNK_SIZE * (z + CHUNK_SIZE * y)] = {2, 0};
                     }
                 }
 
             }
 
-        Chunk *newChunk = new Chunk(blocs, world_, chunkPosition);
+        Chunk *newChunk = new Chunk(blocks, world_, chunkPosition);
         world_->addChunk(newChunk);
         newChunk->updateChunksAround();
     }

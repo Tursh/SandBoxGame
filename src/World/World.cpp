@@ -114,28 +114,28 @@ Chunk *World::getChunkByChunkPosition(glm::ivec3 chunkPosition)
 }
 
 
-void World::setBloc(glm::ivec3 position, Bloc bloc)
+void World::setBlock(glm::ivec3 position, Block block)
 {
-    //Get the chunk where the Block is
+    //Get the chunk where the Blockk is
     Chunk *chunk = getChunk(position);
     //Translate position to inside the chunk
     position = getPositionInChunk(position);
-    //Set the bloc
+    //Set the block
     if (chunk != nullptr)
-        chunk->setBloc(position, bloc);
+        chunk->setBlock(position, block);
 }
 
-const Bloc &World::getBloc(glm::ivec3 position)
+const Block &World::getBlock(glm::ivec3 position)
 {
-    //Get the chunk where the Block is
+    //Get the chunk where the Blockk is
     Chunk *chunk = getChunk(position);
     //Translate position to inside the chunk
     position = getPositionInChunk(position);
-    //return the bloc
+    //return the block
     if (chunk != nullptr)
-        return chunk->getBloc(position);
+        return chunk->getBlock(position);
     else
-        return Blocs::AIR_BLOC;
+        return Blocks::AIR_BLOC;
 }
 
 static glm::vec3 checkCollision(CGE::Entities::Entity *entity, World *world)
@@ -143,9 +143,9 @@ static glm::vec3 checkCollision(CGE::Entities::Entity *entity, World *world)
     Hitbox entityHitbox = entity->getHitbox();
     glm::vec3 movement = entity->getSpeed();
 
-    std::vector<Hitbox> blocHitboxes = world->getBlocHitboxs(entityHitbox.expand(1));
+    std::vector<Hitbox> blockHitboxes = world->getBlockHitboxs(entityHitbox.expand(1));
 
-    for (Hitbox hitbox : blocHitboxes)
+    for (Hitbox hitbox : blockHitboxes)
     {
         for (int axis = 0; axis < 3; ++axis)
             movement[axis] = hitbox.checkIfCollideInAxis(entityHitbox, axis, movement[axis]);
@@ -163,37 +163,37 @@ World::World()
 {
     addEntity(std::shared_ptr<CGE::Entities::Entity>(player_));
 
-    Bloc *blocs = new Bloc[(int) pow(CHUNK_SIZE, 3)];
+    Block *blocks = new Block[(int) pow(CHUNK_SIZE, 3)];
     for (int i = 0; i < CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE; ++i)
-        blocs[i] = Blocs::AIR_BLOC;
-    blocs[0] = {1, 0B00000000};
-    blocs[2] = {1, 0B00001110};
-    blocs[4] = {1, 0B00001101};
-    blocs[6] = {1, 0B00001011};
-    blocs[8] = {1, 0B00000111};
+        blocks[i] = Blocks::AIR_BLOC;
+    blocks[0] = {1, 0B00000000};
+    blocks[2] = {1, 0B00001110};
+    blocks[4] = {1, 0B00001101};
+    blocks[6] = {1, 0B00001011};
+    blocks[8] = {1, 0B00000111};
 
-    blocs[2 + CHUNK_SIZE * 2] = {1, 0B00011110};
-    blocs[4 + CHUNK_SIZE * 2] = {1, 0B00011101};
-    blocs[6 + CHUNK_SIZE * 2] = {1, 0B00011011};
-    blocs[8 + CHUNK_SIZE * 2] = {1, 0B00010111};
+    blocks[2 + CHUNK_SIZE * 2] = {1, 0B00011110};
+    blocks[4 + CHUNK_SIZE * 2] = {1, 0B00011101};
+    blocks[6 + CHUNK_SIZE * 2] = {1, 0B00011011};
+    blocks[8 + CHUNK_SIZE * 2] = {1, 0B00010111};
     
-    blocs[2 + CHUNK_SIZE * 4] = {1, 0B01011110};
-    blocs[4 + CHUNK_SIZE * 4] = {1, 0B01011101};
-    blocs[6 + CHUNK_SIZE * 4] = {1, 0B01011011};
-    blocs[8 + CHUNK_SIZE * 4] = {1, 0B01010111};
+    blocks[2 + CHUNK_SIZE * 4] = {1, 0B01011110};
+    blocks[4 + CHUNK_SIZE * 4] = {1, 0B01011101};
+    blocks[6 + CHUNK_SIZE * 4] = {1, 0B01011011};
+    blocks[8 + CHUNK_SIZE * 4] = {1, 0B01010111};
     
-    blocs[2 + CHUNK_SIZE * 6] = {1, 0B00011100};
-    blocs[4 + CHUNK_SIZE * 6] = {1, 0B00011001};
-    blocs[6 + CHUNK_SIZE * 6] = {1, 0B00010011};
-    blocs[8 + CHUNK_SIZE * 6] = {1, 0B00010110};
+    blocks[2 + CHUNK_SIZE * 6] = {1, 0B00011100};
+    blocks[4 + CHUNK_SIZE * 6] = {1, 0B00011001};
+    blocks[6 + CHUNK_SIZE * 6] = {1, 0B00010011};
+    blocks[8 + CHUNK_SIZE * 6] = {1, 0B00010110};
     
-    blocs[2 + CHUNK_SIZE * 8] = {1, 0B00011110};
-    blocs[4 + CHUNK_SIZE * 8] = {1, 0B00011101};
-    blocs[6 + CHUNK_SIZE * 8] = {1, 0B00011011};
-    blocs[8 + CHUNK_SIZE * 8] = {1, 0B00010111};
+    blocks[2 + CHUNK_SIZE * 8] = {1, 0B00011110};
+    blocks[4 + CHUNK_SIZE * 8] = {1, 0B00011101};
+    blocks[6 + CHUNK_SIZE * 8] = {1, 0B00011011};
+    blocks[8 + CHUNK_SIZE * 8] = {1, 0B00010111};
 
     glm::ivec3 chunkPosition = {0, 0, 0};
-    Chunk *newChunk = new Chunk(blocs, this, chunkPosition);
+    Chunk *newChunk = new Chunk(blocks, this, chunkPosition);
     chunks_[chunkPosition.x][chunkPosition.y][chunkPosition.z] = newChunk;
 
     auto display = CGE::IO::getWindow();
@@ -214,21 +214,21 @@ void World::addEntity(std::shared_ptr<CGE::Entities::Entity> newEntity)
     newEntity->setCollisionFunc(collisionFunction_);
 }
 
-std::vector<Hitbox> World::getBlocHitboxs(Hitbox area)
+std::vector<Hitbox> World::getBlockHitboxs(Hitbox area)
 {
     std::vector<Hitbox> hitboxes;
 
     glm::ivec3 negLimit = glm::floor(area.getNegBorder());
     glm::ivec3 posLimit = glm::floor(area.getPosBorder());
 
-    //Iterate through every blocs in the area
+    //Iterate through every blocks in the area
     for (int x = negLimit.x; x < posLimit.x; ++x)
         for (int y = negLimit.y; y < posLimit.y; ++y)
             for (int z = negLimit.z; z < posLimit.z; ++z)
             {
                 //TODO: get the chunk then check inside the chunk (for better performance)
-                //If it's not air, there is a bloc, so an hitbox
-                if (getBloc({x, y, z}).ID != Blocs::AIR)
+                //If it's not air, there is a block, so an hitbox
+                if (getBlock({x, y, z}).ID != Blocks::AIR)
                     hitboxes.push_back(
                             Hitbox((float) x, (float) x + 1, (float) y, (float) y + 1, (float) z, (float) z + 1));
             }
@@ -236,11 +236,11 @@ std::vector<Hitbox> World::getBlocHitboxs(Hitbox area)
     return hitboxes;
 }
 
-glm::ivec3 World::getPickedBloc(float raySize)
+glm::ivec3 World::getPickedBlock(float raySize)
 {
     glm::vec3 rayPosition = camera_.position_;
     glm::vec3 rayOrientation = camera_.getRotationInNormalizedVector();
-    glm::ivec3 blocPosition = glm::floor(rayPosition);
+    glm::ivec3 blockPosition = glm::floor(rayPosition);
 
     //Up or Down
     bool sens[] = {rayOrientation.x > 0.0f,
@@ -249,16 +249,16 @@ glm::ivec3 World::getPickedBloc(float raySize)
 
     while (true)
     {
-        //Calculate the distance between the closest possible bloc from the ray position
+        //Calculate the distance between the closest possible block from the ray position
         glm::vec3 delta;
         for (int axis = 0; axis < 3; ++axis)
         {
-            delta[axis] = rayPosition[axis] - blocPosition[axis];
+            delta[axis] = rayPosition[axis] - blockPosition[axis];
             if (sens[axis])
                 delta[axis] = 1 - delta[axis];
         }
 
-        //Calculate how many time the add ray orientation to get the next possible bloc
+        //Calculate how many time the add ray orientation to get the next possible block
         glm::vec3 steps = delta / rayOrientation;
         glm::vec3 absSteps = glm::abs(steps);
 
@@ -282,38 +282,38 @@ glm::ivec3 World::getPickedBloc(float raySize)
             raySize -= absSteps.z;
         }
 
-        //If there is no bloc
+        //If there is no block
         if (raySize < 0.0f)
             return glm::ivec3(INT_MAX);
 
 
-        blocPosition = glm::floor(rayPosition);
+        blockPosition = glm::floor(rayPosition);
 
-        if (getBloc(blocPosition) != Blocs::AIR_BLOC)
-            return blocPosition;
+        if (getBlock(blockPosition) != Blocks::AIR_BLOC)
+            return blockPosition;
 
     }
 }
 
-glm::ivec3 World::getPositionInChunk(glm::ivec3 blocPosition)
+glm::ivec3 World::getPositionInChunk(glm::ivec3 blockPosition)
 {
-    blocPosition %= (int) CHUNK_SIZE;
-    if (blocPosition.x < 0)
-        blocPosition.x += 16;
-    if (blocPosition.y < 0)
-        blocPosition.y += 16;
-    if (blocPosition.z < 0)
-        blocPosition.z += 16;
+    blockPosition %= (int) CHUNK_SIZE;
+    if (blockPosition.x < 0)
+        blockPosition.x += 16;
+    if (blockPosition.y < 0)
+        blockPosition.y += 16;
+    if (blockPosition.z < 0)
+        blockPosition.z += 16;
 
-    return blocPosition;
+    return blockPosition;
 }
 
-glm::ivec3 World::getChunkPosition(glm::ivec3 blocPosition)
+glm::ivec3 World::getChunkPosition(glm::ivec3 blockPosition)
 {
-    glm::ivec3 chunkPosition = blocPosition / 16;
+    glm::ivec3 chunkPosition = blockPosition / 16;
 
     for (int axis = 0; axis < 3; ++axis)
-        chunkPosition[axis] -= blocPosition[axis] < 0 ? 1 : 0;
+        chunkPosition[axis] -= blockPosition[axis] < 0 ? 1 : 0;
 
     return chunkPosition;
 }

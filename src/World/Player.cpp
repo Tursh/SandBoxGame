@@ -116,8 +116,8 @@ namespace Entities
 
     void Player::hit(World *world)
     {
-        glm::vec3 hitBlocPosition = world->getPickedBloc(6.0f);
+        glm::vec3 hitBlockPosition = world->getPickedBlock(6.0f);
 
-        world->setBloc(hitBlocPosition, Blocs::AIR_BLOC);
+        world->setBlock(hitBlockPosition, Blocks::AIR_BLOC);
     }
 }

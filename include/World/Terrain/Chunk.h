@@ -7,7 +7,7 @@
 
 #include <glm/vec3.hpp>
 #include <Loader/Models/TexturedModel.h>
-#include "Bloc.h"
+#include "Block.h"
 
 extern const unsigned int CHUNK_SIZE;
 
@@ -19,20 +19,20 @@ class Chunk : public CGE::Loader::TexturedModel
 
     glm::ivec3 chunkPosition_;
 
-    Bloc *blocs_;
+    Block *blocks_;
 
     bool empty_ = false;
 
     void loadToTexModel();
 
-    void loadBloc(const glm::ivec3 &position, std::vector<float> &vertices, std::vector<float> &texCoords,
+    void loadBlock(const glm::ivec3 &position, std::vector<float> &vertices, std::vector<float> &texCoords,
                   std::vector<unsigned int> &indices, Chunk **chunkList);
 
-    void loadFace(const Bloc &currentBloc, std::vector<float> &vertices, std::vector<float> &texCoords,
-                  std::vector<unsigned int> &indices, const int &x, const int &y, const int &z, Blocs::Face face);
+    void loadFace(const Block &currentBlock, std::vector<float> &vertices, std::vector<float> &texCoords,
+                  std::vector<unsigned int> &indices, const int &x, const int &y, const int &z, Blocks::Face face);
 
 public:
-    Chunk(Bloc *blocs, World *world, glm::ivec3 &chunkPosition);
+    Chunk(Block *blocks, World *world, glm::ivec3 &chunkPosition);
 
     ~Chunk();
 
@@ -54,13 +54,13 @@ public:
     const glm::ivec3 &getChunkPosition() const;
 
     /**
-     * Set the bloc at this position in the chunk
+     * Set the block at this position in the chunk
      * @param position The position in the chunk
-     * @param newBloc The new bloc
+     * @param newBlock The new block
      */
-    void setBloc(glm::ivec3 &position, Bloc &newBloc);
+    void setBlock(glm::ivec3 &position, Block &newBlock);
 
-    const Bloc &getBloc(const glm::ivec3 &position) const;
+    const Block &getBlock(const glm::ivec3 &position) const;
 
     bool isLoaded();
 

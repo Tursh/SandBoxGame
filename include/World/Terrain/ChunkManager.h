@@ -56,7 +56,7 @@ public:
 
     /**
      * Set the distance in chunks before the chunk do not need to be loaded
-     * @param radius The distance in chunks (bloc position / 16)
+     * @param radius The distance in chunks (block position / 16)
      */
     void setRadius(int radius);
 

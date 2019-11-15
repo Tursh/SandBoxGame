@@ -14,7 +14,7 @@
 struct Block
 {
 	short ID;
-	//first 4 digits are the Blockk shape and 4 last are rotation
+	//first 4 digits are the Block shape and 4 last are rotation
 	char state;
 	
 	//Compare their ID and state

@@ -7,6 +7,8 @@
 #include <glm/glm.hpp>
 
 #include <World/Terrain/Block.h>
+#include <Utils/Log.h>
+#include <glm/gtx/string_cast.hpp>
 
 namespace Blocks
 {
@@ -114,7 +116,7 @@ namespace Blocks
                 CUBE_FACE_INDICES + ((face == RIGHT || face == TOP || face == BACK) ? INDICES_PER_FACE : 0);
 
         indices.insert(indices.end(), faceIndices, faceIndices + INDICES_PER_FACE);
-        for (unsigned int i = indices.size() - INDICES_PER_FACE - 1; i < (unsigned int) indices.size(); ++i)
+        for (unsigned int i = indices.size() - INDICES_PER_FACE; i < (unsigned int) indices.size(); ++i)
             indices[i] += positions.size();
 
         const glm::vec3 *faceVertices = CUBE_FACE_VERTICES + face * VERTICES_PER_FACE;
@@ -166,6 +168,9 @@ namespace Blocks
                 };
 
         texCoords.insert(texCoords.end(), texCoordsBuf, texCoordsBuf + VERTICES_PER_TRIANGLE);
+        for (int i = indices.size() - 3; i < indices.size(); ++i)
+            logInfo(indices[i] << " - " << glm::to_string(positions[indices[i]]));
+        std::cout << std::endl;
     }
 
 
@@ -213,7 +218,7 @@ namespace Blocks
             return;
         }
 
-        bool xn = !xnzn || !xnzp, zn = !xnzn || !xpzn, xz = !xnzn || !xpzp;
+        bool xnd = xnzn && xnzp, znd = xnzn && xpzn, xnu = !xnzn && !xnzp, znu = !xnzn && !xpzn;
 
         //Bottom
         if (neighbors[2 + invY] == nullptr || neighbors[2 + invY]->ID == Blocks::AIR)
@@ -241,12 +246,12 @@ namespace Blocks
                         }
                     }
                     loadTriangle(positions, texCoords, indices, blockPosition,
-                                 triangleVertexPositions, texCoordsOffset, !xn);
+                                 triangleVertexPositions, texCoordsOffset, xnd);
                 }
             } else
             {
                 //If there is only one corner up, face bottom 1 has to be drawn
-                if (cornerFlagCount == 3)
+                if (cornerFlagCount == 1)
                 {
                     unsigned int startIndex = positions.size();
                     {
@@ -254,7 +259,7 @@ namespace Blocks
                         int i = 0;
                         for (int point = 0; point < 4; ++point)
                         {
-                            if ((shape >> (3 - point)) & 1)
+                            if (!((shape >> (3 - point)) & 1))
                             {
                                 std::copy(CUBE_VERTEX_POSITIONS + point,
                                           CUBE_VERTEX_POSITIONS + (point + 1),
@@ -263,14 +268,14 @@ namespace Blocks
                             }
                         }
                         loadTriangle(positions, texCoords, indices, blockPosition,
-                                     triangleVertexPositions, texCoordsOffset, !xn);
+                                     triangleVertexPositions, texCoordsOffset, xnu);
                     }
                     //If there is only on mid flag, load face bottom 2
                     if (midCount == 1)
                     {
                         //Add the missing vertex
-                        glm::vec3 vertexPosition = {midX ? CUBE_SIZE / 2 : xn ? CUBE_SIZE : 0, 0,
-                                                    midZ ? CUBE_SIZE / 2 : zn ? CUBE_SIZE : 0};
+                        glm::vec3 vertexPosition = {midX ? CUBE_SIZE / 2 : xnu ? 0 : CUBE_SIZE, 0,
+                                                    midZ ? CUBE_SIZE / 2 : znu ? 0 : CUBE_SIZE};
                         loadVertex(positions, texCoords, vertexPosition, blockPosition, texCoordsOffset);
 
                         //Create new triangle from existing positions
@@ -278,12 +283,12 @@ namespace Blocks
                              i < positions.size(); ++i)
                         {
                             //If the vertex is not the corner up, we use it to make the second triangle
-                            if (!(((positions[i].x == blockPosition.x) ^ !xn)
-                                  && ((positions[i].z == blockPosition.z) ^ !zn)))
+                            if (!(((positions[i].x == blockPosition.x) ^ xnu)
+                                  && ((positions[i].z == blockPosition.z) ^ znu)))
                                 indices.push_back(i);
                         }
-                        //If the corner up is a zn we need to flip the indices so it renders it in clockwise direction
-                        if (zn)
+                        //If the corner up is a znd we need to flip the indices so it renders it in clockwise direction
+                        if (!znu)
                             std::iter_swap(indices.end() - 3, indices.end() - 1);
                     }
 
@@ -292,16 +297,16 @@ namespace Blocks
                     {
 
                         //We have to add 3 vertex to add 2 triangles
-                        glm::vec3 vertex1Position = {xn ? CUBE_SIZE : 0, 0, 0.5f};
+                        glm::vec3 vertex1Position = {xnu ? 0 : CUBE_SIZE, 0, 0.5f};
                         loadVertex(positions, texCoords, vertex1Position, blockPosition, texCoordsOffset);
 
                         glm::vec3 vertex2Position = {CUBE_SIZE / 2, 0, CUBE_SIZE / 2};
                         loadVertex(positions, texCoords, vertex2Position, blockPosition, texCoordsOffset);
 
-                        glm::vec3 vertex3Position = {0.5f, 0, zn ? CUBE_SIZE : 0};
+                        glm::vec3 vertex3Position = {0.5f, 0, znu ? 0 : CUBE_SIZE};
                         loadVertex(positions, texCoords, vertex3Position, blockPosition, texCoordsOffset);
 
-                        const unsigned int *stairIndices = STAIR_INDICES[!xn * 2 + !zn];
+                        const unsigned int *stairIndices = STAIR_INDICES[xnu * 2 + znu];
                         indices.insert(indices.end(), stairIndices, stairIndices + VERTICES_PER_TRIANGLE * 2);
 
                         for (int i = indices.size() - VERTICES_PER_TRIANGLE * 2; i < indices.size(); ++i)
@@ -322,16 +327,16 @@ namespace Blocks
         //Block sides
         for (unsigned char side = 0; side < 4; ++side)
         {
-            if (neighbors[side + (side >> 1) * 2])
+            if (neighbors[side + (side >> 1) * 2] == nullptr || neighbors[side + (side >> 1) * 2])
             {
                 //Get positive and negative borders
                 bool
                         n = side & 1 ? side >> 1 ? xnzp : xpzn : xnzn,
                         p = side & 1 ? xpzp : side >> 1 ? xpzn : xnzp;
 
-                if (n && p);
-                    //loadFace(positions, texCoords, indices, blockPosition, static_cast<Face>(2 + side),
-                    //         texCoordsOffset);
+                if (!n && !p)
+                    loadFace(positions, texCoords, indices, blockPosition, static_cast<Face>(2 + side),
+                             texCoordsOffset);
 
             }
         }

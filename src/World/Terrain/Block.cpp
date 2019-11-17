@@ -103,6 +103,14 @@ namespace Blocks
                     {2, 4, 3, 4, 1, 5}
             };
 
+    const unsigned int BOTTOM_FACE_2[4][3] =
+            {
+                    {0, 1, 3},
+                    {2, 0, 3},
+                    {0, 2, 3},
+                    {2, 1, 3}
+            };
+
     std::tuple<const glm::vec3 *, const unsigned int *> getFace(Face face)
     {
         int indicesOffset = (face == RIGHT || face == TOP || face == BACK) ? INDICES_PER_FACE : 0;
@@ -307,22 +315,17 @@ namespace Blocks
                     if (midCount == 1)
                     {
                         //Add the missing vertex
-                        glm::vec3 vertexPosition = {midX ? CUBE_SIZE / 2 : xnu ? 0 : CUBE_SIZE, 0,
-                                                    midZ ? CUBE_SIZE / 2 : znu ? 0 : CUBE_SIZE};
+                        glm::vec3 vertexPosition = {midX ? CUBE_SIZE / 2 : xnd ? 0 : CUBE_SIZE, 0,
+                                                    midZ ? CUBE_SIZE / 2 : znu ? CUBE_SIZE : 0};
                         loadVertex(positions, texCoords, vertexPosition, blockPosition, texCoordsOffset);
 
+                        const unsigned int *triangleIndices = BOTTOM_FACE_2[xnu * 2 + znu];
+
                         //Create new triangle from existing positions
-                        for (int i = startIndex;
-                             i < positions.size(); ++i)
-                        {
-                            //If the vertex is not the corner up, we use it to make the second triangle
-                            if (!(((positions[i].x == blockPosition.x) ^ xnu)
-                                  && ((positions[i].z == blockPosition.z) ^ znu)))
-                                indices.push_back(i);
-                        }
-                        //If the corner up is a znd we need to flip the indices so it renders it in clockwise direction
-                        if (!znu)
-                            std::iter_swap(indices.end() - 3, indices.end() - 1);
+                        indices.insert(indices.end(), triangleIndices, triangleIndices + 3);
+
+                        for(int i = indices.size() - 3; i < indices.size(); ++i)
+                            indices[i] += startIndex;
                     }
 
                         //If the 2 mid flags are up, load face bottom 3 (stair face)

@@ -42,7 +42,7 @@ namespace Blocks
 	
 	enum Face
 	{
-		TOP = 0, BOTTOM = 1, RIGHT = 2, LEFT = 3, FRONT = 4, BACK = 5
+		BOTTOM = 0, TOP = 1, LEFT = 2, RIGHT = 3, BACK = 4, FRONT = 5
 	};
 	
 	std::tuple<const glm::vec3 *, const unsigned int *> getFace(Face face);

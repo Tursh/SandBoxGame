@@ -187,10 +187,15 @@ World::World()
     blocks[6 + CHUNK_SIZE * 6] = {1, 0B00000011};
     blocks[8 + CHUNK_SIZE * 6] = {1, 0B00000101};
 //
-    blocks[2 + CHUNK_SIZE * 8] = {1, 0B00010001};
-    blocks[4 + CHUNK_SIZE * 8] = {1, 0B00010010};
-    blocks[6 + CHUNK_SIZE * 8] = {1, 0B00010100};
-    blocks[8 + CHUNK_SIZE * 8] = {1, 0B00011000};
+	blocks[2 + CHUNK_SIZE * 8] = {1, 0B00010001};
+	blocks[4 + CHUNK_SIZE * 8] = {1, 0B00010010};
+	blocks[6 + CHUNK_SIZE * 8] = {1, 0B00010100};
+	blocks[8 + CHUNK_SIZE * 8] = {1, 0B00011000};
+	
+	blocks[2 + CHUNK_SIZE * 10] = {1, 0B01000001};
+	blocks[4 + CHUNK_SIZE * 10] = {1, 0B01000010};
+	blocks[6 + CHUNK_SIZE * 10] = {1, 0B01000100};
+	blocks[8 + CHUNK_SIZE * 10] = {1, 0B01001000};
 
     glm::ivec3 chunkPosition = {0, 0, 0};
     Chunk *newChunk = new Chunk(blocks, this, chunkPosition);

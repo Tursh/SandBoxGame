@@ -13,268 +13,268 @@
 
 namespace Blocks
 {
-	const short
-			AIR = 0,
-			DIRT = 1;
+    const short
+            AIR = 0,
+            DIRT = 1;
 
-	const Block AIR_BLOC = {AIR, 0};
+    const Block AIR_BLOC = {AIR, 0};
 
-	const float CUBE_SIZE = 1.0f;
+    const float CUBE_SIZE = 1.0f;
 
-	const unsigned int
-	//POSITION_PER_VERTEX = 3,
-	//TEX_COORDS_PER_VERTEX = 2,
+    const unsigned int
+    //POSITION_PER_VERTEX = 3,
+    //TEX_COORDS_PER_VERTEX = 2,
 
-			VERTICES_PER_TRIANGLE = 3,
-	//POSITION_PER_TRIANGLE = VERTICES_PER_TRIANGLE * POSITION_PER_VERTEX,
-	//TEX_COORDS_PER_TRIANGLE = VERTICES_PER_TRIANGLE * TEX_COORDS_PER_VERTEX,
+            VERTICES_PER_TRIANGLE = 3,
+    //POSITION_PER_TRIANGLE = VERTICES_PER_TRIANGLE * POSITION_PER_VERTEX,
+    //TEX_COORDS_PER_TRIANGLE = VERTICES_PER_TRIANGLE * TEX_COORDS_PER_VERTEX,
 
-			VERTICES_PER_FACE = 4,
-	//POSITION_PER_FACE = VERTICES_PER_FACE,
-	//TEX_COORDS_PER_FACE = TEX_COORDS_PER_VERTEX * VERTICES_PER_FACE,
-			INDICES_PER_FACE = 2 * VERTICES_PER_TRIANGLE;
+            VERTICES_PER_FACE = 4,
+    //POSITION_PER_FACE = VERTICES_PER_FACE,
+    //TEX_COORDS_PER_FACE = TEX_COORDS_PER_VERTEX * VERTICES_PER_FACE,
+            INDICES_PER_FACE = 2 * VERTICES_PER_TRIANGLE;
 
-	const glm::vec3 CUBE_FACE_VERTICES[] =
-			{
-					//BOTTOM
-					{CUBE_SIZE, 0,         CUBE_SIZE},
-					{CUBE_SIZE, 0,         0},
-					{0,         0,         0},
-					{0,         0,         CUBE_SIZE},
-					//TOP
-					{CUBE_SIZE, CUBE_SIZE, CUBE_SIZE},
-					{CUBE_SIZE, CUBE_SIZE, 0},
-					{0,         CUBE_SIZE, 0},
-					{0,         CUBE_SIZE, CUBE_SIZE},
-					//LEFT
-					{0,         0,         CUBE_SIZE},
-					{0,         0,         0},
-					{0,         CUBE_SIZE, 0},
-					{0,         CUBE_SIZE, CUBE_SIZE},
-					//RIGHT
-					{CUBE_SIZE, 0,         CUBE_SIZE},
-					{CUBE_SIZE, 0,         0},
-					{CUBE_SIZE, CUBE_SIZE, 0},
-					{CUBE_SIZE, CUBE_SIZE, CUBE_SIZE},
-					//BACK
-					{CUBE_SIZE, 0,         0},
-					{0,         0,         0},
-					{0,         CUBE_SIZE, 0},
-					{CUBE_SIZE, CUBE_SIZE, 0},
-					//FRONT
-					{CUBE_SIZE, 0,         CUBE_SIZE},
-					{0,         0,         CUBE_SIZE},
-					{0,         CUBE_SIZE, CUBE_SIZE},
-					{CUBE_SIZE, CUBE_SIZE, CUBE_SIZE},
-			};
+    const glm::vec3 CUBE_FACE_VERTICES[] =
+            {
+                    //BOTTOM
+                    {CUBE_SIZE, 0,         CUBE_SIZE},
+                    {CUBE_SIZE, 0,         0},
+                    {0,         0,         0},
+                    {0,         0,         CUBE_SIZE},
+                    //TOP
+                    {CUBE_SIZE, CUBE_SIZE, CUBE_SIZE},
+                    {CUBE_SIZE, CUBE_SIZE, 0},
+                    {0,         CUBE_SIZE, 0},
+                    {0,         CUBE_SIZE, CUBE_SIZE},
+                    //LEFT
+                    {0,         0,         CUBE_SIZE},
+                    {0,         0,         0},
+                    {0,         CUBE_SIZE, 0},
+                    {0,         CUBE_SIZE, CUBE_SIZE},
+                    //RIGHT
+                    {CUBE_SIZE, 0,         CUBE_SIZE},
+                    {CUBE_SIZE, 0,         0},
+                    {CUBE_SIZE, CUBE_SIZE, 0},
+                    {CUBE_SIZE, CUBE_SIZE, CUBE_SIZE},
+                    //BACK
+                    {CUBE_SIZE, 0,         0},
+                    {0,         0,         0},
+                    {0,         CUBE_SIZE, 0},
+                    {CUBE_SIZE, CUBE_SIZE, 0},
+                    //FRONT
+                    {CUBE_SIZE, 0,         CUBE_SIZE},
+                    {0,         0,         CUBE_SIZE},
+                    {0,         CUBE_SIZE, CUBE_SIZE},
+                    {CUBE_SIZE, CUBE_SIZE, CUBE_SIZE},
+            };
 
-	const glm::vec3 CUBE_VERTEX_POSITIONS[] =
-			{
-					{0,         0,         0},      //xnzn
-					{0,         0,         CUBE_SIZE},  //xnzp
-					{CUBE_SIZE, 0,         0},          //xpzn
-					{CUBE_SIZE, 0,         CUBE_SIZE},      //xpzp
+    const glm::vec3 CUBE_VERTEX_POSITIONS[] =
+            {
+                    {0,         0,         0},      //xnzn
+                    {0,         0,         CUBE_SIZE},  //xnzp
+                    {CUBE_SIZE, 0,         0},          //xpzn
+                    {CUBE_SIZE, 0,         CUBE_SIZE},      //xpzp
 
-					{0,         CUBE_SIZE, 0},          //xnzn
-					{CUBE_SIZE, CUBE_SIZE, 0},              //xpzn
-					{0,         CUBE_SIZE, CUBE_SIZE},      //xnzp
-					{CUBE_SIZE, CUBE_SIZE, CUBE_SIZE}           //xpzp
-			};
+                    {0,         CUBE_SIZE, 0},          //xnzn
+                    {CUBE_SIZE, CUBE_SIZE, 0},              //xpzn
+                    {0,         CUBE_SIZE, CUBE_SIZE},      //xnzp
+                    {CUBE_SIZE, CUBE_SIZE, CUBE_SIZE}           //xpzp
+            };
 
-	const unsigned int CUBE_FACE_INDICES[] =
-			{
-					0, 1, 2,
-					2, 3, 0,
-					//FOR RIGHT, TOP or BACK
-					0, 3, 2,
-					2, 1, 0
-			};
+    const unsigned int CUBE_FACE_INDICES[] =
+            {
+                    0, 1, 2,
+                    2, 3, 0,
+                    //FOR RIGHT, TOP or BACK
+                    0, 3, 2,
+                    2, 1, 0
+            };
 
-	const unsigned int TRIANGLE_INDICES[] =
-			{
-					0, 1, 2,
-					2, 1, 0
-			};
+    const unsigned int TRIANGLE_INDICES[] =
+            {
+                    0, 1, 2,
+                    2, 1, 0
+            };
 
-	const unsigned int STAIR_INDICES[4][6] =
-			{
-					{4, 3, 0, 5, 4, 1},
-					{2, 4, 5, 0, 3, 4},
-					{2, 3, 4, 4, 5, 0},
-					{2, 4, 3, 4, 1, 5}
-			};
+    const unsigned int STAIR_INDICES[4][6] =
+            {
+                    {4, 3, 0, 5, 4, 1},
+                    {2, 4, 5, 0, 3, 4},
+                    {2, 3, 4, 4, 5, 0},
+                    {2, 4, 3, 4, 1, 5}
+            };
 
-	const unsigned int BOTTOM_FACE_2[4][3] =
-			{
-					{0, 1, 3},
-					{2, 0, 3},
-					{0, 2, 3},
-					{2, 1, 3}
-			};
+    const unsigned int BOTTOM_FACE_2[4][3] =
+            {
+                    {0, 1, 3},
+                    {2, 0, 3},
+                    {0, 2, 3},
+                    {2, 1, 3}
+            };
 
-	std::tuple<const glm::vec3 *, const unsigned int *> getFace(Face face)
-	{
-		int indicesOffset = (face == RIGHT || face == TOP || face == BACK) ? INDICES_PER_FACE : 0;
-		return std::make_tuple(CUBE_FACE_VERTICES + face * VERTICES_PER_FACE, CUBE_FACE_INDICES + indicesOffset);
-	}
+    std::tuple<const glm::vec3 *, const unsigned int *> getFace(Face face)
+    {
+        int indicesOffset = (face == RIGHT || face == TOP || face == BACK) ? INDICES_PER_FACE : 0;
+        return std::make_tuple(CUBE_FACE_VERTICES + face * VERTICES_PER_FACE, CUBE_FACE_INDICES + indicesOffset);
+    }
 
-	static void
-	loadFace(std::vector<glm::vec3> &positions, std::vector<glm::vec2> &texCoords, std::vector<unsigned int> &indices,
-			 glm::ivec3 &blockPosition, Face face, glm::vec4 blockTexCoordsOffset)
-	{
-		const unsigned int *faceIndices =
-				CUBE_FACE_INDICES + ((face == RIGHT || face == TOP || face == BACK) ? INDICES_PER_FACE : 0);
+    static void
+    loadFace(std::vector<glm::vec3> &positions, std::vector<glm::vec2> &texCoords, std::vector<unsigned int> &indices,
+             glm::ivec3 &blockPosition, Face face, glm::vec4 blockTexCoordsOffset)
+    {
+        const unsigned int *faceIndices =
+                CUBE_FACE_INDICES + ((face == RIGHT || face == TOP || face == BACK) ? INDICES_PER_FACE : 0);
 
-		indices.insert(indices.end(), faceIndices, faceIndices + INDICES_PER_FACE);
-		for (unsigned int i = indices.size() - INDICES_PER_FACE; i < (unsigned int) indices.size(); ++i)
-			indices[i] += positions.size();
+        indices.insert(indices.end(), faceIndices, faceIndices + INDICES_PER_FACE);
+        for (unsigned int i = indices.size() - INDICES_PER_FACE; i < (unsigned int) indices.size(); ++i)
+            indices[i] += positions.size();
 
-		const glm::vec3 *faceVertices = CUBE_FACE_VERTICES + face * VERTICES_PER_FACE;
-		positions.insert(positions.end(), faceVertices, faceVertices + VERTICES_PER_FACE);
-		for (unsigned int i = positions.size() - VERTICES_PER_FACE; i < (unsigned int) positions.size(); ++i)
-			positions[i] += (blockPosition.operator*=(CUBE_SIZE));
+        const glm::vec3 *faceVertices = CUBE_FACE_VERTICES + face * VERTICES_PER_FACE;
+        positions.insert(positions.end(), faceVertices, faceVertices + VERTICES_PER_FACE);
+        for (unsigned int i = positions.size() - VERTICES_PER_FACE; i < (unsigned int) positions.size(); ++i)
+            positions[i] += (blockPosition.operator*=(CUBE_SIZE));
 
-		glm::vec2 texCoordsBuf[VERTICES_PER_FACE] =
-				{
-						{blockTexCoordsOffset.z,
-								blockTexCoordsOffset.w},
-						{blockTexCoordsOffset.x,
-								blockTexCoordsOffset.w},
-						{blockTexCoordsOffset.x,
-								blockTexCoordsOffset.y},
-						{blockTexCoordsOffset.z,
-								blockTexCoordsOffset.y},
-				};
+        glm::vec2 texCoordsBuf[VERTICES_PER_FACE] =
+                {
+                        {blockTexCoordsOffset.z,
+                                blockTexCoordsOffset.w},
+                        {blockTexCoordsOffset.x,
+                                blockTexCoordsOffset.w},
+                        {blockTexCoordsOffset.x,
+                                blockTexCoordsOffset.y},
+                        {blockTexCoordsOffset.z,
+                                blockTexCoordsOffset.y},
+                };
 
-		texCoords.insert(texCoords.end(), texCoordsBuf, texCoordsBuf + VERTICES_PER_FACE);
-	}
+        texCoords.insert(texCoords.end(), texCoordsBuf, texCoordsBuf + VERTICES_PER_FACE);
+    }
 
-	/**
-	 * Load half a face
-	 * @param positions position vector
-	 * @param texCoords texture coordinates vector
-	 * @param indices indices vector
-	 * @param blockPosition position of the bloc in the chunk
-	 * @param face Face to load
-	 * @param axis The axis in which the face is cut (x = 0, y = 1, z = 2, down / up = axis + 0B0000u00 -> u = 0 / 1
-	 * @param blockTexCoordsOffset block texture coordinates offset in texture atlas
-	 */
-	static void
-	loadMidFace(std::vector<glm::vec3> &positions, std::vector<glm::vec2> &texCoords,
-				std::vector<unsigned int> &indices,
-				glm::ivec3 &blockPosition, Face face, char axis, glm::vec4 blockTexCoordsOffset)
-	{
-		const unsigned int *faceIndices =
-				CUBE_FACE_INDICES + ((face == RIGHT || face == TOP || face == BACK) ? INDICES_PER_FACE : 0);
+    /**
+     * Load half a face
+     * @param positions position vector
+     * @param texCoords texture coordinates vector
+     * @param indices indices vector
+     * @param blockPosition position of the bloc in the chunk
+     * @param face Face to load
+     * @param axis The axis in which the face is cut (x = 0, y = 1, z = 2, down / up = axis + 0B0000u00 -> u = 0 / 1
+     * @param blockTexCoordsOffset block texture coordinates offset in texture atlas
+     */
+    static void
+    loadMidFace(std::vector<glm::vec3> &positions, std::vector<glm::vec2> &texCoords,
+                std::vector<unsigned int> &indices,
+                glm::ivec3 &blockPosition, Face face, char axis, glm::vec4 blockTexCoordsOffset)
+    {
+        const unsigned int *faceIndices =
+                CUBE_FACE_INDICES + ((face == RIGHT || face == TOP || face == BACK) ? INDICES_PER_FACE : 0);
 
-		indices.insert(indices.end(), faceIndices, faceIndices + INDICES_PER_FACE);
-		for (unsigned int i = indices.size() - INDICES_PER_FACE; i < (unsigned int) indices.size(); ++i)
-			indices[i] += positions.size();
+        indices.insert(indices.end(), faceIndices, faceIndices + INDICES_PER_FACE);
+        for (unsigned int i = indices.size() - INDICES_PER_FACE; i < (unsigned int) indices.size(); ++i)
+            indices[i] += positions.size();
 
-		bool up = axis >> 2;
-		axis &= 0B00000011;
+        bool up = axis >> 2;
+        axis &= 0B00000011;
 
-		const glm::vec3 *faceVertices = CUBE_FACE_VERTICES + face * VERTICES_PER_FACE;
-		positions.insert(positions.end(), faceVertices, faceVertices + VERTICES_PER_FACE);
-		for (unsigned int i = positions.size() - VERTICES_PER_FACE; i < (unsigned int) positions.size(); ++i)
-		{
-			if ((positions[i][axis] < 0.0001f) ^ !up) positions[i][axis] = CUBE_SIZE / 2;
-			positions[i] += (blockPosition.operator*=(CUBE_SIZE));
-		}
+        const glm::vec3 *faceVertices = CUBE_FACE_VERTICES + face * VERTICES_PER_FACE;
+        positions.insert(positions.end(), faceVertices, faceVertices + VERTICES_PER_FACE);
+        for (unsigned int i = positions.size() - VERTICES_PER_FACE; i < (unsigned int) positions.size(); ++i)
+        {
+            if ((positions[i][axis] < 0.0001f) ^ !up) positions[i][axis] = CUBE_SIZE / 2;
+            positions[i] += (blockPosition.operator*=(CUBE_SIZE));
+        }
 
-		glm::vec2 texCoordsBuf[VERTICES_PER_FACE] =
-				{
-						{blockTexCoordsOffset.z,
-								blockTexCoordsOffset.w},
-						{blockTexCoordsOffset.x,
-								blockTexCoordsOffset.w},
-						{blockTexCoordsOffset.x,
-								blockTexCoordsOffset.y},
-						{blockTexCoordsOffset.z,
-								blockTexCoordsOffset.y},
-				};
+        glm::vec2 texCoordsBuf[VERTICES_PER_FACE] =
+                {
+                        {blockTexCoordsOffset.z,
+                                blockTexCoordsOffset.w},
+                        {blockTexCoordsOffset.x,
+                                blockTexCoordsOffset.w},
+                        {blockTexCoordsOffset.x,
+                                blockTexCoordsOffset.y},
+                        {blockTexCoordsOffset.z,
+                                blockTexCoordsOffset.y},
+                };
 
-		texCoords.insert(texCoords.end(), texCoordsBuf, texCoordsBuf + VERTICES_PER_FACE);
-	}
+        texCoords.insert(texCoords.end(), texCoordsBuf, texCoordsBuf + VERTICES_PER_FACE);
+    }
 
-	static void
-	loadTriangle(std::vector<glm::vec3> &positions, std::vector<glm::vec2> &texCoords,
-				 std::vector<unsigned int> &indices,
-				 glm::ivec3 &blockPosition,
-				 glm::vec3 *triangleVertexPositions, glm::vec4 &texCoordsOffset, bool invIndices = false)
-	{
-		indices.insert(indices.end(),
-					   TRIANGLE_INDICES + invIndices * VERTICES_PER_TRIANGLE,
-					   TRIANGLE_INDICES + invIndices * VERTICES_PER_TRIANGLE + VERTICES_PER_TRIANGLE);
-		for (unsigned int i = indices.size() - VERTICES_PER_TRIANGLE; i < (unsigned int) indices.size(); ++i)
-			indices[i] += positions.size();
+    static void
+    loadTriangle(std::vector<glm::vec3> &positions, std::vector<glm::vec2> &texCoords,
+                 std::vector<unsigned int> &indices,
+                 glm::ivec3 &blockPosition,
+                 glm::vec3 *triangleVertexPositions, glm::vec4 &texCoordsOffset, bool invIndices = false)
+    {
+        indices.insert(indices.end(),
+                       TRIANGLE_INDICES + invIndices * VERTICES_PER_TRIANGLE,
+                       TRIANGLE_INDICES + invIndices * VERTICES_PER_TRIANGLE + VERTICES_PER_TRIANGLE);
+        for (unsigned int i = indices.size() - VERTICES_PER_TRIANGLE; i < (unsigned int) indices.size(); ++i)
+            indices[i] += positions.size();
 
-		positions.insert(positions.end(), triangleVertexPositions, triangleVertexPositions + VERTICES_PER_TRIANGLE);
-		for (unsigned int i = positions.size() - VERTICES_PER_TRIANGLE; i < (unsigned int) positions.size(); ++i)
-			positions[i] += blockPosition;
+        positions.insert(positions.end(), triangleVertexPositions, triangleVertexPositions + VERTICES_PER_TRIANGLE);
+        for (unsigned int i = positions.size() - VERTICES_PER_TRIANGLE; i < (unsigned int) positions.size(); ++i)
+            positions[i] += blockPosition;
 
-		glm::vec2 texSize = {texCoordsOffset.z - texCoordsOffset.x, texCoordsOffset.w - texCoordsOffset.y};
+        glm::vec2 texSize = {texCoordsOffset.z - texCoordsOffset.x, texCoordsOffset.w - texCoordsOffset.y};
 
-		int neutralAxis = -1;
-
-
-		for (int axis = 0; axis < 3; ++axis)
-		{
-			if (fabsf(triangleVertexPositions[0][axis] - triangleVertexPositions[1][axis] +
-					  triangleVertexPositions[0][axis] -
-					  triangleVertexPositions[2][axis]) < 0.001f)
-			{
-				neutralAxis = axis;
-				break;
-			}
-		}
-
-		glm::vec2 texCoordsBuf[VERTICES_PER_TRIANGLE] =
-				{
-						{texCoordsOffset.x +
-						 (neutralAxis == 0 ? triangleVertexPositions[0].y : triangleVertexPositions[0].x) / CUBE_SIZE *
-						 texSize.x,
-								texCoordsOffset.y +
-								(neutralAxis == 2 ? triangleVertexPositions[0].y : triangleVertexPositions[0].z) /
-								CUBE_SIZE * texSize.y},
-						{texCoordsOffset.x +
-						 (neutralAxis == 0 ? triangleVertexPositions[1].y : triangleVertexPositions[1].x) / CUBE_SIZE *
-						 texSize.x,
-								texCoordsOffset.y +
-								(neutralAxis == 2 ? triangleVertexPositions[1].y : triangleVertexPositions[1].z) /
-								CUBE_SIZE * texSize.y},
-						{texCoordsOffset.x +
-						 (neutralAxis == 0 ? triangleVertexPositions[2].y : triangleVertexPositions[2].x) / CUBE_SIZE *
-						 texSize.x,
-								texCoordsOffset.y +
-								(neutralAxis == 2 ? triangleVertexPositions[2].y : triangleVertexPositions[2].z) /
-								CUBE_SIZE * texSize.y},
-				};
-
-		texCoords.insert(texCoords.end(), texCoordsBuf, texCoordsBuf + VERTICES_PER_TRIANGLE);
-	}
+        int neutralAxis = -1;
 
 
-	static unsigned int
-	loadVertex(std::vector<glm::vec3> &positions, std::vector<glm::vec2> &texCoords, glm::vec3 &vertexPosition,
-			   glm::ivec3 &blockPosition, glm::vec4 &texCoordsOffset)
-	{
-		glm::vec2 texSize = {texCoordsOffset.z - texCoordsOffset.x, texCoordsOffset.w - texCoordsOffset.y};
+        for (int axis = 0; axis < 3; ++axis)
+        {
+            if (fabsf(triangleVertexPositions[0][axis] - triangleVertexPositions[1][axis] +
+                      triangleVertexPositions[0][axis] -
+                      triangleVertexPositions[2][axis]) < 0.001f)
+            {
+                neutralAxis = axis;
+                break;
+            }
+        }
 
-		glm::vec2 vertexTexCoord =
-				{texCoordsOffset.x + vertexPosition.x / CUBE_SIZE * texSize.x,
-				 texCoordsOffset.y + vertexPosition.z / CUBE_SIZE * texSize.y};
-		texCoords.push_back(vertexTexCoord);
+        glm::vec2 texCoordsBuf[VERTICES_PER_TRIANGLE] =
+                {
+                        {texCoordsOffset.x +
+                         (neutralAxis == 0 ? triangleVertexPositions[0].y : triangleVertexPositions[0].x) / CUBE_SIZE *
+                         texSize.x,
+                                texCoordsOffset.y +
+                                (neutralAxis == 2 ? triangleVertexPositions[0].y : triangleVertexPositions[0].z) /
+                                CUBE_SIZE * texSize.y},
+                        {texCoordsOffset.x +
+                         (neutralAxis == 0 ? triangleVertexPositions[1].y : triangleVertexPositions[1].x) / CUBE_SIZE *
+                         texSize.x,
+                                texCoordsOffset.y +
+                                (neutralAxis == 2 ? triangleVertexPositions[1].y : triangleVertexPositions[1].z) /
+                                CUBE_SIZE * texSize.y},
+                        {texCoordsOffset.x +
+                         (neutralAxis == 0 ? triangleVertexPositions[2].y : triangleVertexPositions[2].x) / CUBE_SIZE *
+                         texSize.x,
+                                texCoordsOffset.y +
+                                (neutralAxis == 2 ? triangleVertexPositions[2].y : triangleVertexPositions[2].z) /
+                                CUBE_SIZE * texSize.y},
+                };
 
-		positions.push_back(vertexPosition + ((glm::vec3) (blockPosition) * CUBE_SIZE));
-
-		return positions.size() - 1;
-	}
+        texCoords.insert(texCoords.end(), texCoordsBuf, texCoordsBuf + VERTICES_PER_TRIANGLE);
+    }
 
 
-	void
-	loadBlock(std::vector<glm::vec3> &positions, std::vector<glm::vec2> &texCoords, std::vector<unsigned int> &indices,
-			  glm::ivec3 &blockPosition, Block *blockToLoad, const Block **neighbors, glm::vec4 &texCoordsOffset)
+    static unsigned int
+    loadVertex(std::vector<glm::vec3> &positions, std::vector<glm::vec2> &texCoords, glm::vec3 &vertexPosition,
+               glm::ivec3 &blockPosition, glm::vec4 &texCoordsOffset)
+    {
+        glm::vec2 texSize = {texCoordsOffset.z - texCoordsOffset.x, texCoordsOffset.w - texCoordsOffset.y};
+
+        glm::vec2 vertexTexCoord =
+                {texCoordsOffset.x + vertexPosition.x / CUBE_SIZE * texSize.x,
+                 texCoordsOffset.y + vertexPosition.z / CUBE_SIZE * texSize.y};
+        texCoords.push_back(vertexTexCoord);
+
+        positions.push_back(vertexPosition + ((glm::vec3) (blockPosition) * CUBE_SIZE));
+
+        return positions.size() - 1;
+    }
+
+
+    void
+    loadBlock(std::vector<glm::vec3> &positions, std::vector<glm::vec2> &texCoords, std::vector<unsigned int> &indices,
+              glm::ivec3 &blockPosition, Block *blockToLoad, const Block **neighbors, glm::vec4 &texCoordsOffset)
     {
 
         unsigned char &shape = blockToLoad->state;
@@ -478,7 +478,7 @@ namespace Blocks
             }
             std::reverse(indices.begin() + startBlockIndex, indices.end());
         }
-	}
+    }
 }
 
 bool Block::operator==(const Block &otherBlock) const { return ID == otherBlock.ID && state == otherBlock.state; }

@@ -25,6 +25,7 @@ class WorldGenerator : public CGE::Utils::ThreadProcess
     ChunkManager &chunkManager_;
 
     void run() override;
+
 public:
     WorldGenerator(World *world, ChunkManager &chunkManager);
 

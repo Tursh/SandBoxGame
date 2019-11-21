@@ -40,11 +40,13 @@ void WorldGenerator::run()
                 if (chunkPosition.y >= 0)
                 {
                     int groundLevel = pn.noise((double) (chunkPosition.x * CHUNK_SIZE + x) / (double) (CHUNK_SIZE * 4),
-                                     (double) (chunkPosition.z * CHUNK_SIZE + z) / (double) (CHUNK_SIZE * 4), 0) *
-                            CHUNK_SIZE * 6;
+                                               (double) (chunkPosition.z * CHUNK_SIZE + z) / (double) (CHUNK_SIZE * 4),
+                                               0) *
+                                      CHUNK_SIZE * 6;
                     for (int y = std::min<int>(groundLevel - CHUNK_SIZE * chunkPosition.y, CHUNK_SIZE - 1); y >= 0; --y)
                     {
-                        blocks[x + CHUNK_SIZE * (z + CHUNK_SIZE * y)] = {(short)(y + chunkPosition.y * CHUNK_SIZE < groundLevel - 3 ? 2 : 1), 0};
+                        blocks[x + CHUNK_SIZE * (z + CHUNK_SIZE * y)] = {
+                                (short) (y + chunkPosition.y * CHUNK_SIZE < groundLevel - 3 ? 2 : 1), 0};
                     }
                 } else if (chunkPosition.y < 0)
                 {

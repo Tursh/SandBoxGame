@@ -44,8 +44,8 @@ class ChunkManager : public CGE::Utils::ThreadProcess
 
 public:
     ChunkManager(Entities::Player *player,
-            World *world,
-            std::map<int, std::map<int, std::map<int, Chunk *>>> &chunks);
+                 World *world,
+                 std::map<int, std::map<int, std::map<int, Chunk *>>> &chunks);
 
     ~ChunkManager();
 

@@ -9,7 +9,7 @@
 #include <Loader/Models/TexturedModel.h>
 #include "Block.h"
 
-extern const unsigned int CHUNK_SIZE;
+extern const unsigned int CHUNK_SIZE, SQUARED_CHUNK_SIZE;
 
 class World;
 

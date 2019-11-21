@@ -8,7 +8,7 @@
 #include <Loader/RessourceManager.h>
 #include <glm/gtx/string_cast.hpp>
 
-const unsigned int CHUNK_SIZE = 16;
+const unsigned int CHUNK_SIZE = 16, SQUARED_CHUNK_SIZE = CHUNK_SIZE * CHUNK_SIZE;
 
 /*
 
@@ -251,7 +251,7 @@ void Chunk::loadToTexModel()
 			{
 				glm::ivec3 blockPosition = {x, y, z};
 				Block *currentBlock =
-						blocks_ + blockPosition.x + CHUNK_SIZE * (blockPosition.z + CHUNK_SIZE * blockPosition.y);
+						blocks_ + blockPosition.x + CHUNK_SIZE * (blockPosition.y + CHUNK_SIZE * blockPosition.z);
 				
 				//If it's a block of air there is nothing to load
 				if (currentBlock->ID == Blocks::AIR)

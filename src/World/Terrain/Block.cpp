@@ -149,6 +149,16 @@ namespace Blocks
 		texCoords.insert(texCoords.end(), texCoordsBuf, texCoordsBuf + VERTICES_PER_FACE);
 	}
 	
+	/**
+	 * Load half a face
+	 * @param positions position vector
+	 * @param texCoords texture coordinates vector
+	 * @param indices indices vector
+	 * @param blockPosition position of the bloc in the chunk
+	 * @param face Face to load
+	 * @param axis The axis in which the face is cut (x = 0, y = 1, z = 2, down / up = axis + 0B0000u00 -> u = 0 / 1
+	 * @param blockTexCoordsOffset block texture coordinates offset in texture atlas
+	 */
 	static void
 	loadMidFace(std::vector<glm::vec3> &positions, std::vector<glm::vec2> &texCoords,
 				std::vector<unsigned int> &indices,
@@ -161,10 +171,16 @@ namespace Blocks
 		for (unsigned int i = indices.size() - INDICES_PER_FACE; i < (unsigned int) indices.size(); ++i)
 			indices[i] += positions.size();
 		
+		bool up = axis >> 2;
+		axis &= 0B00000011;
+		
 		const glm::vec3 *faceVertices = CUBE_FACE_VERTICES + face * VERTICES_PER_FACE;
 		positions.insert(positions.end(), faceVertices, faceVertices + VERTICES_PER_FACE);
 		for (unsigned int i = positions.size() - VERTICES_PER_FACE; i < (unsigned int) positions.size(); ++i)
+		{
+			if ((positions[i][axis] < 0.0001f) ^ !up) positions[i][axis] = CUBE_SIZE / 2;
 			positions[i] += (blockPosition.operator*=(CUBE_SIZE));
+		}
 		
 		glm::vec2 texCoordsBuf[VERTICES_PER_FACE] =
 				{
@@ -405,6 +421,8 @@ namespace Blocks
 						n = !(side & 1 ? side >> 1 ? xnzp : xpzn : xnzn),
 						p = !(side & 1 ? xpzp : side >> 1 ? xpzn : xnzp);
 				
+				bool zSide = side / 2;
+				
 				//If the 2 corners are up than draw a full face
 				if (n && p)
 					loadFace(positions, texCoords, indices, blockPosition, static_cast<Face>(2 + side),
@@ -423,6 +441,7 @@ namespace Blocks
 						{
 							unsigned int startIndex = positions.size();
 							
+							
 							bool pairSideIndex = !(side % 2), extSideIndex = !((side & 1) ^ (side >> 1));
 							//We have to add 3 vertex to add side triangle
 							glm::vec3 triangleVertexPositions[] = {
@@ -432,17 +451,18 @@ namespace Blocks
 									{extSideIndex ? 0 : CUBE_SIZE,                                     0,
 											pairSideIndex ? 0 : CUBE_SIZE},
 									
-									{side / 2 ? (p ? CUBE_SIZE : 0) : (pairSideIndex ? 0 : CUBE_SIZE), CUBE_SIZE,
-											side / 2 ? (pairSideIndex ? 0 : CUBE_SIZE) : (p ? CUBE_SIZE : 0)}
+									{zSide ? (p ? CUBE_SIZE : 0) : (pairSideIndex ? 0 : CUBE_SIZE), CUBE_SIZE,
+											zSide ? (pairSideIndex ? 0 : CUBE_SIZE) : (p ? CUBE_SIZE : 0)}
 							};
 							loadTriangle(positions, texCoords, indices, blockPosition, triangleVertexPositions,
 										 texCoordsOffset);
 						}
 							
 							//If there is a mid flag draw vertical rectangle
-						else
+						else if ((midX && zSide) || (midZ && !zSide))
 						{
-							
+							loadMidFace(positions, texCoords, indices, blockPosition, static_cast<Face>(2 + side),
+										(!(zSide && midX) ? 2 : 0) + (p ? 4 : 0), texCoordsOffset);
 						}
 					}
 				}

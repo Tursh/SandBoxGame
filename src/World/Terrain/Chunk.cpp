@@ -202,7 +202,7 @@ static std::array<const Block *, 6>
 getBlockNeighbors(const glm::ivec3 &blockPosition, const Block *block, Chunk **neighborChunks)
 {
 	std::array<const Block *, 6> neighbors{};
-	
+
 	for (int axis = 0; axis < 3; ++axis)
 	{
 		//-
@@ -228,7 +228,7 @@ getBlockNeighbors(const glm::ivec3 &blockPosition, const Block *block, Chunk **n
 		} else
 			neighbors[axis * 2 + 1] = block + pow(CHUNK_SIZE, axis);
 	}
-	
+
 	return neighbors;
 }
 
@@ -236,15 +236,15 @@ void Chunk::loadToTexModel()
 {
 	if (empty_)
 		return;
-	
+
 	//First get the six around this one
 	Chunk **neighborChunks = world_->getAroundChunk(chunkPosition_);
-	
+
 	//Create vertex arrays
 	std::vector<glm::vec3> vertices;
 	std::vector<glm::vec2> texCoords;
 	std::vector<unsigned int> indices;
-	
+
 	for (int x = 0; x < CHUNK_SIZE; ++x)
 		for (int y = 0; y < CHUNK_SIZE; ++y)
 			for (int z = 0; z < CHUNK_SIZE; ++z)
@@ -252,43 +252,43 @@ void Chunk::loadToTexModel()
 				glm::ivec3 blockPosition = {x, y, z};
 				Block *currentBlock =
 						blocks_ + blockPosition.x + CHUNK_SIZE * (blockPosition.y + CHUNK_SIZE * blockPosition.z);
-				
+
 				//If it's a block of air there is nothing to load
 				if (currentBlock->ID == Blocks::AIR)
 					continue;
-				
+
 				//Get block neighbors
 				std::array<const Block *, 6> neighbors = getBlockNeighbors(blockPosition, currentBlock, neighborChunks);
-				
+
 				bool isObstructed = true;
 				for (int i = 0; i < 6; ++i)
 				{
 					if (neighbors[i] == nullptr || neighbors[i]->ID || neighbors[i]->state)
 						isObstructed = false;
 				}
-				
+
 				glm::vec4 blockTexCoords = texture_->getTextureLimits(currentBlock->ID);
-				
+
 				if (!isObstructed)
 					Blocks::loadBlock(vertices, texCoords, indices, blockPosition, currentBlock, neighbors.data(),
 									blockTexCoords);
 			}
-	
+
 	delete[] neighborChunks;
-	
+
 	//for (int i = 0; i < vertices.size(); ++i)
 	//	logInfo(i << ": " << glm::to_string(vertices[i]));
-	
+
 	CGE::Loader::Data<float> verticesData((float *) vertices.data(), vertices.size() * 3);
 	CGE::Loader::Data<float> texCoordsData((float *) texCoords.data(), texCoords.size() * 2);
 	CGE::Loader::Data<unsigned int> indicesData(indices.data(), indices.size());
-	
+
 	if (indices.empty())
 	{
 		empty_ = true;
 		return;
 	}
-	
+
 	CGE::Loader::DataToVAO(model_, verticesData, texCoordsData, indicesData, true);
 }
 
@@ -328,25 +328,25 @@ void Chunk::setBlock(glm::ivec3 &position, Block &newBlock)
 #ifndef NDEBUG
 	if (0 > position.x || position.x > CHUNK_SIZE) logError(
 			"The block you are trying to get is not in this chunk. Axis: x")
-	
+
 	if (0 > position.y || position.y > CHUNK_SIZE) logError(
 			"The block you are trying to get is not in this chunk. Axis: y")
-	
+
 	if (0 > position.z || position.z > CHUNK_SIZE) logError(
 			"The block you are trying to get is not in this chunk. Axis: z")
 #endif
-	
+
 	Block &currentBlock = blocks_[position.x + CHUNK_SIZE * (position.z + CHUNK_SIZE * position.y)];
-	
+
 	if (currentBlock == newBlock)
 		return;
-	
+
 	if (empty_ && newBlock != Blocks::AIR_BLOC)
 		empty_ = false;
-	
+
 	currentBlock = newBlock;
 	update();
-	
+
 	// If the new block is air than check if it is at the extremities
 	// of the chunk and update the chunks that are touching that block.
 	if (newBlock.ID == Blocks::AIR)
@@ -398,14 +398,14 @@ const Block &Chunk::getBlock(const glm::ivec3 &position) const
 #ifndef NDEBUG
 	if (0 > position.x || position.x > CHUNK_SIZE) logError(
 			"The block you are trying to get is not in this chunk. Axis: x")
-	
+
 	if (0 > position.y || position.y > CHUNK_SIZE) logError(
 			"The block you are trying to get is not in this chunk. Axis: y")
-	
+
 	if (0 > position.z || position.z > CHUNK_SIZE) logError(
 			"The block you are trying to get is not in this chunk. Axis: z")
 #endif
-	return blocks_[position.x + CHUNK_SIZE * (position.z + CHUNK_SIZE * position.y)];
+	return blocks_[position.x + CHUNK_SIZE * (position.y + CHUNK_SIZE * position.z)];
 }
 
 const glm::ivec3 &Chunk::getChunkPosition() const

@@ -15,7 +15,7 @@ struct Block
 {
 	short ID;
 	//first 4 digits are the Block shape and 4 last are rotation
-	char state;
+	unsigned char state;
 	
 	//Compare their ID and state
 	bool operator==(const Block &otherBlock) const;

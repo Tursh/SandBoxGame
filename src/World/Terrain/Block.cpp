@@ -76,8 +76,8 @@ namespace Blocks
                     {CUBE_SIZE, 0,         CUBE_SIZE},      //xpzp
 
                     {0,         CUBE_SIZE, 0},          //xnzn
-                    {CUBE_SIZE, CUBE_SIZE, 0},              //xpzn
-                    {0,         CUBE_SIZE, CUBE_SIZE},      //xnzp
+                    {0, CUBE_SIZE, CUBE_SIZE},              //xpzn
+                    {CUBE_SIZE,         CUBE_SIZE, 0},      //xnzp
                     {CUBE_SIZE, CUBE_SIZE, CUBE_SIZE}           //xpzp
             };
 
@@ -371,9 +371,6 @@ namespace Blocks
 
                         for (int i = indices.size() - 3; i < indices.size(); ++i)
                             indices[i] += startIndex;
-
-                        //if(midZ && !xnu)
-                        //	std::reverse(indices.end() - 3, indices.end());
                     }
 
                         //If the 2 mid flags are up, load face bottom 3 (stair face)
@@ -466,6 +463,86 @@ namespace Blocks
 
             }
 
+        //TOP
+        if((neighbors[3 - invY] == nullptr || neighbors[3 - invY]->ID == Blocks::AIR) && !midY)
+        {
+            if(!cornerFlagCount)
+                loadFace(positions, texCoords, indices, blockPosition, Face::TOP, texCoordsOffset);
+            else if(!midCount)
+            {
+
+            }
+            else
+            {
+
+                if(cornerFlagCount == 1)
+                {
+                    unsigned int startIndex = positions.size();
+
+                    {
+                        glm::vec3 triangleVertexPositions[VERTICES_PER_TRIANGLE];
+                        int i = 0;
+                        for (int point = 0; point < 4; ++point)
+                        {
+                            if (!corners[point])
+                            {
+                                std::copy(CUBE_VERTEX_POSITIONS + 4 + point,
+                                          CUBE_VERTEX_POSITIONS + 4 + (point + 1),
+                                          triangleVertexPositions + i);
+                                ++i;
+                            }
+                        }
+                        loadTriangle(positions, texCoords, indices, blockPosition,
+                                     triangleVertexPositions, texCoordsOffset, xnu);
+                    }
+                    //If there is only on mid flag, load face bottom 2
+                    if (midCount == 1)
+                    {
+                        //Add the missing vertex
+                        glm::vec3 vertexPosition = {midX ? CUBE_SIZE / 2 : xnu ? CUBE_SIZE : 0, CUBE_SIZE,
+                                                    midZ ? CUBE_SIZE / 2 : znu ? CUBE_SIZE : 0};
+                        loadVertex(positions, texCoords, vertexPosition, blockPosition, texCoordsOffset);
+
+                        const unsigned int *triangleIndices = BOTTOM_FACE_2[xnu * 2 + znu];
+
+                        //Create new triangle from existing positions
+                        indices.insert(indices.end(), triangleIndices, triangleIndices + 3);
+                        std::reverse(indices.end() - 3, indices.end());
+
+                        for (int i = indices.size() - 3; i < indices.size(); ++i)
+                            indices[i] += startIndex;
+                    }
+                    else if (midCount == 2)
+                    {
+
+                        //We have to add 3 vertex to add 2 triangles
+                        glm::vec3 vertex1Position = {xnu ? CUBE_SIZE : 0, CUBE_SIZE, 0.5f};
+                        loadVertex(positions, texCoords, vertex1Position, blockPosition, texCoordsOffset);
+
+                        glm::vec3 vertex2Position = {CUBE_SIZE / 2, CUBE_SIZE, CUBE_SIZE / 2};
+                        loadVertex(positions, texCoords, vertex2Position, blockPosition, texCoordsOffset);
+
+                        glm::vec3 vertex3Position = {0.5f, CUBE_SIZE, znu ? CUBE_SIZE : 0};
+                        loadVertex(positions, texCoords, vertex3Position, blockPosition, texCoordsOffset);
+
+                        const unsigned int *stairIndices = STAIR_INDICES[xnu * 2 + znu];
+                        indices.insert(indices.end(), stairIndices, stairIndices + VERTICES_PER_TRIANGLE * 2);
+
+                        for (int i = indices.size() - VERTICES_PER_TRIANGLE * 2; i < indices.size(); ++i)
+                            indices[i] += startIndex;
+
+                        std::reverse(indices.end() - VERTICES_PER_TRIANGLE * 2, indices.end());
+                    } else
+                    {
+
+                    }
+                }else if (cornerFlagCount == 2)
+                {
+                    loadMidFace(positions, texCoords, indices, blockPosition, Face::TOP,
+                                (midZ ? 2 : 0) + (xnd || znd ? 4 : 0), texCoordsOffset);
+                }
+            }
+        }
 
         if (invY)
         {

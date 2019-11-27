@@ -172,25 +172,25 @@ World::World()
     blocks[6] = {1, 0B00001011};
     blocks[8] = {1, 0B00000111};
 ////
-    blocks[2 + SQUARED_CHUNK_SIZE * 2] = {1, 0B11000101};
-    blocks[4 + SQUARED_CHUNK_SIZE * 2] = {1, 0B11001010};
-    blocks[6 + SQUARED_CHUNK_SIZE * 2] = {1, 0B10010011};
-    blocks[8 + SQUARED_CHUNK_SIZE * 2] = {1, 0B10011100};
+    blocks[2 + SQUARED_CHUNK_SIZE * 2] = {1, 0B01000101};
+    blocks[4 + SQUARED_CHUNK_SIZE * 2] = {1, 0B01001010};
+    blocks[6 + SQUARED_CHUNK_SIZE * 2] = {1, 0B00010011};
+    blocks[8 + SQUARED_CHUNK_SIZE * 2] = {1, 0B00011100};
 
-    blocks[2 + SQUARED_CHUNK_SIZE * 4] = {1, 0B11010001};
-    blocks[4 + SQUARED_CHUNK_SIZE * 4] = {1, 0B11010010};
-    blocks[6 + SQUARED_CHUNK_SIZE * 4] = {1, 0B11010100};
-    blocks[8 + SQUARED_CHUNK_SIZE * 4] = {1, 0B11011000};
+    blocks[2 + SQUARED_CHUNK_SIZE * 4] = {1, 0B01010001};
+    blocks[4 + SQUARED_CHUNK_SIZE * 4] = {1, 0B01010010};
+    blocks[6 + SQUARED_CHUNK_SIZE * 4] = {1, 0B01010100};
+    blocks[8 + SQUARED_CHUNK_SIZE * 4] = {1, 0B01011000};
 
-    blocks[2 + SQUARED_CHUNK_SIZE * 6] = {1, 0B10001100};
-    blocks[4 + SQUARED_CHUNK_SIZE * 6] = {1, 0B10001010};
-    blocks[6 + SQUARED_CHUNK_SIZE * 6] = {1, 0B10000011};
-    blocks[8 + SQUARED_CHUNK_SIZE * 6] = {1, 0B10000101};
+    blocks[2 + SQUARED_CHUNK_SIZE * 6] = {1, 0B00001100};
+    blocks[4 + SQUARED_CHUNK_SIZE * 6] = {1, 0B00001010};
+    blocks[6 + SQUARED_CHUNK_SIZE * 6] = {1, 0B00000011};
+    blocks[8 + SQUARED_CHUNK_SIZE * 6] = {1, 0B00000101};
 
-    blocks[2 + SQUARED_CHUNK_SIZE * 8] = {1, 0B10010001};
-    blocks[4 + SQUARED_CHUNK_SIZE * 8] = {1, 0B10010010};
-    blocks[6 + SQUARED_CHUNK_SIZE * 8] = {1, 0B10010100};
-    blocks[8 + SQUARED_CHUNK_SIZE * 8] = {1, 0B10011000};
+    blocks[2 + SQUARED_CHUNK_SIZE * 8] = {1, 0B00010001};
+    blocks[4 + SQUARED_CHUNK_SIZE * 8] = {1, 0B00010010};
+    blocks[6 + SQUARED_CHUNK_SIZE * 8] = {1, 0B00010100};
+    blocks[8 + SQUARED_CHUNK_SIZE * 8] = {1, 0B00011000};
 
     blocks[2 + SQUARED_CHUNK_SIZE * 10] = {1, 0B01000001};
     blocks[4 + SQUARED_CHUNK_SIZE * 10] = {1, 0B01000010};

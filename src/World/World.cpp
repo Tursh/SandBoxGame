@@ -197,6 +197,11 @@ World::World()
     blocks[6 + SQUARED_CHUNK_SIZE * 10] = {1, 0B01000100};
     blocks[8 + SQUARED_CHUNK_SIZE * 10] = {1, 0B01001000};
 
+    blocks[2 + SQUARED_CHUNK_SIZE * 12] = {1, 0B00000001};
+    blocks[4 + SQUARED_CHUNK_SIZE * 12] = {1, 0B00000010};
+    blocks[6 + SQUARED_CHUNK_SIZE * 12] = {1, 0B00000100};
+    blocks[8 + SQUARED_CHUNK_SIZE * 12] = {1, 0B00001000};
+
     glm::ivec3 chunkPosition = {0, 0, 0};
     Chunk *newChunk = new Chunk(blocks, this, chunkPosition);
     chunks_[chunkPosition.x][chunkPosition.y][chunkPosition.z] = newChunk;

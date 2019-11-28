@@ -563,11 +563,31 @@ namespace Blocks
         {
             if (midCount)
             {
-                if(midCount == 1)
+                if (midCount == 1)
                 {
                     if (cornerFlagCount == 1)
                     {
-                        
+                        int corner = 0;
+                        for (; corner < 4; ++corner)
+                            if (corners[corner])
+                                break;
+
+                        glm::vec3 triangleVertexPositions[VERTICES_PER_FACE + 1] = {
+                                {xnu ^ midZ ? CUBE_SIZE : 0,                        0,
+                                        !znu ^ midZ ? CUBE_SIZE : 0},
+                                {midX ? CUBE_SIZE / 2 : corner / 2 == 1 ? CUBE_SIZE : 0, 0,
+                                        midZ ? CUBE_SIZE / 2 : (xnzp || xpzp) ? CUBE_SIZE : 0},
+                                {xnu ^ midZ ? CUBE_SIZE : 0,                        CUBE_SIZE,
+                                        !znu ^ midZ ? CUBE_SIZE : 0},
+                                {midX ? CUBE_SIZE / 2 : corner / 2 == 1 ? CUBE_SIZE : 0, CUBE_SIZE,
+                                        midZ ? CUBE_SIZE / 2 : (xnzp || xpzp) ? CUBE_SIZE : 0},
+
+                        };
+
+                        loadTriangle(positions, texCoords, indices, blockPosition,
+                                     triangleVertexPositions, texCoordsOffset, !(xnzn || xpzp) ^ midZ);
+                        loadTriangle(positions, texCoords, indices, blockPosition,
+                                     triangleVertexPositions + 1, texCoordsOffset, (xnzn || xpzp) ^ midZ);
                     }
                 } else
                 {
@@ -584,8 +604,10 @@ namespace Blocks
 
                     glm::vec3 triangleVertexPositions[VERTICES_PER_TRIANGLE];
                     triangleVertexPositions[0] = {(corner >> 1) & 1 ? CUBE_SIZE : 0, 0, corner & 1 ? CUBE_SIZE : 0};
-                    triangleVertexPositions[1] = {(corner >> 1) & 1 ? 0 : CUBE_SIZE, CUBE_SIZE, corner & 1 ? CUBE_SIZE : 0};
-                    triangleVertexPositions[2] = {(corner >> 1) & 1 ? CUBE_SIZE : 0, CUBE_SIZE, corner & 1 ? 0 : CUBE_SIZE};
+                    triangleVertexPositions[1] = {(corner >> 1) & 1 ? 0 : CUBE_SIZE, CUBE_SIZE,
+                                                  corner & 1 ? CUBE_SIZE : 0};
+                    triangleVertexPositions[2] = {(corner >> 1) & 1 ? CUBE_SIZE : 0, CUBE_SIZE,
+                                                  corner & 1 ? 0 : CUBE_SIZE};
                     loadTriangle(positions, texCoords, indices, blockPosition,
                                  triangleVertexPositions, texCoordsOffset, !(xnzn || xpzp));
                 }

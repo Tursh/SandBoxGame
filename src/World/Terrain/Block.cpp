@@ -332,7 +332,8 @@ namespace Blocks
                     loadTriangle(positions, texCoords, indices, blockPosition,
                                  triangleVertexPositions, texCoordsOffset, xnd);
                 }
-            } else
+            }
+            else
             {
                 //If there is only one corner up, face bottom 1 has to be drawn
                 if (cornerFlagCount == 1)
@@ -392,7 +393,8 @@ namespace Blocks
                         for (int i = indices.size() - VERTICES_PER_TRIANGLE * 2; i < indices.size(); ++i)
                             indices[i] += startIndex;
                     }
-                } else if (cornerFlagCount == 2)
+                }
+                else if (cornerFlagCount == 2)
                 {
                     loadMidFace(positions, texCoords, indices, blockPosition, Face::BOTTOM,
                                 (midZ ? 2 : 0) + (xnd || znd ? 4 : 0), texCoordsOffset);
@@ -487,9 +489,9 @@ namespace Blocks
                     loadTriangle(positions, texCoords, indices, blockPosition,
                                  triangleVertexPositions, texCoordsOffset, xnu);
                 }
-            } else
+            }
+            else
             {
-
                 if (cornerFlagCount == 1)
                 {
                     unsigned int startIndex = positions.size();
@@ -526,7 +528,8 @@ namespace Blocks
 
                         for (int i = indices.size() - 3; i < indices.size(); ++i)
                             indices[i] += startIndex;
-                    } else if (midCount == 2)
+                    }
+                    else if (midCount == 2)
                     {
 
                         //We have to add 3 vertex to add 2 triangles
@@ -546,11 +549,13 @@ namespace Blocks
                             indices[i] += startIndex;
 
                         std::reverse(indices.end() - VERTICES_PER_TRIANGLE * 2, indices.end());
-                    } else
+                    }
+                    else
                     {
 
                     }
-                } else if (cornerFlagCount == 2)
+                }
+                else if (cornerFlagCount == 2)
                 {
                     loadMidFace(positions, texCoords, indices, blockPosition, Face::TOP,
                                 (midZ ? 2 : 0) + (xnd || znd ? 4 : 0), texCoordsOffset);
@@ -563,21 +568,22 @@ namespace Blocks
         {
             if (midCount)
             {
-                if (midCount == 1)
-                {
-                    if (cornerFlagCount == 1)
-                    {
-                        int corner = 0;
-                        for (; corner < 4; ++corner)
-                            if (corners[corner])
-                                break;
 
-                        glm::vec3 triangleVertexPositions[VERTICES_PER_FACE + 1] = {
-                                {xnu ^ midZ ? CUBE_SIZE : 0,                        0,
+                if (cornerFlagCount == 1)
+                {
+                    int corner = 0;
+                    for (; corner < 4; ++corner)
+                        if (corners[corner])
+                            break;
+
+                    if (midCount == 1)
+                    {
+                        glm::vec3 triangleVertexPositions[VERTICES_PER_FACE] = {
+                                {xnu ^ midZ ? CUBE_SIZE : 0,                             0,
                                         !znu ^ midZ ? CUBE_SIZE : 0},
                                 {midX ? CUBE_SIZE / 2 : corner / 2 == 1 ? CUBE_SIZE : 0, 0,
                                         midZ ? CUBE_SIZE / 2 : (xnzp || xpzp) ? CUBE_SIZE : 0},
-                                {xnu ^ midZ ? CUBE_SIZE : 0,                        CUBE_SIZE,
+                                {xnu ^ midZ ? CUBE_SIZE : 0,                             CUBE_SIZE,
                                         !znu ^ midZ ? CUBE_SIZE : 0},
                                 {midX ? CUBE_SIZE / 2 : corner / 2 == 1 ? CUBE_SIZE : 0, CUBE_SIZE,
                                         midZ ? CUBE_SIZE / 2 : (xnzp || xpzp) ? CUBE_SIZE : 0},
@@ -589,11 +595,38 @@ namespace Blocks
                         loadTriangle(positions, texCoords, indices, blockPosition,
                                      triangleVertexPositions + 1, texCoordsOffset, (xnzn || xpzp) ^ midZ);
                     }
-                } else
-                {
+                    else
+                    {
+                        if (cornerFlagCount == 1)
+                        {
+                            int i = positions.size();
 
+                            loadMidFace(positions, texCoords, indices, blockPosition,
+                                    (Face)(2 + xnu), 2 + (znu ? 4 : 0), texCoordsOffset);
+
+                            for(; i < positions.size(); ++i)
+                                positions[i].x += 0.5f * (xnu ? -1 : 1);
+
+                            loadMidFace(positions, texCoords, indices, blockPosition,
+                                    (Face)(4 + znu), xnu ? 4 : 0, texCoordsOffset);
+
+                            for(; i < positions.size(); ++i)
+                                positions[i].z += 0.5f * (znu ? -1 : 1);
+                        }
+                    }
                 }
-            } else
+                else if(cornerFlagCount == 2)
+                {
+                    if(midCount == 1)
+                    {
+                        int i = positions.size();
+                        loadFace(positions,texCoords, indices, blockPosition, (Face)(2 + xnu + znu * 3 + znd * 2),texCoordsOffset);
+                        for(; i < positions.size(); ++i)
+                            positions[i][xnu || xnd ? 0 : 2] += (xnu || znu ? -1 : 1) * 0.5f;
+                    }
+                }
+            }
+            else
             {
                 if (cornerFlagCount == 1)
                 {
@@ -602,14 +635,42 @@ namespace Blocks
                         if (corners[corner])
                             break;
 
-                    glm::vec3 triangleVertexPositions[VERTICES_PER_TRIANGLE];
-                    triangleVertexPositions[0] = {(corner >> 1) & 1 ? CUBE_SIZE : 0, 0, corner & 1 ? CUBE_SIZE : 0};
-                    triangleVertexPositions[1] = {(corner >> 1) & 1 ? 0 : CUBE_SIZE, CUBE_SIZE,
-                                                  corner & 1 ? CUBE_SIZE : 0};
-                    triangleVertexPositions[2] = {(corner >> 1) & 1 ? CUBE_SIZE : 0, CUBE_SIZE,
-                                                  corner & 1 ? 0 : CUBE_SIZE};
+                    glm::vec3 triangleVertexPositions[VERTICES_PER_TRIANGLE] = {
+                            {(corner >> 1) & 1 ? CUBE_SIZE : 0, 0,         corner & 1 ? CUBE_SIZE : 0},
+                            {(corner >> 1) & 1 ? 0 : CUBE_SIZE, CUBE_SIZE, corner & 1 ? CUBE_SIZE : 0},
+                            {(corner >> 1) & 1 ? CUBE_SIZE : 0, CUBE_SIZE, corner & 1 ? 0 : CUBE_SIZE}
+                    };
                     loadTriangle(positions, texCoords, indices, blockPosition,
                                  triangleVertexPositions, texCoordsOffset, !(xnzn || xpzp));
+                }
+                else if (cornerFlagCount == 2)
+                {
+                    glm::vec3 triangleVertexPositions[VERTICES_PER_FACE];
+
+                    for (int corner = 0; corner < 4; ++corner)
+                        triangleVertexPositions[corner] = {(corner >> 1) & 1, corners[corner] ? 0 : CUBE_SIZE,
+                                                           corner & 1};
+
+                    loadTriangle(positions, texCoords, indices, blockPosition,
+                                 triangleVertexPositions, texCoordsOffset, (xnzn || xpzp));
+                    loadTriangle(positions, texCoords, indices, blockPosition,
+                                 triangleVertexPositions + 1, texCoordsOffset, !(xnzn || xpzp));
+                }
+
+                else
+                {
+                    int corner = 0;
+                    for (; corner < 4; ++corner)
+                        if (!corners[corner])
+                            break;
+
+                    glm::vec3 triangleVertexPositions[VERTICES_PER_TRIANGLE] = {
+                            {(corner >> 1) & 1 ? CUBE_SIZE : 0, CUBE_SIZE, corner & 1 ? CUBE_SIZE : 0},
+                            {(corner >> 1) & 1 ? 0 : CUBE_SIZE, 0,         corner & 1 ? CUBE_SIZE : 0},
+                            {(corner >> 1) & 1 ? CUBE_SIZE : 0, 0,         corner & 1 ? 0 : CUBE_SIZE}
+                    };
+                    loadTriangle(positions, texCoords, indices, blockPosition,
+                                 triangleVertexPositions, texCoordsOffset, (!xnzp || !xpzn));
                 }
             }
         }
@@ -623,7 +684,9 @@ namespace Blocks
                 y = (fabsf(yBase) < 0.001f ? CUBE_SIZE : (fabsf(yBase - CUBE_SIZE) < 0.001f) ? 0 : yBase) +
                     blockPosition.y;
             }
-            std::reverse(indices.begin() + startBlockIndex, indices.end());
+            std::reverse(indices.begin() + startBlockIndex, indices.end()
+
+            );
         }
     }
 }

@@ -101,6 +101,8 @@ namespace Entities
 
     double lastHit = 0.0f;
 
+    CGE::Utils::PerlinNoise pn;
+
     void Player::checkAction(World *world)
     {
         if (CGE::IO::input::isButtonPressed(GLFW_MOUSE_BUTTON_1))
@@ -110,9 +112,45 @@ namespace Entities
                 hit(world);
                 lastHit = glfwGetTime();
             }
-        } else
+        }
+        else if (CGE::IO::input::isButtonPressed(GLFW_MOUSE_BUTTON_2))
+        {
+            if (glfwGetTime() - lastHit > hitCooldown)
+            {
+            glm::vec3 hitBlockPosition = world->getPickedBlock(6.0f);
+
+            unsigned char blockState = world->getBlock(hitBlockPosition).state;
+
+
+            double groundLevel[4] =
+                    {
+                            pn.noise((double) hitBlockPosition.x / (double) (CHUNK_SIZE * 4),
+                                     (double) hitBlockPosition.z / (double) (CHUNK_SIZE * 4), 0) * CHUNK_SIZE * 6,
+                            pn.noise((double) hitBlockPosition.x / (double) (CHUNK_SIZE * 4),
+                                     (double) (hitBlockPosition.z + 1) / (double) (CHUNK_SIZE * 4), 0) *
+                            CHUNK_SIZE * 6,
+                            pn.noise((double) (hitBlockPosition.x + 1) / (double) (CHUNK_SIZE * 4),
+                                     (double) hitBlockPosition.z / (double) (CHUNK_SIZE * 4), 0) * CHUNK_SIZE * 6,
+                            pn.noise((double) (hitBlockPosition.x + 1) / (double) (CHUNK_SIZE * 4),
+                                     (double) (hitBlockPosition.z + 1) / (double) (CHUNK_SIZE * 4), 0) *
+                            CHUNK_SIZE * 6,
+                    };
+            logInfo(glm::to_string(hitBlockPosition) << " => " << groundLevel[0] << ", " << groundLevel[1] << ", "
+                                                     << groundLevel[2] << ", " << groundLevel[3] << " - "
+                                                     << ((blockState >> 7) & 1) << ((blockState >> 6) & 1)
+                                                     << ((blockState >> 5) & 1)
+                                                     << ((blockState >> 4) & 1)
+                                                     << ((blockState >> 3) & 1) << ((blockState >> 2) & 1)
+                                                     << ((blockState >> 1) & 1)
+                                                     << (blockState & 1));
+
+                lastHit = glfwGetTime();
+            }
+        }
+        else
             lastHit = 0.0f;
     }
+
 
     void Player::hit(World *world)
     {

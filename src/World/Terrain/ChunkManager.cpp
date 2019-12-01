@@ -81,8 +81,6 @@ void ChunkManager::tick()
                                     diameter * (relativeChunkPosition.y + diameter * relativeChunkPosition.z);
                         if (0 <= index && index < chunkCount_)
                             loaded[index] = true;
-                        else
-                        logError("This should be unreachable code");
                     }
                 }
 

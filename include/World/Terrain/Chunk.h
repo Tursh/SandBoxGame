@@ -32,7 +32,7 @@ class Chunk : public CGE::Loader::TexturedModel
                   std::vector<unsigned int> &indices, const int &x, const int &y, const int &z, Blocks::Face face);
 
 public:
-    Chunk(Block *blocks, World *world, glm::ivec3 &chunkPosition);
+    Chunk(Block *blocks, World *world, glm::ivec3 &chunkPosition, bool empty);
 
     ~Chunk();
 

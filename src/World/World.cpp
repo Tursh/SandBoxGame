@@ -157,12 +157,12 @@ static glm::vec3 checkCollision(CGE::Entities::Entity *entity, World *world)
 
 
 World::World()
-        : player_(new Entities::Player(nullptr, camera_, {0, 0, 0})),
+        : player_(new Entities::Player(nullptr, camera_, {0, 60, 0})),
           collisionFunction_(std::bind(&checkCollision, std::placeholders::_1, this)),
           chunkManager_(player_, this, chunks_)
 {
     addEntity(std::shared_ptr<CGE::Entities::Entity>(player_));
-
+/*
     Block *blocks = new Block[(int) pow(CHUNK_SIZE, 3)];
     for (int i = 0; i < CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE; ++i)
         blocks[i] = Blocks::AIR_BLOC;
@@ -205,6 +205,7 @@ World::World()
     glm::ivec3 chunkPosition = {0, 0, 0};
     Chunk *newChunk = new Chunk(blocks, this, chunkPosition);
     chunks_[chunkPosition.x][chunkPosition.y][chunkPosition.z] = newChunk;
+*/
 
     auto display = CGE::IO::getWindow();
     shader.start();
@@ -215,7 +216,7 @@ World::World()
     );
     shader.stop();
 
-    //chunkManager_.start();
+    chunkManager_.start();
 }
 
 void World::addEntity(std::shared_ptr<CGE::Entities::Entity> newEntity)

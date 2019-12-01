@@ -306,7 +306,7 @@ namespace Blocks
         unsigned int startPosition = positions.size(), startBlockIndex = indices.size();
 
         //Bottom
-        if (neighbors[2 + invY] == nullptr || neighbors[2 + invY]->ID == Blocks::AIR)
+        if (neighbors[2 + invY] != nullptr && neighbors[2 + invY]->ID == Blocks::AIR)
         {
             if (midY)
                 loadFace(positions, texCoords, indices, blockPosition, BOTTOM, texCoordsOffset); //Load face bottom 0
@@ -409,8 +409,8 @@ namespace Blocks
 
         //Block side faces
         for (unsigned char side = 0; side < 4; ++side)
-            if (neighbors[side + (side >> 1) * 2] == nullptr || neighbors[side + (side >> 1) * 2]->ID == Blocks::AIR
-                || neighbors[side + (side >> 1) * 2]->state)
+            if (neighbors[side + (side >> 1) * 2] != nullptr && (neighbors[side + (side >> 1) * 2]->ID == Blocks::AIR
+                || neighbors[side + (side >> 1) * 2]->state))
             {
                 //Get positive and negative borders
                 bool
@@ -466,7 +466,7 @@ namespace Blocks
             }
 
         //TOP
-        if ((neighbors[3 - invY] == nullptr || neighbors[3 - invY]->ID == Blocks::AIR) && !midY)
+        if ((neighbors[3 - invY] == nullptr || neighbors[3 - invY]->ID == Blocks::AIR || neighbors[3 - invY]->state)  && !midY)
         {
             if (!cornerFlagCount)
                 loadFace(positions, texCoords, indices, blockPosition, Face::TOP, texCoordsOffset);

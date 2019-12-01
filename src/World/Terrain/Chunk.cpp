@@ -219,7 +219,7 @@ getBlockNeighbors(const glm::ivec3 &blockPosition, const Block *block, Chunk **n
         //+
         if (blockPosition[axis] == CHUNK_SIZE - 1)
         {
-            if (neighborChunks[axis * 2] != nullptr)
+            if (neighborChunks[axis * 2 + 1] != nullptr)
             {
                 glm::ivec3 neighborsPosition = blockPosition;
                 neighborsPosition[axis] = 0;
@@ -293,9 +293,9 @@ void Chunk::loadToTexModel()
 }
 
 
-Chunk::Chunk(Block *blocks, World *world, glm::ivec3 &chunkPosition)
+Chunk::Chunk(Block *blocks, World *world, glm::ivec3 &chunkPosition, bool empty)
         : TexturedModel(nullptr, CGE::Loader::resManager::getTexture(1), true),
-          blocks_(blocks), world_(world), chunkPosition_(chunkPosition)
+          blocks_(blocks), world_(world), chunkPosition_(chunkPosition), empty_(empty)
 {
     loadToTexModel();
 }
@@ -339,7 +339,7 @@ void Chunk::setBlock(glm::ivec3 &position, Block &newBlock)
             "The block you are trying to get is not in this chunk. Axis: z")
 #endif
 
-    Block &currentBlock = blocks_[position.x + CHUNK_SIZE * (position.z + CHUNK_SIZE * position.y)];
+    Block &currentBlock = blocks_[position.x + CHUNK_SIZE * (position.y + CHUNK_SIZE * position.z)];
 
     if (currentBlock == newBlock)
         return;

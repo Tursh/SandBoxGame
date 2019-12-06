@@ -35,79 +35,88 @@ void WorldGenerator::run()
 
         Chunk *chunkUnder = world_->getChunk(chunkPosition - glm::ivec3(0, 1, 0));
 
-            for (int x = 0; x < CHUNK_SIZE; ++x)
-                for (int z = 0; z < CHUNK_SIZE; ++z)
+        for (int x = 0; x < CHUNK_SIZE; ++x)
+            for (int z = 0; z < CHUNK_SIZE; ++z)
+            {
+                if (chunkPosition.y >= 0)
                 {
-                    if (chunkPosition.y >= 0)
-                    {
-                        glm::ivec3 topBloc = {x, CHUNK_SIZE - 1, z};
-                        if (chunkUnder != nullptr && chunkUnder->getBlock(topBloc).ID == Blocks::AIR)
-                            continue;
+                    glm::ivec3 topBloc = {x, CHUNK_SIZE - 1, z};
+                    if (chunkUnder != nullptr && chunkUnder->getBlock(topBloc).ID == Blocks::AIR)
+                        continue;
 
-                        glm::ivec3 blocPositionInWorld = {chunkPosition.x * CHUNK_SIZE + x, 0,
-                                                          chunkPosition.z * CHUNK_SIZE + z};
+                    glm::ivec3 blocPositionInWorld = {chunkPosition.x * CHUNK_SIZE + x, 0,
+                                                      chunkPosition.z * CHUNK_SIZE + z};
 
-                        double groundLevel[4] =
-                                {
-                                        pn.noise((double) blocPositionInWorld.x / (double) (CHUNK_SIZE * 4),
-                                                 (double) blocPositionInWorld.z / (double) (CHUNK_SIZE * 4), 0) *
-                                        CHUNK_SIZE * 6,
-                                        pn.noise((double) blocPositionInWorld.x / (double) (CHUNK_SIZE * 4),
-                                                 (double) (blocPositionInWorld.z + 1) / (double) (CHUNK_SIZE * 4), 0) *
-                                        CHUNK_SIZE * 6,
-                                        pn.noise((double) (blocPositionInWorld.x + 1) / (double) (CHUNK_SIZE * 4),
-                                                 (double) blocPositionInWorld.z / (double) (CHUNK_SIZE * 4), 0) *
-                                        CHUNK_SIZE * 6,
-                                        pn.noise((double) (blocPositionInWorld.x + 1) / (double) (CHUNK_SIZE * 4),
-                                                 (double) (blocPositionInWorld.z + 1) / (double) (CHUNK_SIZE * 4), 0) *
-                                        CHUNK_SIZE * 6,
-                                };
-
-                        //Get the higher ground level of the 4 corners
-                        double higher = -1000000;
-                        for (double &level : groundLevel)
-                        {
-                            level -= CHUNK_SIZE * chunkPosition.y;
-                            if (level > higher)
-                                higher = level;
-                        }
-
-                        //If ground level is under the chunk then there is no block to create
-                        if (higher < 0)
-                            continue;
-
-                        //Top block y position in chunk
-                        int higherBloc = (int) higher;
-
-                        for (int y = std::min<int>(higherBloc, CHUNK_SIZE - 1); y >= 0; --y)
-                        {
-                            if (y == higherBloc || y == higherBloc - 1)
+                    double groundLevel[4] =
                             {
-                                unsigned char state = 0;
+                                    pn.noise((double) blocPositionInWorld.x / (double) (CHUNK_SIZE * 4),
+                                             (double) blocPositionInWorld.z / (double) (CHUNK_SIZE * 4), 0) *
+                                    CHUNK_SIZE * 6,
+                                    pn.noise((double) blocPositionInWorld.x / (double) (CHUNK_SIZE * 4),
+                                             (double) (blocPositionInWorld.z + 1) / (double) (CHUNK_SIZE * 4), 0) *
+                                    CHUNK_SIZE * 6,
+                                    pn.noise((double) (blocPositionInWorld.x + 1) / (double) (CHUNK_SIZE * 4),
+                                             (double) blocPositionInWorld.z / (double) (CHUNK_SIZE * 4), 0) *
+                                    CHUNK_SIZE * 6,
+                                    pn.noise((double) (blocPositionInWorld.x + 1) / (double) (CHUNK_SIZE * 4),
+                                             (double) (blocPositionInWorld.z + 1) / (double) (CHUNK_SIZE * 4), 0) *
+                                    CHUNK_SIZE * 6,
+                            };
 
-                                for (int corner = 0; corner < 4; ++corner)
-                                    state += (unsigned char) pow(2, corner) *
-                                             (groundLevel[corner] - y < (float) 0);
-
-                                blocks[x + CHUNK_SIZE * (y + CHUNK_SIZE * z)] =
-                                        {1, state};
-                            }
-                            else
-                            {
-                                blocks[x + CHUNK_SIZE * (y + CHUNK_SIZE * z)] =
-                                        {(short) (y + chunkPosition.y * CHUNK_SIZE < higher - 3 ? 2 : 1), 0};
-                            }
-                        }
-                    }
-                    else if (chunkPosition.y < 0)
+                    //Get the higher ground level of the 4 corners
+                    double higher = -1000000;
+                    for (double &level : groundLevel)
                     {
-                        for (int y = 0; y < CHUNK_SIZE; ++y)
-                        {
-                            blocks[x + CHUNK_SIZE * (y + CHUNK_SIZE * z)] = {2, 0};
-                        }
+                        level -= CHUNK_SIZE * chunkPosition.y;
+                        if (level > higher)
+                            higher = level;
                     }
 
+                    //If ground level is under the chunk then there is no block to create
+                    if (higher < 0)
+                        continue;
+
+                    //Top block y position in chunk
+                    int higherBloc = (int) higher;
+
+
+                    for (int y = std::min<int>(higherBloc, CHUNK_SIZE - 1); y >= 0; --y)
+                    {
+                        int i = 0;
+                        if (y >= higherBloc - 1)
+                        {
+                            unsigned char state = 0;
+
+                            for (int corner = 0; corner < 4; ++corner)
+                            {
+                                bool flag = groundLevel[corner] - y < 0.0f;
+                                if(flag)
+                                    ++i;
+                                //Set the corner flag
+                                state += (unsigned char) pow(2, corner) * flag;
+                            }
+
+                            blocks[x + CHUNK_SIZE * (y + CHUNK_SIZE * z)] = {1, state};
+
+                            if(i >= 2 && y < 15)
+                                blocks[x + CHUNK_SIZE * ((y + 1) + CHUNK_SIZE * z)] = Blocks::AIR_BLOC;
+                        }
+                        else
+                        {
+                            blocks[x + CHUNK_SIZE * (y + CHUNK_SIZE * z)] =
+                                    {(short) (y + chunkPosition.y * CHUNK_SIZE < higher - 3 ? 2 : 1), 0};
+                        }
+                    }
                 }
+                else if (chunkPosition.y < 0)
+                {
+                    for (int y = 0; y < CHUNK_SIZE; ++y)
+                    {
+                        blocks[x + CHUNK_SIZE * (y + CHUNK_SIZE * z)] = {2, 0};
+                    }
+                }
+
+            }
 
 
         Chunk *newChunk = new Chunk(blocks, world_, chunkPosition, false);

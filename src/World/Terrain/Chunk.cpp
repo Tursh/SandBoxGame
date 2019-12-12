@@ -265,8 +265,11 @@ void Chunk::loadToTexModel()
                 bool isObstructed = true;
                 for (int i = 0; i < 6; ++i)
                 {
-                    if (neighbors[i] == nullptr || neighbors[i]->ID || neighbors[i]->state)
+                    if (neighbors[i] == nullptr || !neighbors[i]->ID || !neighbors[i]->state)
+                    {
                         isObstructed = false;
+                        break;
+                    }
                 }
 
                 glm::vec4 blockTexCoords = texture_->getTextureLimits(currentBlock->ID);
@@ -358,44 +361,62 @@ void Chunk::setBlock(glm::ivec3 &position, Block &newBlock)
     {
         Chunk *neighbourChunk = world_->getChunkByChunkPosition(
                 glm::ivec3(chunkPosition_.x - 1, chunkPosition_.y, chunkPosition_.z));
-        neighbourChunk->empty_ = false;
-        neighbourChunk->loadToTexModel();
+        if (neighbourChunk != nullptr)
+        {
+            neighbourChunk->empty_ = false;
+            neighbourChunk->loadToTexModel();
+        }
     }
     else if (position.x == CHUNK_SIZE - 1)
     {
         Chunk *neighbourChunk = world_->getChunkByChunkPosition(
                 glm::ivec3(chunkPosition_.x + 1, chunkPosition_.y, chunkPosition_.z));
-        neighbourChunk->empty_ = false;
-        neighbourChunk->loadToTexModel();
+        if (neighbourChunk != nullptr)
+        {
+            neighbourChunk->empty_ = false;
+            neighbourChunk->loadToTexModel();
+        }
     }
     if (position.y == 0)
     {
         Chunk *neighbourChunk = world_->getChunkByChunkPosition(
                 glm::ivec3(chunkPosition_.x, chunkPosition_.y - 1, chunkPosition_.z));
-        neighbourChunk->empty_ = false;
-        neighbourChunk->loadToTexModel();
+        if (neighbourChunk != nullptr)
+        {
+            neighbourChunk->empty_ = false;
+            neighbourChunk->loadToTexModel();
+        }
     }
     else if (position.y == CHUNK_SIZE - 1)
     {
         Chunk *neighbourChunk = world_->getChunkByChunkPosition(
                 glm::ivec3(chunkPosition_.x, chunkPosition_.y + 1, chunkPosition_.z));
-        neighbourChunk->empty_ = false;
-        neighbourChunk->loadToTexModel();
+        if (neighbourChunk != nullptr)
+        {
+            neighbourChunk->empty_ = false;
+            neighbourChunk->loadToTexModel();
+        }
     }
 
     if (position.z == 0)
     {
         Chunk *neighbourChunk = world_->getChunkByChunkPosition(
                 glm::ivec3(chunkPosition_.x, chunkPosition_.y, chunkPosition_.z - 1));
-        neighbourChunk->empty_ = false;
-        neighbourChunk->loadToTexModel();
+        if (neighbourChunk != nullptr)
+        {
+            neighbourChunk->empty_ = false;
+            neighbourChunk->loadToTexModel();
+        }
     }
     else if (position.z == CHUNK_SIZE - 1)
     {
         Chunk *neighbourChunk = world_->getChunkByChunkPosition(
                 glm::ivec3(chunkPosition_.x, chunkPosition_.y, chunkPosition_.z + 1));
-        neighbourChunk->empty_ = false;
-        neighbourChunk->loadToTexModel();
+        if (neighbourChunk != nullptr)
+        {
+            neighbourChunk->empty_ = false;
+            neighbourChunk->loadToTexModel();
+        }
     }
 
 

@@ -410,7 +410,7 @@ namespace Blocks
         //Block side faces
         for (unsigned char side = 0; side < 4; ++side)
             if (neighbors[side + (side >> 1) * 2] != nullptr && (neighbors[side + (side >> 1) * 2]->ID == Blocks::AIR
-                || neighbors[side + (side >> 1) * 2]->state))
+                                                                 || neighbors[side + (side >> 1) * 2]->state))
             {
                 //Get positive and negative borders
                 bool
@@ -420,9 +420,16 @@ namespace Blocks
                 bool zSide = side / 2;
 
                 //If the 2 corners are up than draw a full face
-                if (n && p)
+                if (n && p && !midY)
                     loadFace(positions, texCoords, indices, blockPosition, static_cast<Face>(2 + side),
                              texCoordsOffset);
+
+                else if (midY)
+                {
+                    loadMidFace(positions, texCoords, indices, blockPosition, static_cast<Face>(2 + side), 1,
+                                texCoordsOffset);
+                }
+
                     //If there is only 1 corner
                 else if (n || p)
                 {
@@ -466,7 +473,8 @@ namespace Blocks
             }
 
         //TOP
-        if ((neighbors[3 - invY] == nullptr || neighbors[3 - invY]->ID == Blocks::AIR || neighbors[3 - invY]->state)  && !midY)
+        if ((neighbors[3 - invY] == nullptr || neighbors[3 - invY]->ID == Blocks::AIR || neighbors[3 - invY]->state) &&
+            !midY)
         {
             if (!cornerFlagCount)
                 loadFace(positions, texCoords, indices, blockPosition, Face::TOP, texCoordsOffset);
@@ -602,26 +610,27 @@ namespace Blocks
                             int i = positions.size();
 
                             loadMidFace(positions, texCoords, indices, blockPosition,
-                                    (Face)(2 + xnu), 2 + (znu ? 4 : 0), texCoordsOffset);
+                                        (Face) (2 + xnu), 2 + (znu ? 4 : 0), texCoordsOffset);
 
-                            for(; i < positions.size(); ++i)
+                            for (; i < positions.size(); ++i)
                                 positions[i].x += 0.5f * (xnu ? -1 : 1);
 
                             loadMidFace(positions, texCoords, indices, blockPosition,
-                                    (Face)(4 + znu), xnu ? 4 : 0, texCoordsOffset);
+                                        (Face) (4 + znu), xnu ? 4 : 0, texCoordsOffset);
 
-                            for(; i < positions.size(); ++i)
+                            for (; i < positions.size(); ++i)
                                 positions[i].z += 0.5f * (znu ? -1 : 1);
                         }
                     }
                 }
-                else if(cornerFlagCount == 2)
+                else if (cornerFlagCount == 2)
                 {
-                    if(midCount == 1)
+                    if (midCount == 1)
                     {
                         int i = positions.size();
-                        loadFace(positions,texCoords, indices, blockPosition, (Face)(2 + xnu + znu * 3 + znd * 2),texCoordsOffset);
-                        for(; i < positions.size(); ++i)
+                        loadFace(positions, texCoords, indices, blockPosition, (Face) (2 + xnu + znu * 3 + znd * 2),
+                                 texCoordsOffset);
+                        for (; i < positions.size(); ++i)
                             positions[i][xnu || xnd ? 0 : 2] += (xnu || znu ? -1 : 1) * 0.5f;
                     }
                 }
@@ -673,6 +682,16 @@ namespace Blocks
                                  triangleVertexPositions, texCoordsOffset, (!xnzp || !xpzn));
                 }
             }
+        }
+            //For full slabs
+        else if (midY)
+        {
+            int positionBeforeFaceCreation = positions.size();
+
+            loadFace(positions, texCoords, indices, blockPosition, Face::TOP, texCoordsOffset);
+            for(;positionBeforeFaceCreation < positions.size(); ++positionBeforeFaceCreation)
+                positions[positionBeforeFaceCreation].y -= CUBE_SIZE * 0.5;
+
         }
 
         if (invY)

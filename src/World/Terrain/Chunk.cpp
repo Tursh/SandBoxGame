@@ -265,8 +265,11 @@ void Chunk::loadToTexModel()
                 bool isObstructed = true;
                 for (int i = 0; i < 6; ++i)
                 {
-                    if (neighbors[i] == nullptr || neighbors[i]->ID || neighbors[i]->state)
+                    if (neighbors[i] == nullptr || !neighbors[i]->ID || !neighbors[i]->state)
+                    {
                         isObstructed = false;
+                        break;
+                    }
                 }
 
                 glm::vec4 blockTexCoords = texture_->getTextureLimits(currentBlock->ID);
@@ -290,6 +293,8 @@ void Chunk::loadToTexModel()
         empty_ = true;
         return;
     }
+    else
+        empty_ = false;
 
     CGE::Loader::DataToVAO(model_, verticesData, texCoordsData, indicesData, true);
 }
@@ -346,10 +351,75 @@ void Chunk::setBlock(const glm::ivec3 &position, const Block &newBlock)
     if (currentBlock == newBlock)
         return;
 
-    if (empty_ && newBlock != Blocks::AIR_BLOC)
+    if (empty_)
         empty_ = false;
 
+    //Set block in chunk
     currentBlock = newBlock;
+
+    if (position.x == 0)
+    {
+        Chunk *neighbourChunk = world_->getChunkByChunkPosition(
+                glm::ivec3(chunkPosition_.x - 1, chunkPosition_.y, chunkPosition_.z));
+        if (neighbourChunk != nullptr)
+        {
+            neighbourChunk->empty_ = false;
+            neighbourChunk->loadToTexModel();
+        }
+    }
+    else if (position.x == CHUNK_SIZE - 1)
+    {
+        Chunk *neighbourChunk = world_->getChunkByChunkPosition(
+                glm::ivec3(chunkPosition_.x + 1, chunkPosition_.y, chunkPosition_.z));
+        if (neighbourChunk != nullptr)
+        {
+            neighbourChunk->empty_ = false;
+            neighbourChunk->loadToTexModel();
+        }
+    }
+    if (position.y == 0)
+    {
+        Chunk *neighbourChunk = world_->getChunkByChunkPosition(
+                glm::ivec3(chunkPosition_.x, chunkPosition_.y - 1, chunkPosition_.z));
+        if (neighbourChunk != nullptr)
+        {
+            neighbourChunk->empty_ = false;
+            neighbourChunk->loadToTexModel();
+        }
+    }
+    else if (position.y == CHUNK_SIZE - 1)
+    {
+        Chunk *neighbourChunk = world_->getChunkByChunkPosition(
+                glm::ivec3(chunkPosition_.x, chunkPosition_.y + 1, chunkPosition_.z));
+        if (neighbourChunk != nullptr)
+        {
+            neighbourChunk->empty_ = false;
+            neighbourChunk->loadToTexModel();
+        }
+    }
+
+    if (position.z == 0)
+    {
+        Chunk *neighbourChunk = world_->getChunkByChunkPosition(
+                glm::ivec3(chunkPosition_.x, chunkPosition_.y, chunkPosition_.z - 1));
+        if (neighbourChunk != nullptr)
+        {
+            neighbourChunk->empty_ = false;
+            neighbourChunk->loadToTexModel();
+        }
+    }
+    else if (position.z == CHUNK_SIZE - 1)
+    {
+        Chunk *neighbourChunk = world_->getChunkByChunkPosition(
+                glm::ivec3(chunkPosition_.x, chunkPosition_.y, chunkPosition_.z + 1));
+        if (neighbourChunk != nullptr)
+        {
+            neighbourChunk->empty_ = false;
+            neighbourChunk->loadToTexModel();
+        }
+    }
+
+
     update();
 
     // If the new block is air than check if it is at the extremities

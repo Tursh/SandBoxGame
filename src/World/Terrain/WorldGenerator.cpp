@@ -33,7 +33,9 @@ void WorldGenerator::run()
         for (int k = 0; k < CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE; ++k)
             blocks[k] = {0, 0};
 
-        Chunk *chunkUnder = world_->getChunk(chunkPosition - glm::ivec3(0, 1, 0));
+
+        Chunk *chunkUnder = world_->getChunkByChunkPosition(chunkPosition - glm::ivec3(0, 1, 0));
+
 
         for (int x = 0; x < CHUNK_SIZE; ++x)
             for (int z = 0; z < CHUNK_SIZE; ++z)
@@ -82,27 +84,71 @@ void WorldGenerator::run()
 
                     for (int y = std::min<int>(higherBloc, CHUNK_SIZE - 1); y >= 0; --y)
                     {
-                        int i = 0;
-                        if (y >= higherBloc - 1)
+                        int cornerDownCount = 0, underBlockCorner = -1;
+
+                        if (y >= higherBloc - 2)
                         {
                             unsigned char state = 0;
 
                             for (int corner = 0; corner < 4; ++corner)
                             {
-                                bool flag = groundLevel[corner] - y < 0.0f;
-                                if(flag)
-                                    ++i;
+                                bool cornerFlag = groundLevel[corner] - y < 0.0f;
+                                if (cornerFlag)
+                                {
+                                    ++cornerDownCount;
+                                    if (groundLevel[corner] - y < -Blocks::CUBE_SIZE)
+                                        underBlockCorner = corner;
+                                }
                                 //Set the corner flag
-                                state += (unsigned char) pow(2, corner) * flag;
+                                state += (unsigned char) pow(2, corner) * cornerFlag;
                             }
 
+                            //If the block under in another chunk has more than 1 corner down, no block.
+                            if (y == 0 && state && chunkUnder != nullptr && chunkUnder->getBlock({x, 15, z}).state)
+                            {
+
+                                unsigned char underChunkBlockState = chunkUnder->getBlock({x, 15, z}).state;
+
+                                int underChunkBlockCornerDownCount = 0;
+
+                                for (int corner = 0; corner < 4; ++corner)
+                                    underChunkBlockCornerDownCount += (underChunkBlockState >> corner) & 1;
+
+                                if (underChunkBlockCornerDownCount > 1)
+                                    state = 0B00001111;
+                            }
+
+                            //If the top block is stated and this block has more than 1 corner down, remove it
+                            if (cornerDownCount > 1 && y < 15)
+                                blocks[x + CHUNK_SIZE * ((y + 1) + CHUNK_SIZE * z)] = Blocks::AIR_BLOC;
+
+                            //If the top block on the other chunk is stated while this one has more than 1 corner down, remove it.
+                            if (y == 15 && cornerDownCount > 1)
+                            {
+                                Chunk *topChunk = world_->getChunkByChunkPosition(chunkPosition + glm::ivec3(0, 1, 0));
+                                if (topChunk->getBlock({x, 0, z}).state)
+                                {
+                                    topChunk->setBlock({x, 0, z}, Blocks::AIR_BLOC);
+                                }
+                            }
+
+                            //
+                            if (underBlockCorner != -1)
+                            {
+                                if (!(state >> (underBlockCorner ^ 1) & 1))
+                                    state += (unsigned char) pow(2, (underBlockCorner ^ 1));
+
+                                if (!(state >> (underBlockCorner ^ 2) & 1))
+                                    state += (unsigned char) pow(2, (underBlockCorner ^ 2));
+                            }
+
+                            //Set the block
                             blocks[x + CHUNK_SIZE * (y + CHUNK_SIZE * z)] = {1, state};
 
-                            if(i >= 2 && y < 15)
-                                blocks[x + CHUNK_SIZE * ((y + 1) + CHUNK_SIZE * z)] = Blocks::AIR_BLOC;
                         }
                         else
                         {
+                            //Set grass block or stone block
                             blocks[x + CHUNK_SIZE * (y + CHUNK_SIZE * z)] =
                                     {(short) (y + chunkPosition.y * CHUNK_SIZE < higher - 3 ? 2 : 1), 0};
                         }
@@ -110,6 +156,7 @@ void WorldGenerator::run()
                 }
                 else if (chunkPosition.y < 0)
                 {
+                    //Set all stone blocks
                     for (int y = 0; y < CHUNK_SIZE; ++y)
                     {
                         blocks[x + CHUNK_SIZE * (y + CHUNK_SIZE * z)] = {2, 0};
@@ -119,7 +166,7 @@ void WorldGenerator::run()
             }
 
 
-        Chunk *newChunk = new Chunk(blocks, world_, chunkPosition, false);
+        auto *newChunk = new Chunk(blocks, world_, chunkPosition, false);
         world_->addChunk(newChunk);
         newChunk->updateChunksAround();
     }

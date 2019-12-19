@@ -58,7 +58,7 @@ public:
      * @param position The position in the chunk
      * @param newBlock The new block
      */
-    void setBlock(glm::ivec3 &position, Block &newBlock);
+    void setBlock(const glm::ivec3 &position, const Block &newBlock);
 
     const Block &getBlock(const glm::ivec3 &position) const;
 

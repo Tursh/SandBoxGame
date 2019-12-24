@@ -43,6 +43,7 @@ void WorldGenerator::run()
                 if (chunkPosition.y >= 0)
                 {
                     glm::ivec3 topBloc = {x, CHUNK_SIZE - 1, z};
+                    //If the top block of the chunk under is air than the chunk is *probably* empty
                     if (chunkUnder != nullptr && chunkUnder->getBlock(topBloc).ID == Blocks::AIR)
                         continue;
 
@@ -65,13 +66,13 @@ void WorldGenerator::run()
                                     CHUNK_SIZE * 6,
                             };
 
+
                     //Get the higher ground level of the 4 corners
                     double higher = -1000000;
                     for (double &level : groundLevel)
                     {
                         level -= CHUNK_SIZE * chunkPosition.y;
-                        if (level > higher)
-                            higher = level;
+                        higher = std::max(level, higher);
                     }
 
                     //If ground level is under the chunk then there is no block to create
@@ -89,19 +90,29 @@ void WorldGenerator::run()
                         if (y >= higherBloc - 2)
                         {
                             unsigned char state = 0;
+                            int midYCornersCount = 0;
 
                             for (int corner = 0; corner < 4; ++corner)
                             {
-                                bool cornerFlag = groundLevel[corner] - y < 0.0f;
+                                double relativeLevel = groundLevel[corner] - y;
+                                bool cornerFlag = relativeLevel < 0.0f;
+
                                 if (cornerFlag)
                                 {
                                     ++cornerDownCount;
-                                    if (groundLevel[corner] - y < -Blocks::CUBE_SIZE)
+                                    if (relativeLevel < -Blocks::CUBE_SIZE)
                                         underBlockCorner = corner;
+
+                                    //Set the corner flag
+                                    state += (unsigned char) pow(2, corner);
                                 }
-                                //Set the corner flag
-                                state += (unsigned char) pow(2, corner) * cornerFlag;
+
+                                if (-Blocks::CUBE_SIZE / 4 < relativeLevel && relativeLevel < Blocks::CUBE_SIZE / 4)
+                                    ++midYCornersCount;
                             }
+
+                            if (midYCornersCount > 1)
+                                state += (unsigned char) pow(2, 5);
 
                             //If the block under in another chunk has more than 1 corner down, no block.
                             if (y == 0 && state && chunkUnder != nullptr && chunkUnder->getBlock({x, 15, z}).state)
@@ -126,7 +137,7 @@ void WorldGenerator::run()
                             if (y == 15 && cornerDownCount > 1)
                             {
                                 Chunk *topChunk = world_->getChunkByChunkPosition(chunkPosition + glm::ivec3(0, 1, 0));
-                                if (topChunk->getBlock({x, 0, z}).state)
+                                if (topChunk != nullptr && topChunk->getBlock({x, 0, z}).state)
                                 {
                                     topChunk->setBlock({x, 0, z}, Blocks::AIR_BLOC);
                                 }

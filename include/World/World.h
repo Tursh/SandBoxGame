@@ -31,8 +31,10 @@ private:
 
     ChunkManager chunkManager_;
 
+    //Chunk buffer for chunks that need to be deleted
     std::vector<Chunk *> chunksToDelete_;
 
+    //Recursive function that delete buffered chunks
     void deleteBufferedChunks();
 
 public:
@@ -108,7 +110,7 @@ public:
      * @param area The to check for blocks
      * @return The list of block hitboxes
      */
-    std::vector<Hitbox> getBlockHitboxs(Hitbox area);
+    auto getBlockHitboxes(Hitbox area) -> std::vector<Hitbox>;
 
     void addEntity(std::shared_ptr<CGE::Entities::Entity> newEntity);
 

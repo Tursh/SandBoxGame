@@ -420,61 +420,61 @@ namespace Blocks
                 bool zSide = side / 2;
 
                 //If the 2 corners are up than draw a full face
-                if (n && p && !midY)
-                    loadFace(positions, texCoords, indices, blockPosition, static_cast<Face>(2 + side),
-                             texCoordsOffset);
-
-                else if (midY)
+                if (n && p)
                 {
-                    loadMidFace(positions, texCoords, indices, blockPosition, static_cast<Face>(2 + side), 1,
-                                texCoordsOffset);
+                    if (midY)
+                        loadMidFace(positions, texCoords, indices, blockPosition, static_cast<Face>(2 + side), 1,
+                                    texCoordsOffset);
+                    else
+                        loadFace(positions, texCoords, indices, blockPosition, static_cast<Face>(2 + side),
+                                 texCoordsOffset);
                 }
-
                     //If there is only 1 corner
                 else if (n || p)
                 {
+                    unsigned int startIndex = positions.size();
+                    if (midCount == 0)
+                    {
+
+
+                        bool pairSideIndex = !(side % 2), extSideIndex = !((side & 1) ^ (side >> 1));
+                        //We have to add 3 vertex to add side triangle
+                        glm::vec3 triangleVertexPositions[] = {
+                                {pairSideIndex ? 0 : CUBE_SIZE,                                 0,
+                                        extSideIndex ? CUBE_SIZE : 0},
+
+                                {extSideIndex ? 0 : CUBE_SIZE,                                  0,
+                                        pairSideIndex ? 0 : CUBE_SIZE},
+
+                                {zSide ? (p ? CUBE_SIZE : 0) : (pairSideIndex ? 0 : CUBE_SIZE), CUBE_SIZE,
+                                        zSide ? (pairSideIndex ? 0 : CUBE_SIZE) : (p ? CUBE_SIZE : 0)}
+                        };
+                        loadTriangle(positions, texCoords, indices, blockPosition, triangleVertexPositions,
+                                     texCoordsOffset);
+                    }
+
+                        //If there is a mid flag draw vertical rectangle
+                    else if ((midX && zSide) || (midZ && !zSide))
+                    {
+                        loadMidFace(positions, texCoords, indices, blockPosition, static_cast<Face>(2 + side),
+                                    (!(zSide && midX) ? 2 : 0) + (p ? 4 : 0), texCoordsOffset);
+                    }
                     if (midY)
                     {
-
-                    }
-                        //If there no midY
-                    else
-                    {
-                        if (midCount == 0)
+                        for (int i = startIndex; i < positions.size(); ++i)
                         {
-                            unsigned int startIndex = positions.size();
-
-
-                            bool pairSideIndex = !(side % 2), extSideIndex = !((side & 1) ^ (side >> 1));
-                            //We have to add 3 vertex to add side triangle
-                            glm::vec3 triangleVertexPositions[] = {
-                                    {pairSideIndex ? 0 : CUBE_SIZE,                                 0,
-                                            extSideIndex ? CUBE_SIZE : 0},
-
-                                    {extSideIndex ? 0 : CUBE_SIZE,                                  0,
-                                            pairSideIndex ? 0 : CUBE_SIZE},
-
-                                    {zSide ? (p ? CUBE_SIZE : 0) : (pairSideIndex ? 0 : CUBE_SIZE), CUBE_SIZE,
-                                            zSide ? (pairSideIndex ? 0 : CUBE_SIZE) : (p ? CUBE_SIZE : 0)}
-                            };
-                            loadTriangle(positions, texCoords, indices, blockPosition, triangleVertexPositions,
-                                         texCoordsOffset);
-                        }
-
-                            //If there is a mid flag draw vertical rectangle
-                        else if ((midX && zSide) || (midZ && !zSide))
-                        {
-                            loadMidFace(positions, texCoords, indices, blockPosition, static_cast<Face>(2 + side),
-                                        (!(zSide && midX) ? 2 : 0) + (p ? 4 : 0), texCoordsOffset);
+                            glm::vec3 &position = positions[i];
+                            position.y -= (position.y - blockPosition.y < 0.01f) ? 0.0f : 0.5f;
                         }
                     }
                 }
 
             }
 
+        unsigned int startTopFaceIndex = positions.size();
+
         //TOP
-        if ((neighbors[3 - invY] == nullptr || neighbors[3 - invY]->ID == Blocks::AIR || neighbors[3 - invY]->state) &&
-            !midY)
+        if ((neighbors[3 - invY] == nullptr || neighbors[3 - invY]->ID == Blocks::AIR || neighbors[3 - invY]->state))
         {
             if (!cornerFlagCount)
                 loadFace(positions, texCoords, indices, blockPosition, Face::TOP, texCoordsOffset);
@@ -574,9 +574,9 @@ namespace Blocks
         //Inside faces
         if (cornerFlagCount)
         {
+            int startIndex = positions.size();
             if (midCount)
             {
-
                 if (cornerFlagCount == 1)
                 {
                     int corner = 0;
@@ -607,18 +607,18 @@ namespace Blocks
                     {
                         if (cornerFlagCount == 1)
                         {
-                            int i = positions.size();
+
 
                             loadMidFace(positions, texCoords, indices, blockPosition,
                                         (Face) (2 + xnu), 2 + (znu ? 4 : 0), texCoordsOffset);
 
-                            for (; i < positions.size(); ++i)
+                            for (int i = startIndex; i < positions.size(); ++i)
                                 positions[i].x += 0.5f * (xnu ? -1 : 1);
 
                             loadMidFace(positions, texCoords, indices, blockPosition,
                                         (Face) (4 + znu), xnu ? 4 : 0, texCoordsOffset);
 
-                            for (; i < positions.size(); ++i)
+                            for (int i = startIndex; i < positions.size(); ++i)
                                 positions[i].z += 0.5f * (znu ? -1 : 1);
                         }
                     }
@@ -683,15 +683,15 @@ namespace Blocks
                 }
             }
         }
-            //For full slabs
-        else if (midY)
+
+
+        if (midY)
         {
-            int positionBeforeFaceCreation = positions.size();
-
-            loadFace(positions, texCoords, indices, blockPosition, Face::TOP, texCoordsOffset);
-            for(;positionBeforeFaceCreation < positions.size(); ++positionBeforeFaceCreation)
-                positions[positionBeforeFaceCreation].y -= CUBE_SIZE * 0.5;
-
+            for (int i = startTopFaceIndex; i < positions.size(); ++i)
+            {
+                glm::vec3 &position = positions[i];
+                position.y -= (position.y - blockPosition.y < 0.01f) ? 0.0f : 0.5f;
+            }
         }
 
         if (invY)
@@ -703,9 +703,8 @@ namespace Blocks
                 y = (fabsf(yBase) < 0.001f ? CUBE_SIZE : (fabsf(yBase - CUBE_SIZE) < 0.001f) ? 0 : yBase) +
                     blockPosition.y;
             }
-            std::reverse(indices.begin() + startBlockIndex, indices.end()
+            std::reverse(indices.begin() + startBlockIndex, indices.end());
 
-            );
         }
     }
 }

@@ -284,9 +284,11 @@ void Chunk::loadToTexModel()
     //for (int i = 0; i < vertices.size(); ++i)
     //	logInfo(i << ": " << glm::to_string(vertices[i]));
 
-    CGE::Loader::Data<float> verticesData((float *) vertices.data(), vertices.size() * 3);
-    CGE::Loader::Data<float> texCoordsData((float *) texCoords.data(), texCoords.size() * 2);
-    CGE::Loader::Data<unsigned int> indicesData(indices.data(), indices.size());
+    CGE::Loader::MeshData meshData;
+
+    meshData.positions = CGE::Loader::Data<float>(vertices);
+    meshData.textureCoordinates = CGE::Loader::Data<float>(texCoords);
+    meshData.indices = CGE::Loader::Data<unsigned int>(indices);
 
     if (indices.empty())
     {
@@ -296,7 +298,7 @@ void Chunk::loadToTexModel()
     else
         empty_ = false;
 
-    CGE::Loader::DataToVAO(model_, verticesData, texCoordsData, indicesData, true);
+    CGE::Loader::DataToVAO(mesh_, meshData);
 }
 
 
@@ -496,13 +498,13 @@ const glm::ivec3 &Chunk::getChunkPosition() const
 
 bool Chunk::isLoaded()
 {
-    return model_ != nullptr;
+    return mesh_ != nullptr;
 }
 
 void Chunk::unload()
 {
     if (!empty_ && isLoaded())
-        model_.reset();
+        mesh_.reset();
 }
 
 bool Chunk::isEmpty()

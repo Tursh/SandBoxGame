@@ -10,9 +10,9 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR})
 
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -DNDEBUG")
 
-add_subdirectory(CrossGameEngine)
+add_subdirectory(CGE)
 
-include_directories(CrossGameEngine/include)
+include_directories(CGE/include)
 
 project(SandBoxGame)
 
@@ -24,7 +24,7 @@ endif()
 
 include_directories(include)
 
-link_libraries(CrossGameEngine)
+link_libraries(CGE)
 
 if (NOT WIN32)
     link_libraries(GL harfbuzz)

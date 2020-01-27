@@ -16,6 +16,8 @@
 
 class ChunkManager;
 
+extern const unsigned int MAX_WORLD_GENERATION_HEIGHT;
+
 class WorldGenerator : public CGE::Utils::ThreadProcess
 {
     World *world_;

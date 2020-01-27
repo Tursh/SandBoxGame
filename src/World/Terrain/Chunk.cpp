@@ -8,7 +8,8 @@
 #include <Loader/RessourceManager.h>
 #include <glm/gtx/string_cast.hpp>
 
-const unsigned int CHUNK_SIZE = 16, SQUARED_CHUNK_SIZE = CHUNK_SIZE * CHUNK_SIZE;
+const int CHUNK_SIZE = 16, SQUARED_CHUNK_SIZE = CHUNK_SIZE * CHUNK_SIZE, CUBED_CHUNK_SIZE =
+        SQUARED_CHUNK_SIZE * CHUNK_SIZE;
 
 /*
 

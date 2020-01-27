@@ -10,10 +10,16 @@
 #include "World/Terrain/WorldGenerator.h"
 #include <World/World.h>
 
+const unsigned int MAX_WORLD_GENERATION_HEIGHT = 256;
 
 WorldGenerator::WorldGenerator(World *world, ChunkManager &chunkManager)
         : world_(world), chunkManager_(chunkManager) {}
 
+static void fillChunk(Block *blocks, Block block)
+{
+    for (int i = 0; i < CUBED_CHUNK_SIZE; ++i)
+        blocks[i] = block;
+}
 
 void WorldGenerator::run()
 {
@@ -28,73 +34,103 @@ void WorldGenerator::run()
             continue;
         }
 
-        //Create the block matrix and fill it with air
-        Block *blocks = new Block[16 * 16 * 16];
-        for (int k = 0; k < CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE; ++k)
-            blocks[k] = {0, 0};
+        //Create the block 3D matrix and fill it with air
+        Block *blocks = new Block[CUBED_CHUNK_SIZE];
+        fillChunk(blocks, Blocks::AIR_BLOC);
 
+        //If the chunk is under the world generation range, it is going to be only stone blocs
+        if (chunkPosition.y < 0)
+        {
+            //Set all stone blocks
+            fillChunk(blocks, {2, 0});
+        }
+            //If the chunk is higher than the world generation range, it is going to be only air blocs
+        else if (chunkPosition.y > MAX_WORLD_GENERATION_HEIGHT / CHUNK_SIZE); //Noting to do, chunk is already air blocs
+        else
+        {
+            //Get all ground level in chunk and chunk border blocs
+            double groundLevel[19 * 19];
+            double higher = 0, lower = 256;
 
-        Chunk *chunkUnder = world_->getChunkByChunkPosition(chunkPosition - glm::ivec3(0, 1, 0));
-
-
-        for (int x = 0; x < CHUNK_SIZE; ++x)
-            for (int z = 0; z < CHUNK_SIZE; ++z)
             {
-                if (chunkPosition.y >= 0)
+                int xEndPosition = (chunkPosition.x + 1) * CHUNK_SIZE + 1,
+                        zEndPosition = (chunkPosition.z + 1) * CHUNK_SIZE + 1,
+                        i = 0;
+
+                for (int x = chunkPosition.x * CHUNK_SIZE - 1; x < xEndPosition; ++x)
+                    for (int z = chunkPosition.z * CHUNK_SIZE - 1; z < zEndPosition; ++z)
+                    {
+                        groundLevel[i] = pn.noise(x, 0, z);
+                        if (higher < groundLevel[i])
+                            higher = groundLevel[i];
+                        if (lower > groundLevel[i])
+                            lower = groundLevel[i];
+                        ++i;
+                    }
+            }
+
+            if (higher / CHUNK_SIZE < chunkPosition.y)
+                goto end; //If there is no ground high enough to be in the chunk, then the chunk is empty
+
+            if (lower / CHUNK_SIZE - 1 > chunkPosition.y)
+            {
+                fillChunk(blocks, {2, 0});
+                goto end; // If there is no ground lower enough to have
+            }
+
+            //Make ground level relative to the chunk
+            for (unsigned int i = 0; i < CUBED_CHUNK_SIZE; ++i)
+                groundLevel[i] -= chunkPosition.y * CHUNK_SIZE;
+
+            double averageGroundLevels[17 * 17];
+
+            for (int xa = 0; xa < 17; ++xa)
+                for (int za = 0; za < 17; ++za)
                 {
-                    glm::ivec3 topBloc = {x, CHUNK_SIZE - 1, z};
-                    //If the top block of the chunk under is air than the chunk is *probably* empty
-                    if (chunkUnder != nullptr && chunkUnder->getBlock(topBloc).ID == Blocks::AIR)
-                        continue;
+                    double &averageGroundLevel = averageGroundLevels[xa * 17 + za] = 0;
+                    for (int xb = 0; xb < 3; ++xb)
+                        for (int zb = 0; zb < 3; ++zb)
+                            averageGroundLevel += groundLevel[(xa + xb) * 19 + (za + zb)];
 
-                    glm::ivec3 blocPositionInWorld = {chunkPosition.x * CHUNK_SIZE + x, 0,
-                                                      chunkPosition.z * CHUNK_SIZE + z};
+                    averageGroundLevel /= 9;
+                }
 
-                    double groundLevel[4] =
+
+            for (int x = 0; x < CHUNK_SIZE; ++x)
+                for (int z = 0; z < CHUNK_SIZE; ++z)
+                {
+                    double cornerGroundLevels[4] =
                             {
-                                    pn.noise((double) blocPositionInWorld.x / (double) (CHUNK_SIZE * 4),
-                                             (double) blocPositionInWorld.z / (double) (CHUNK_SIZE * 4), 0) *
-                                    CHUNK_SIZE * 6,
-                                    pn.noise((double) blocPositionInWorld.x / (double) (CHUNK_SIZE * 4),
-                                             (double) (blocPositionInWorld.z + 1) / (double) (CHUNK_SIZE * 4), 0) *
-                                    CHUNK_SIZE * 6,
-                                    pn.noise((double) (blocPositionInWorld.x + 1) / (double) (CHUNK_SIZE * 4),
-                                             (double) blocPositionInWorld.z / (double) (CHUNK_SIZE * 4), 0) *
-                                    CHUNK_SIZE * 6,
-                                    pn.noise((double) (blocPositionInWorld.x + 1) / (double) (CHUNK_SIZE * 4),
-                                             (double) (blocPositionInWorld.z + 1) / (double) (CHUNK_SIZE * 4), 0) *
-                                    CHUNK_SIZE * 6,
+                                    averageGroundLevels[x * 17 + z],
+                                    averageGroundLevels[x * 17 + z + 1],
+                                    averageGroundLevels[(x + 1) * 17 + z],
+                                    averageGroundLevels[(x + 1) * 17 + z + 1],
                             };
 
+                            double
+                    blockGroundLevel = 0;
 
-                    //Get the higher ground level of the 4 corners
-                    double higher = -1000000;
-                    for (double &level : groundLevel)
-                    {
-                        level -= CHUNK_SIZE * chunkPosition.y;
-                        higher = std::max(level, higher);
-                    }
+                    for (int corner = 0; corner < 4; ++corner)
+                        blockGroundLevel += cornerGroundLevels[corner];
 
-                    //If ground level is under the chunk then there is no block to create
-                    if (higher < 0)
+                    blockGroundLevel /= 4;
+
+                    //If the ground level is not in the chunk range, then it wont affect it
+                    if (blockGroundLevel < 0 || blockGroundLevel > CHUNK_SIZE)
                         continue;
 
-                    //Top block y position in chunk
-                    int higherBloc = (int) higher;
-
-
-                    for (int y = std::min<int>(higherBloc, CHUNK_SIZE - 1); y >= 0; --y)
+                    for (int y = std::min<int>(blockGroundLevel, CHUNK_SIZE - 1); y >= 0; --y)
                     {
                         int cornerDownCount = 0, underBlockCorner = -1;
 
-                        if (y >= higherBloc - 2)
+                        if (y >= blockGroundLevel - 2)
                         {
                             unsigned char state = 0;
                             int midYCornersCount = 0;
 
                             for (int corner = 0; corner < 4; ++corner)
                             {
-                                double relativeLevel = groundLevel[corner] - y;
+                                double relativeLevel = cornerGroundLevels[corner] - y;
                                 bool cornerFlag = relativeLevel < 0.0f;
 
                                 if (cornerFlag)
@@ -107,7 +143,8 @@ void WorldGenerator::run()
                                     state += (unsigned char) pow(2, corner);
                                 }
 
-                                if (-Blocks::CUBE_SIZE / 4 < relativeLevel && relativeLevel < Blocks::CUBE_SIZE / 4)
+                                if (-Blocks::CUBE_SIZE / 4 < relativeLevel &&
+                                    relativeLevel < Blocks::CUBE_SIZE / 4)
                                     ++midYCornersCount;
                             }
 
@@ -115,7 +152,8 @@ void WorldGenerator::run()
                                 state += (unsigned char) pow(2, 5);
 
                             //If the block under in another chunk has more than 1 corner down, no block.
-                            if (y == 0 && state && chunkUnder != nullptr && chunkUnder->getBlock({x, 15, z}).state)
+                            if (y == 0 && state && chunkUnder != nullptr &&
+                                chunkUnder->getBlock({x, 15, z}).state)
                             {
 
                                 unsigned char underChunkBlockState = chunkUnder->getBlock({x, 15, z}).state;
@@ -136,7 +174,8 @@ void WorldGenerator::run()
                             //If the top block on the other chunk is stated while this one has more than 1 corner down, remove it.
                             if (y == 15 && cornerDownCount > 1)
                             {
-                                Chunk *topChunk = world_->getChunkByChunkPosition(chunkPosition + glm::ivec3(0, 1, 0));
+                                Chunk *topChunk = world_->getChunkByChunkPosition(
+                                        chunkPosition + glm::ivec3(0, 1, 0));
                                 if (topChunk != nullptr && topChunk->getBlock({x, 0, z}).state)
                                 {
                                     topChunk->setBlock({x, 0, z}, Blocks::AIR_BLOC);
@@ -165,20 +204,14 @@ void WorldGenerator::run()
                         }
                     }
                 }
-                else if (chunkPosition.y < 0)
-                {
-                    //Set all stone blocks
-                    for (int y = 0; y < CHUNK_SIZE; ++y)
-                    {
-                        blocks[x + CHUNK_SIZE * (y + CHUNK_SIZE * z)] = {2, 0};
-                    }
-                }
+        }
 
-            }
-
+        end:
 
         auto *newChunk = new Chunk(blocks, world_, chunkPosition, false);
         world_->addChunk(newChunk);
         newChunk->updateChunksAround();
+
     }
+
 }

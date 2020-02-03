@@ -92,11 +92,9 @@ void WorldGenerator::run()
                     for (int z = chunkPosition.z * CHUNK_SIZE - 1; z < zEndPosition; ++z)
                     {
                         groundLevel[i] = pn.noise(x / (double) (CHUNK_SIZE * 4), z / (double) (CHUNK_SIZE * 4), 0) *
-                                         CHUNK_SIZE * 6;
-                        if (higher < groundLevel[i])
-                            higher = groundLevel[i];
-                        if (lower > groundLevel[i])
-                            lower = groundLevel[i];
+                                         CHUNK_SIZE * 4;
+                        higher = std::max(higher, groundLevel[i]);
+                        lower = std::min(lower, groundLevel[i]);
                         ++i;
                     }
             }
@@ -104,7 +102,7 @@ void WorldGenerator::run()
             if (higher / CHUNK_SIZE < chunkPosition.y)
                 goto end; //If there is no ground high enough to be in the chunk, then the chunk is empty
 
-            if (lower / CHUNK_SIZE - 1 > chunkPosition.y)
+            if (lower / CHUNK_SIZE - 1 >= chunkPosition.y)
             {
                 fillChunk(blocks, {2, 0});
                 goto end; // If there is no ground lower enough to have
@@ -147,10 +145,6 @@ void WorldGenerator::run()
                         blockGroundLevel += cornerGroundLevels[corner];
 
                     blockGroundLevel /= 4;
-
-                    //If the ground level is not in the chunk range, then it wont affect it
-                    if (blockGroundLevel < 0 || blockGroundLevel >= CHUNK_SIZE)
-                        continue;
 
                     for (int y = std::min<int>(blockGroundLevel, CHUNK_SIZE - 1); y >= 0; --y)
                     {

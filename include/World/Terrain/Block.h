@@ -9,6 +9,7 @@
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 #include <glm/vec2.hpp>
+#include <Loader/Models/MeshBuilder.h>
 
 
 struct Block
@@ -56,6 +57,6 @@ namespace Blocks
      * @param neighbors The block neighbors (x+, x-, y+, y-, z+, z-)
      */
     void
-    loadBlock(std::vector<glm::vec3> &positions, std::vector<glm::vec2> &texCoords, std::vector<unsigned int> &indices,
+    loadBlock(CGE::Loader::MeshBuilder &meshBuilder,
               glm::ivec3 &blockPosition, Block *blockToLoad, const Block **neighbors, glm::vec4 &texCoordsOffset);
 }

@@ -40,7 +40,7 @@ static unsigned char generateState(double *cornerGroundLevels, int &cornerDownCo
             state += (unsigned char) 1 << corner;
         }
 
-        if (Blocks::CUBE_SIZE / .25f < relativeLevel &&
+        if (Blocks::CUBE_SIZE * .25f < relativeLevel &&
             relativeLevel < Blocks::CUBE_SIZE * .75f)
             ++midYCornersCount;
     }

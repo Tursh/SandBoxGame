@@ -10,6 +10,10 @@
 #include <Utils/Log.h>
 #include <glm/gtx/string_cast.hpp>
 #include <algorithm>
+#include <CLucene.h>
+#include <CLucene/search/PhraseQuery.h>
+
+using namespace CGE::Loader;
 
 namespace Blocks
 {
@@ -119,21 +123,22 @@ namespace Blocks
     }
 
     static void
-    loadFace(std::vector<glm::vec3> &positions, std::vector<glm::vec2> &texCoords, std::vector<unsigned int> &indices,
-             glm::ivec3 &blockPosition, Face face, glm::vec4 blockTexCoordsOffset)
+    loadFace(MeshBuilder meshBuilder, glm::ivec3 &blockPosition, Face face, glm::vec4 blockTexCoordsOffset)
     {
+        //Get the face indices
         const unsigned int *faceIndices =
                 CUBE_FACE_INDICES + ((face == RIGHT || face == TOP || face == BACK) ? INDICES_PER_FACE : 0);
 
-        indices.insert(indices.end(), faceIndices, faceIndices + INDICES_PER_FACE);
-        for (unsigned int i = indices.size() - INDICES_PER_FACE; i < (unsigned int) indices.size(); ++i)
-            indices[i] += positions.size();
+        //Load them
+        unsigned int lastIndex = meshBuilder.loadIndices(faceIndices, INDICES_PER_FACE);
 
+        //Translate them to the face vertices
+        meshBuilder.incrementIndices(lastIndex - INDICES_PER_FACE, lastIndex, meshBuilder.vertexCount());
+
+        //Get the face vertices
         const glm::vec3 *faceVertices = CUBE_FACE_VERTICES + face * VERTICES_PER_FACE;
-        positions.insert(positions.end(), faceVertices, faceVertices + VERTICES_PER_FACE);
-        for (unsigned int i = positions.size() - VERTICES_PER_FACE; i < (unsigned int) positions.size(); ++i)
-            positions[i] += (blockPosition.operator*=(CUBE_SIZE));
 
+        //Get the texCoords
         glm::vec2 texCoordsBuf[VERTICES_PER_FACE] =
                 {
                         {blockTexCoordsOffset.z,
@@ -146,7 +151,20 @@ namespace Blocks
                                 blockTexCoordsOffset.y},
                 };
 
-        texCoords.insert(texCoords.end(), texCoordsBuf, texCoordsBuf + VERTICES_PER_FACE);
+        //Save the first vertex index
+        unsigned int firstVertex = meshBuilder.vertexCount();
+
+        //Load the positions and texCoords to a sub mesh
+        MeshData faceData;
+        faceData.positions = Data<float>(reinterpret_cast<const float *>(faceVertices), VERTICES_PER_FACE);
+        faceData.textureCoordinates = Data<float>(reinterpret_cast<const float *>(texCoordsBuf), VERTICES_PER_FACE);
+
+        //Load the sub mesh
+        unsigned int lastVertex = meshBuilder.loadSubMesh(faceData);
+
+        //Translate the vertices to the block position
+        meshBuilder.translateVertices(firstVertex, lastVertex, blockPosition.operator*=(CUBE_SIZE));
+
     }
 
     /**
@@ -160,28 +178,28 @@ namespace Blocks
      * @param blockTexCoordsOffset block texture coordinates offset in texture atlas
      */
     static void
-    loadMidFace(std::vector<glm::vec3> &positions, std::vector<glm::vec2> &texCoords,
-                std::vector<unsigned int> &indices,
-                glm::ivec3 &blockPosition, Face face, char axis, glm::vec4 blockTexCoordsOffset)
+    loadMidFace(MeshBuilder meshBuilder, glm::ivec3 &blockPosition, Face face, char axis,
+                glm::vec4 blockTexCoordsOffset)
     {
+        //Get the face indices
         const unsigned int *faceIndices =
                 CUBE_FACE_INDICES + ((face == RIGHT || face == TOP || face == BACK) ? INDICES_PER_FACE : 0);
 
-        indices.insert(indices.end(), faceIndices, faceIndices + INDICES_PER_FACE);
-        for (unsigned int i = indices.size() - INDICES_PER_FACE; i < (unsigned int) indices.size(); ++i)
-            indices[i] += positions.size();
+        //Load them
+        unsigned int lastIndex = meshBuilder.loadIndices(faceIndices, INDICES_PER_FACE);
 
+        //Translate them to the face vertices
+        meshBuilder.incrementIndices(lastIndex - INDICES_PER_FACE, lastIndex, meshBuilder.vertexCount());
+
+        //The mid face must be drawn on the positive of negative part of the axis
         bool up = axis >> 2;
+        //Get only the axis
         axis &= 0B00000011;
 
+        //Get the face positions
         const glm::vec3 *faceVertices = CUBE_FACE_VERTICES + face * VERTICES_PER_FACE;
-        positions.insert(positions.end(), faceVertices, faceVertices + VERTICES_PER_FACE);
-        for (unsigned int i = positions.size() - VERTICES_PER_FACE; i < (unsigned int) positions.size(); ++i)
-        {
-            if ((positions[i][axis] < 0.0001f) ^ !up) positions[i][axis] = CUBE_SIZE / 2;
-            positions[i] += (blockPosition.operator*=(CUBE_SIZE));
-        }
 
+        //Get the face texCoords
         glm::vec2 texCoordsBuf[VERTICES_PER_FACE] =
                 {
                         {blockTexCoordsOffset.z,
@@ -194,7 +212,24 @@ namespace Blocks
                                 blockTexCoordsOffset.y},
                 };
 
-        texCoords.insert(texCoords.end(), texCoordsBuf, texCoordsBuf + VERTICES_PER_FACE);
+        //Get the first vertex index
+        unsigned int firstVertex = meshBuilder.vertexCount();
+
+        //Load positions and texCoords to a sub mesh
+        MeshData faceData;
+        faceData.positions = Data<float>(reinterpret_cast<const float *>(faceVertices), VERTICES_PER_FACE);
+        faceData.textureCoordinates = Data<float>(reinterpret_cast<const float *>(texCoordsBuf), VERTICES_PER_FACE);
+
+        //Load the sub mesh
+        unsigned int lastVertex = meshBuilder.loadSubMesh(faceData);
+
+        //Translate the positions to the block position
+        meshBuilder.translateVertices(firstVertex, lastVertex, blockPosition.operator*=(CUBE_SIZE));
+
+        //Cut the face in half
+        for (unsigned int i = firstVertex; i < lastVertex; ++i)
+            if ((meshBuilder.positions_[i][axis] < 0.0001f) ^ !up) meshBuilder.positions_[i][axis] = CUBE_SIZE / 2;
+
     }
 
     static void
@@ -271,9 +306,10 @@ namespace Blocks
         return positions.size() - 1;
     }
 
+    void loadBottomFace();
 
     void
-    loadBlock(std::vector<glm::vec3> &positions, std::vector<glm::vec2> &texCoords, std::vector<unsigned int> &indices,
+    loadBlock(CGE::Loader::MeshBuilder meshBuilder,
               glm::ivec3 &blockPosition, Block *blockToLoad, const Block **neighbors, glm::vec4 &texCoordsOffset)
     {
 
@@ -303,17 +339,17 @@ namespace Blocks
 
         bool xnd = xnzn && xnzp, znd = xnzn && xpzn, xnu = !xnzn && !xnzp, znu = !xnzn && !xpzn, xzd = xnzn && xpzp;
 
-        unsigned int startPosition = positions.size(), startBlockIndex = indices.size();
+        unsigned int startPosition = meshBuilder.vertexCount(), startBlockIndex = meshBuilder.indexCount();
 
         //Bottom
         if (neighbors[2 + invY] != nullptr && neighbors[2 + invY]->ID == Blocks::AIR)
         {
             if (midY)
-                loadFace(positions, texCoords, indices, blockPosition, BOTTOM, texCoordsOffset); //Load face bottom 0
+                loadFace(meshBuilder, blockPosition, BOTTOM, texCoordsOffset); //Load face bottom 0
             else if (midCount == 0)
             {
                 if (cornerFlagCount <= 2)
-                    loadFace(positions, texCoords, indices, blockPosition, BOTTOM,
+                    loadFace(meshBuilder, blockPosition, BOTTOM,
                              texCoordsOffset); //Load face bottom 0
                 else
                 {
@@ -687,16 +723,16 @@ namespace Blocks
 
         if (midY)
         {
-            for (int i = startTopFaceIndex; i < positions.size(); ++i)
+            for (unsigned int i = startTopFaceIndex; i < positions.size(); ++i)
             {
                 glm::vec3 &position = positions[i];
                 position.y -= (position.y - blockPosition.y < 0.01f) ? 0.0f : 0.5f;
             }
         }
 
-        if (invY)
+        else if (invY)
         {
-            for (int i = startPosition; i < positions.size(); ++i)
+            for (unsigned int i = startPosition; i < positions.size(); ++i)
             {
                 float &y = positions[i].y;
                 float yBase = y - blockPosition.y;

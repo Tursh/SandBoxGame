@@ -7,188 +7,10 @@
 #include <World/World.h>
 #include <Loader/RessourceManager.h>
 #include <glm/gtx/string_cast.hpp>
+#include <Loader/Models/MeshBuilder.h>
 
 const int CHUNK_SIZE = 16, SQUARED_CHUNK_SIZE = CHUNK_SIZE * CHUNK_SIZE, CUBED_CHUNK_SIZE =
         SQUARED_CHUNK_SIZE * CHUNK_SIZE;
-
-/*
-
-void
-Chunk::loadFace(const Block &currentBlock, std::vector<float> &vertices, std::vector<float> &texCoords,
-                std::vector<unsigned int> &indices, const int &x, const int &y,
-                const int &z, Blocks::Face face)
-{
-    //Get vertices and indices
-    auto data = Blocks::getFace(face);
-    const auto *faceVertices = std::get<0>(data);
-    const auto *faceIndices = std::get<1>(data);
-
-    unsigned int index = vertices.size(),
-            indicesSize = indices.size(),
-            faceCount = indicesSize / 6;
-
-    //TODO check state
-
-    std::copy(faceVertices, faceVertices + Blocks::POSITION_PER_FACE, std::back_inserter(vertices));
-    std::copy(faceIndices, faceIndices + Blocks::INDICES_PER_FACE, std::back_inserter(indices));
-
-    for (unsigned int i = index; i < (unsigned int) vertices.size(); i += 3)
-    {
-        vertices[i] += (float) x * Blocks::CUBE_SIZE;
-        vertices[i + 1] += (float) y * Blocks::CUBE_SIZE;
-        vertices[i + 2] += (float) z * Blocks::CUBE_SIZE;
-    }
-
-    glm::vec4 currentTexCoords = texture_.get()->getTextureLimits(currentBlock.ID);
-    float texCoordsBuf[4 * 2] =
-            {
-                    currentTexCoords.z,
-                    currentTexCoords.w,
-                    currentTexCoords.x,
-                    currentTexCoords.w,
-                    currentTexCoords.x,
-                    currentTexCoords.y,
-                    currentTexCoords.z,
-                    currentTexCoords.y,
-            };
-
-    std::copy(texCoordsBuf, texCoordsBuf + 8, std::back_inserter(texCoords));
-
-    for (unsigned int i = indicesSize; i < (unsigned int) indices.size(); ++i)
-    {
-        indices[i] += faceCount * 4;
-    }
-
-}
-
-void Chunk::loadBlock(const glm::ivec3 &position, std::vector<float> &vertices, std::vector<float> &texCoords,
-                     std::vector<unsigned int> &indices, Chunk **chunkList)
-{
-    const Block &currentBlock = getBlock(position);
-
-    if (currentBlock.ID == Blocks::AIR)
-        return;
-
-    const int &x = position.x, &y = position.y, &z = position.z;
-
-    //Check extremities
-    if (position.x == 0)
-    {
-        glm::ivec3 blockPosition = position;
-        blockPosition.x = CHUNK_SIZE - 1;
-        if (chunkList[0] != nullptr && chunkList[0]->getBlock(blockPosition).ID == Blocks::AIR)
-        {
-            loadFace(currentBlock, vertices, texCoords, indices, x, y, z, Blocks::LEFT);
-        }
-        blockPosition.x = x + 1;
-        if (getBlock(blockPosition).ID == Blocks::AIR)
-        {
-            loadFace(currentBlock, vertices, texCoords, indices, x, y, z, Blocks::RIGHT);
-        }
-
-    } else if (x == CHUNK_SIZE - 1)
-    {
-        glm::ivec3 blockPosition = position;
-        blockPosition.x = 0;
-        if (chunkList[1] != nullptr && chunkList[1]->getBlock(blockPosition).ID == Blocks::AIR)
-        {
-            loadFace(currentBlock, vertices, texCoords, indices, x, y, z, Blocks::RIGHT);
-        }
-        blockPosition.x = x - 1;
-        if (getBlock(blockPosition).ID == Blocks::AIR)
-        {
-            loadFace(currentBlock, vertices, texCoords, indices, x, y, z, Blocks::LEFT);
-        }
-    } else
-    {
-        glm::ivec3 blockPosition = position;
-        blockPosition.x = x - 1;
-        if (getBlock(blockPosition).ID == Blocks::AIR)
-            loadFace(currentBlock, vertices, texCoords, indices, x, y, z, Blocks::LEFT);
-        blockPosition.x = x + 1;
-        if (getBlock(blockPosition).ID == Blocks::AIR)
-            loadFace(currentBlock, vertices, texCoords, indices, x, y, z, Blocks::RIGHT);
-    }
-
-    //Check extremities
-    if (y == 0)
-    {
-        glm::ivec3 blockPosition = position;
-        blockPosition.y = CHUNK_SIZE - 1;
-        if (chunkList[2] != nullptr && chunkList[2]->getBlock(blockPosition).ID == Blocks::AIR)
-        {
-            loadFace(currentBlock, vertices, texCoords, indices, x, y, z, Blocks::BOTTOM);
-        }
-        blockPosition.y = y + 1;
-        if (getBlock(blockPosition).ID == Blocks::AIR)
-        {
-            loadFace(currentBlock, vertices, texCoords, indices, x, y, z, Blocks::TOP);
-        }
-
-    } else if (y == CHUNK_SIZE - 1)
-    {
-        glm::ivec3 blockPosition = position;
-        blockPosition.y = 0;
-        if (chunkList[3] != nullptr && chunkList[3]->getBlock(blockPosition).ID == Blocks::AIR)
-        {
-            loadFace(currentBlock, vertices, texCoords, indices, x, y, z, Blocks::TOP);
-        }
-        blockPosition.y = y - 1;
-        if (getBlock(blockPosition).ID == Blocks::AIR)
-        {
-            loadFace(currentBlock, vertices, texCoords, indices, x, y, z, Blocks::BOTTOM);
-        }
-    } else
-    {
-        glm::ivec3 blockPosition = position;
-        blockPosition.y = y - 1;
-        if (getBlock(blockPosition).ID == Blocks::AIR)
-            loadFace(currentBlock, vertices, texCoords, indices, x, y, z, Blocks::BOTTOM);
-        blockPosition.y = y + 1;
-        if (getBlock(blockPosition).ID == Blocks::AIR)
-            loadFace(currentBlock, vertices, texCoords, indices, x, y, z, Blocks::TOP);
-    }
-
-    //Check extremities
-    if (z == 0)
-    {
-        glm::ivec3 blockPosition = position;
-        blockPosition.z = CHUNK_SIZE - 1;
-        if (chunkList[4] != nullptr && chunkList[4]->getBlock(blockPosition).ID == Blocks::AIR)
-        {
-            loadFace(currentBlock, vertices, texCoords, indices, x, y, z, Blocks::BACK);
-        }
-        blockPosition.z = z + 1;
-        if (getBlock(blockPosition).ID == Blocks::AIR)
-        {
-            loadFace(currentBlock, vertices, texCoords, indices, x, y, z, Blocks::FRONT);
-        }
-
-    } else if (z == CHUNK_SIZE - 1)
-    {
-        glm::ivec3 blockPosition = position;
-        blockPosition.z = 0;
-        if (chunkList[5] != nullptr && chunkList[5]->getBlock(blockPosition).ID == Blocks::AIR)
-        {
-            loadFace(currentBlock, vertices, texCoords, indices, x, y, z, Blocks::FRONT);
-        }
-        blockPosition.z = z - 1;
-        if (getBlock(blockPosition).ID == Blocks::AIR)
-        {
-            loadFace(currentBlock, vertices, texCoords, indices, x, y, z, Blocks::BACK);
-        }
-    } else
-    {
-        glm::ivec3 blockPosition = position;
-        blockPosition.z = z - 1;
-        if (getBlock(blockPosition).ID == Blocks::AIR)
-            loadFace(currentBlock, vertices, texCoords, indices, x, y, z, Blocks::BACK);
-        blockPosition.z = z + 1;
-        if (getBlock(blockPosition).ID == Blocks::AIR)
-            loadFace(currentBlock, vertices, texCoords, indices, x, y, z, Blocks::FRONT);
-    }
-}
-*/
 
 // For a lack of pow function for integers
 static int pow(int base, int power)
@@ -235,6 +57,20 @@ getBlockNeighbors(const glm::ivec3 &blockPosition, const Block *block, Chunk **n
     return neighbors;
 }
 
+static bool isBlockObstructed(const std::array<const Block *, 6> &neighbors)
+{
+    bool isObstructed = true;
+
+    for (int i = 0; i < 6; ++i)
+        if (neighbors[i] == nullptr || !neighbors[i]->ID || !neighbors[i]->state)
+        {
+            isObstructed = false;
+            break;
+        }
+
+    return isObstructed;
+}
+
 void Chunk::loadToTexModel()
 {
     if (empty_)
@@ -243,10 +79,7 @@ void Chunk::loadToTexModel()
     //First get the six around this one
     Chunk **neighborChunks = world_->getAroundChunk(chunkPosition_);
 
-    //Create vertex arrays
-    std::vector<glm::vec3> vertices;
-    std::vector<glm::vec2> texCoords;
-    std::vector<unsigned int> indices;
+    CGE::Loader::MeshBuilder meshBuilder;
 
     for (int x = 0; x < CHUNK_SIZE; ++x)
         for (int y = 0; y < CHUNK_SIZE; ++y)
@@ -256,42 +89,23 @@ void Chunk::loadToTexModel()
                 Block *currentBlock =
                         blocks_ + blockPosition.x + CHUNK_SIZE * (blockPosition.y + CHUNK_SIZE * blockPosition.z);
 
-                //If it's a block of air there is nothing to load
-                if (currentBlock->ID == Blocks::AIR)
-                    continue;
-
                 //Get block neighbors
                 std::array<const Block *, 6> neighbors = getBlockNeighbors(blockPosition, currentBlock, neighborChunks);
 
-                bool isObstructed = true;
-                for (int i = 0; i < 6; ++i)
+                //If it's a block of air or the block is obstructed there is nothing to load
+                if (currentBlock->ID == Blocks::AIR && !isBlockObstructed(neighbors))
                 {
-                    if (neighbors[i] == nullptr || !neighbors[i]->ID || !neighbors[i]->state)
-                    {
-                        isObstructed = false;
-                        break;
-                    }
+                    glm::vec4 blockTexCoords = texture_->getTextureLimits(currentBlock->ID);
+
+                    Blocks::loadBlock(meshBuilder, blockPosition, currentBlock, neighbors.data(), blockTexCoords);
                 }
-
-                glm::vec4 blockTexCoords = texture_->getTextureLimits(currentBlock->ID);
-
-                if (!isObstructed)
-                    Blocks::loadBlock(vertices, texCoords, indices, blockPosition, currentBlock, neighbors.data(),
-                                      blockTexCoords);
             }
 
     delete[] neighborChunks;
 
-    //for (int i = 0; i < vertices.size(); ++i)
-    //	logInfo(i << ": " << glm::to_string(vertices[i]));
+    CGE::Loader::MeshData meshData = meshBuilder.toMeshData();
 
-    CGE::Loader::MeshData meshData;
-
-    meshData.positions = CGE::Loader::Data<float>(vertices);
-    meshData.textureCoordinates = CGE::Loader::Data<float>(texCoords);
-    meshData.indices = CGE::Loader::Data<unsigned int>(indices);
-
-    if (indices.empty())
+    if (!meshBuilder.isValid())
     {
         empty_ = true;
         return;
@@ -299,7 +113,7 @@ void Chunk::loadToTexModel()
     else
         empty_ = false;
 
-    CGE::Loader::DataToVAO(mesh_, meshData);
+    meshBuilder.loadToSharedMesh(mesh_);
 }
 
 

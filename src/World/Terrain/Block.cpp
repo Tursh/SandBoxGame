@@ -130,10 +130,10 @@ namespace Blocks
                 CUBE_FACE_INDICES + ((face == RIGHT || face == TOP || face == BACK) ? INDICES_PER_FACE : 0);
 
         //Load them
-        unsigned int lastIndex = meshBuilder.loadIndices(faceIndices, INDICES_PER_FACE);
+        unsigned int firstIndex = meshBuilder.loadIndices({faceIndices, INDICES_PER_FACE});
 
         //Translate them to the face vertices
-        meshBuilder.incrementIndices(lastIndex - INDICES_PER_FACE, lastIndex, meshBuilder.vertexCount());
+        meshBuilder.incrementIndices(meshBuilder.vertexCount(), firstIndex);
 
         //Get the face vertices
         const glm::vec3 *faceVertices = CUBE_FACE_VERTICES + face * VERTICES_PER_FACE;
@@ -151,19 +151,12 @@ namespace Blocks
                                 blockTexCoordsOffset.y},
                 };
 
-        //Save the first vertex index
-        unsigned int firstVertex = meshBuilder.vertexCount();
-
-        //Load the positions and texCoords to a sub mesh
-        MeshData faceData;
-        faceData.positions = Data<float>(reinterpret_cast<const float *>(faceVertices), VERTICES_PER_FACE);
-        faceData.textureCoordinates = Data<float>(reinterpret_cast<const float *>(texCoordsBuf), VERTICES_PER_FACE);
-
-        //Load the sub mesh
-        unsigned int lastVertex = meshBuilder.loadSubMesh(faceData);
+        //Load the vertices
+        unsigned int firstVertex = meshBuilder.loadVertices(faceVertices, texCoordsBuf, nullptr,
+                                                            VERTICES_PER_FACE);
 
         //Translate the vertices to the block position
-        meshBuilder.translateVertices(firstVertex, lastVertex, blockPosition.operator*=(CUBE_SIZE));
+        meshBuilder.translateVertices(blockPosition.operator*=(CUBE_SIZE), firstVertex);
 
     }
 
@@ -186,7 +179,7 @@ namespace Blocks
                 CUBE_FACE_INDICES + ((face == RIGHT || face == TOP || face == BACK) ? INDICES_PER_FACE : 0);
 
         //Load them
-        unsigned int lastIndex = meshBuilder.loadIndices(faceIndices, INDICES_PER_FACE);
+        unsigned int lastIndex = meshBuilder.loadIndices({faceIndices, INDICES_PER_FACE});
 
         //Translate them to the face vertices
         meshBuilder.incrementIndices(lastIndex - INDICES_PER_FACE, lastIndex, meshBuilder.vertexCount());
@@ -212,19 +205,13 @@ namespace Blocks
                                 blockTexCoordsOffset.y},
                 };
 
-        //Get the first vertex index
-        unsigned int firstVertex = meshBuilder.vertexCount();
-
-        //Load positions and texCoords to a sub mesh
-        MeshData faceData;
-        faceData.positions = Data<float>(reinterpret_cast<const float *>(faceVertices), VERTICES_PER_FACE);
-        faceData.textureCoordinates = Data<float>(reinterpret_cast<const float *>(texCoordsBuf), VERTICES_PER_FACE);
-
-        //Load the sub mesh
-        unsigned int lastVertex = meshBuilder.loadSubMesh(faceData);
+        //Load the vertices
+        unsigned int firstVertex = meshBuilder.loadVertices(faceVertices, texCoordsBuf, nullptr, VERTICES_PER_FACE);
 
         //Translate the positions to the block position
-        meshBuilder.translateVertices(firstVertex, lastVertex, blockPosition.operator*=(CUBE_SIZE));
+        meshBuilder.translateVertices(blockPosition.operator*=(CUBE_SIZE), firstVertex);
+
+        unsigned int lastVertex = meshBuilder.vertexCount() - 1;
 
         //Cut the face in half
         for (unsigned int i = firstVertex; i < lastVertex; ++i)
@@ -233,28 +220,20 @@ namespace Blocks
     }
 
     static void
-    loadTriangle(std::vector<glm::vec3> &positions, std::vector<glm::vec2> &texCoords,
-                 std::vector<unsigned int> &indices,
+    loadTriangle(MeshBuilder meshBuilder,
                  glm::ivec3 &blockPosition,
                  glm::vec3 *triangleVertexPositions, glm::vec4 &texCoordsOffset, bool invIndices = false)
     {
-        indices.insert(indices.end(),
-                       TRIANGLE_INDICES + invIndices * VERTICES_PER_TRIANGLE,
-                       TRIANGLE_INDICES + invIndices * VERTICES_PER_TRIANGLE + VERTICES_PER_TRIANGLE);
-        for (unsigned int i = indices.size() - VERTICES_PER_TRIANGLE; i < (unsigned int) indices.size(); ++i)
-            indices[i] += positions.size();
-
-        positions.insert(positions.end(), triangleVertexPositions, triangleVertexPositions + VERTICES_PER_TRIANGLE);
-        for (unsigned int i = positions.size() - VERTICES_PER_TRIANGLE; i < (unsigned int) positions.size(); ++i)
-            positions[i] += blockPosition;
+        const unsigned int *indices = TRIANGLE_INDICES + invIndices * VERTICES_PER_TRIANGLE;
+        unsigned int firstIndexPosition = meshBuilder.loadIndices({indices, VERTICES_PER_TRIANGLE});
+        meshBuilder.incrementIndices(meshBuilder.vertexCount(), firstIndexPosition);
 
         glm::vec2 texSize = {texCoordsOffset.z - texCoordsOffset.x, texCoordsOffset.w - texCoordsOffset.y};
 
         int neutralAxis = -1;
 
-
+        //Find what axis is not moved
         for (int axis = 0; axis < 3; ++axis)
-        {
             if (fabsf(triangleVertexPositions[0][axis] - triangleVertexPositions[1][axis] +
                       triangleVertexPositions[0][axis] -
                       triangleVertexPositions[2][axis]) < 0.001f)
@@ -262,7 +241,6 @@ namespace Blocks
                 neutralAxis = axis;
                 break;
             }
-        }
 
         glm::vec2 texCoordsBuf[VERTICES_PER_TRIANGLE] =
                 {
@@ -286,7 +264,9 @@ namespace Blocks
                                 CUBE_SIZE * texSize.y},
                 };
 
-        texCoords.insert(texCoords.end(), texCoordsBuf, texCoordsBuf + VERTICES_PER_TRIANGLE);
+        unsigned int firstVertex = meshBuilder.loadTriangle(triangleVertexPositions, texCoordsBuf, nullptr, invIndices);
+
+        meshBuilder.translateVertices(blockPosition, firstVertex);
     }
 
 
@@ -309,7 +289,7 @@ namespace Blocks
     void loadBottomFace();
 
     void
-    loadBlock(CGE::Loader::MeshBuilder meshBuilder,
+    loadBlock(CGE::Loader::MeshBuilder &meshBuilder,
               glm::ivec3 &blockPosition, Block *blockToLoad, const Block **neighbors, glm::vec4 &texCoordsOffset)
     {
 
@@ -442,7 +422,6 @@ namespace Blocks
                 }
             }
         }
-
         //Block side faces
         for (unsigned char side = 0; side < 4; ++side)
             if (neighbors[side + (side >> 1) * 2] != nullptr && (neighbors[side + (side >> 1) * 2]->ID == Blocks::AIR

@@ -93,7 +93,7 @@ void Chunk::loadToTexModel()
                 std::array<const Block *, 6> neighbors = getBlockNeighbors(blockPosition, currentBlock, neighborChunks);
 
                 //If it's a block of air or the block is obstructed there is nothing to load
-                if (currentBlock->ID == Blocks::AIR && !isBlockObstructed(neighbors))
+                if (currentBlock->ID != Blocks::AIR && !isBlockObstructed(neighbors))
                 {
                     glm::vec4 blockTexCoords = texture_->getTextureLimits(currentBlock->ID);
 

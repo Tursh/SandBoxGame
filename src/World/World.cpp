@@ -162,11 +162,15 @@ World::World()
           chunkManager_(player_, this, chunks_)
 {
     addEntity(std::shared_ptr<CGE::Entities::Entity>(player_));
-/*
+
+    /*
     Block *blocks = new Block[(int) pow(CHUNK_SIZE, 3)];
     for (int i = 0; i < CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE; ++i)
         blocks[i] = Blocks::AIR_BLOC;
+
+
     blocks[10 + CHUNK_SIZE + SQUARED_CHUNK_SIZE * 1] = {1, 0B00000000};
+
     blocks[2 + CHUNK_SIZE + SQUARED_CHUNK_SIZE * 1] = {1, 0B00001110};
     blocks[4 + CHUNK_SIZE + SQUARED_CHUNK_SIZE * 1] = {1, 0B00001101};
     blocks[6 + CHUNK_SIZE + SQUARED_CHUNK_SIZE * 1] = {1, 0B00001011};
@@ -202,7 +206,7 @@ World::World()
     blocks[6 + CHUNK_SIZE + SQUARED_CHUNK_SIZE * 13] = {1, 0B00000100};
     blocks[8 + CHUNK_SIZE + SQUARED_CHUNK_SIZE * 13] = {1, 0B00001000};
 
-    //Stabs (midY = 1)
+    //Slabs (midY = 1)
     blocks[10 + 4 * CHUNK_SIZE + SQUARED_CHUNK_SIZE] = {1, 0B00100000};
 
     blocks[2 + 4 * CHUNK_SIZE + SQUARED_CHUNK_SIZE] = {1, 0B00100001};
@@ -219,6 +223,38 @@ World::World()
     blocks[4 + 4 * CHUNK_SIZE + 5 * SQUARED_CHUNK_SIZE] = {1, 0B00101101};
     blocks[6 + 4 * CHUNK_SIZE + 5 * SQUARED_CHUNK_SIZE] = {1, 0B00101011};
     blocks[8 + 4 * CHUNK_SIZE + 5 * SQUARED_CHUNK_SIZE] = {1, 0B00100111};
+
+    //Up Slabs
+    blocks[2 + 6 * CHUNK_SIZE + SQUARED_CHUNK_SIZE] = {1, 0B00100001};
+    blocks[4 + 6 * CHUNK_SIZE + SQUARED_CHUNK_SIZE] = {1, 0B00100010};
+    blocks[6 + 6 * CHUNK_SIZE + SQUARED_CHUNK_SIZE] = {1, 0B00100100};
+    blocks[8 + 6 * CHUNK_SIZE + SQUARED_CHUNK_SIZE] = {1, 0B00101000};
+
+    blocks[2 + 6 * CHUNK_SIZE + 3 * SQUARED_CHUNK_SIZE] = {1, 0B00100011};
+    blocks[4 + 6 * CHUNK_SIZE + 3 * SQUARED_CHUNK_SIZE] = {1, 0B00101010};
+    blocks[6 + 6 * CHUNK_SIZE + 3 * SQUARED_CHUNK_SIZE] = {1, 0B00100101};
+    blocks[8 + 6 * CHUNK_SIZE + 3 * SQUARED_CHUNK_SIZE] = {1, 0B00101100};
+
+    blocks[2 + 6 * CHUNK_SIZE + 5 * SQUARED_CHUNK_SIZE] = {1, 0B00101110};
+    blocks[4 + 6 * CHUNK_SIZE + 5 * SQUARED_CHUNK_SIZE] = {1, 0B00101101};
+    blocks[6 + 6 * CHUNK_SIZE + 5 * SQUARED_CHUNK_SIZE] = {1, 0B00101011};
+    blocks[8 + 6 * CHUNK_SIZE + 5 * SQUARED_CHUNK_SIZE] = {1, 0B00100111};
+
+
+
+    //int i = 0;
+//
+    //for (int x = 1; x < 14; ++x)
+    //    for (int y = 1; y < 14; ++y)
+    //        for (int z = 1; z < 14; ++z)
+    //        {
+    //            if (x % 2 == 1 && y % 2 == 1 && z % 2 == 1)
+    //            {
+    //                blocks[x + (y + z * 16) * 16] = {1, (unsigned char) i};
+    //                ++i;
+    //            }
+    //        }
+
 
     glm::ivec3 chunkPosition = {0, 0, 0};
     Chunk *newChunk = new Chunk(blocks, this, chunkPosition, false);

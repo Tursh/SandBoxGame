@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.14)
 
 set(BUILD_SHARED_LIBS OFF)
+set(CMAKE_CXX_STANDARD 17)
 
 #Set the output directory
 set(CMAKE_BINARY_DIR ${CMAKE_SOURCE_DIR}/bin/${CMAKE_BUILD_TYPE})

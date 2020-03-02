@@ -181,10 +181,10 @@ namespace Blocks
                 CUBE_FACE_INDICES + ((face == RIGHT || face == TOP || face == BACK) ? INDICES_PER_FACE : 0);
 
         //Load them
-        unsigned int lastIndex = meshBuilder.loadIndices({faceIndices, INDICES_PER_FACE});
+        unsigned int firstIndex = meshBuilder.loadIndices({faceIndices, INDICES_PER_FACE});
 
         //Translate them to the face vertices
-        meshBuilder.incrementIndices(lastIndex - INDICES_PER_FACE, lastIndex, meshBuilder.vertexCount());
+        meshBuilder.incrementIndices(meshBuilder.vertexCount(), firstIndex);
 
         //The mid face must be drawn on the positive of negative part of the axis
         bool up = axis >> 2;
@@ -210,14 +210,12 @@ namespace Blocks
         //Load the vertices
         unsigned int firstVertex = meshBuilder.loadVertices(faceVertices, texCoordsBuf, nullptr, VERTICES_PER_FACE);
 
+        meshBuilder.transformVertices([&](glm::vec3 &position, glm::vec2 &texCoords, glm::vec3 &normal){
+            if((position[axis] < 0.0001f) ^ !up) position[axis] = CUBE_SIZE / 2;
+        }, firstVertex);
+
         //Translate the positions to the block position
         meshBuilder.translateVertices(blockPosition.operator*=(CUBE_SIZE), firstVertex);
-
-        unsigned int lastVertex = meshBuilder.vertexCount() - 1;
-
-        //Cut the face in half
-        for (unsigned int i = firstVertex; i < lastVertex; ++i)
-            if ((meshBuilder.positions_[i][axis] < 0.0001f) ^ !up) meshBuilder.positions_[i][axis] = CUBE_SIZE / 2;
 
     }
 
@@ -414,6 +412,7 @@ namespace Blocks
                 }
             }
         }
+
         //Block side faces
         for (unsigned char side = 0; side < 4; ++side)
             if (neighbors[side + (side >> 1) * 2] != nullptr && (neighbors[side + (side >> 1) * 2]->ID == Blocks::AIR

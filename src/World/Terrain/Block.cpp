@@ -30,14 +30,14 @@ namespace Blocks
     //POSITION_PER_VERTEX = 3,
     //TEX_COORDS_PER_VERTEX = 2,
 
-            VERTICES_PER_TRIANGLE = 3,
+    VERTICES_PER_TRIANGLE = 3,
     //POSITION_PER_TRIANGLE = VERTICES_PER_TRIANGLE * POSITION_PER_VERTEX,
     //TEX_COORDS_PER_TRIANGLE = VERTICES_PER_TRIANGLE * TEX_COORDS_PER_VERTEX,
 
-            VERTICES_PER_FACE = 4,
+    VERTICES_PER_FACE = 4,
     //POSITION_PER_FACE = VERTICES_PER_FACE,
     //TEX_COORDS_PER_FACE = TEX_COORDS_PER_VERTEX * VERTICES_PER_FACE,
-            INDICES_PER_FACE = 2 * VERTICES_PER_TRIANGLE;
+    INDICES_PER_FACE = 2 * VERTICES_PER_TRIANGLE;
 
     const glm::vec3 CUBE_FACE_VERTICES[] =
             {
@@ -210,9 +210,10 @@ namespace Blocks
         //Load the vertices
         unsigned int firstVertex = meshBuilder.loadVertices(faceVertices, texCoordsBuf, nullptr, VERTICES_PER_FACE);
 
-        meshBuilder.transformVertices([&](glm::vec3 &position, glm::vec2 &texCoords, glm::vec3 &normal){
-            if((position[axis] < 0.0001f) ^ !up) position[axis] = CUBE_SIZE / 2;
-        }, firstVertex);
+        meshBuilder.transformVertices([&](glm::vec3 &position, glm::vec2 &texCoords, glm::vec3 &normal)
+                                      {
+                                          if ((position[axis] < 0.0001f) ^ !up) position[axis] = CUBE_SIZE / 2;
+                                      }, firstVertex);
 
         //Translate the positions to the block position
         meshBuilder.translateVertices(blockPosition.operator*=(CUBE_SIZE), firstVertex);
@@ -428,7 +429,7 @@ namespace Blocks
                 //If the 2 corners are up than draw a full face
                 if (n && p)
                 {
-                    if (midY)
+                    if (midY && !(midX && midZ))
                         loadMidFace(meshBuilder, blockPosition, static_cast<Face>(2 + side), 1,
                                     texCoordsOffset);
                     else
@@ -439,10 +440,8 @@ namespace Blocks
                 else if (n || p)
                 {
                     unsigned int startIndex = meshBuilder.vertexCount();
-                    if (midCount == 0)
+                    if (midCount == 0 || midY)
                     {
-
-
                         bool pairSideIndex = !(side % 2), extSideIndex = !((side & 1) ^ (side >> 1));
                         //We have to add 3 vertex to add side triangle
                         glm::vec3 triangleVertexPositions[] = {
@@ -470,9 +469,21 @@ namespace Blocks
                         meshBuilder.transformVertices(
                                 [&](glm::vec3 &position, glm::vec2 &texCoord, glm::vec3 &normal)
                                 {
-                                    position.y -= (position.y - blockPosition.y < 0.01f) ? 0.0f : 0.5f;
+                                    if (midZ && midX)
+                                        position.y += (position.y - blockPosition.y < 0.01f) ? 0.5f : .0f;
+                                    else
+                                        position.y -= (position.y - blockPosition.y < 0.01f) ? 0.0f : 0.5f;
                                 }, startIndex);
+                        if (midZ && midX)
+                            loadMidFace(meshBuilder, blockPosition, static_cast<Face>(2 + side), 1,
+                                        texCoordsOffset);
                     }
+                }
+                    //If there is no corner up
+                else if (midY && midX && midZ)
+                {
+                    loadMidFace(meshBuilder, blockPosition, static_cast<Face>(2 + side), 1,
+                                texCoordsOffset);
                 }
 
             }
@@ -540,7 +551,7 @@ namespace Blocks
                         unsigned int startIndex = meshBuilder.loadIndices({triangleIndices, 3}, true);
                         meshBuilder.incrementIndices(startVertex, startIndex);
                     }
-                    else if (midCount == 2)
+                    else if (!midY && midCount == 2)
                     {
 
                         //We have to add 3 vertex to add 2 triangles
@@ -558,15 +569,15 @@ namespace Blocks
                                                                           true);
                         meshBuilder.incrementIndices(startVertex, startIndex);
                     }
-                    else
-                    {
-
-                    }
                 }
-                else if (cornerFlagCount == 2)
+                else if (!midY && cornerFlagCount == 2)
                 {
                     loadMidFace(meshBuilder, blockPosition, Face::TOP,
                                 (midZ ? 2 : 0) + (xnd || znd ? 4 : 0), texCoordsOffset);
+                }
+                else if (midY)
+                {
+
                 }
             }
         }
@@ -575,7 +586,7 @@ namespace Blocks
         if (cornerFlagCount)
         {
             int startVertex = meshBuilder.vertexCount();
-            if (midCount)
+            if (!midY && midCount)
             {
                 if (cornerFlagCount == 1)
                 {
@@ -674,21 +685,42 @@ namespace Blocks
                     loadTriangle(meshBuilder, blockPosition,
                                  triangleVertexPositions + 1, texCoordsOffset, !(xnzn || xpzp));
                 }
-
+                //If 3 corner down
                 else
                 {
-                    int corner = 0;
-                    for (; corner < 4; ++corner)
-                        if (!corners[corner])
-                            break;
+                    {
+                        int corner = 0;
+                        for (; corner < 4; ++corner)
+                            if (!corners[corner])
+                                break;
 
-                    glm::vec3 triangleVertexPositions[VERTICES_PER_TRIANGLE] = {
-                            {(corner >> 1) & 1 ? CUBE_SIZE : 0, CUBE_SIZE, corner & 1 ? CUBE_SIZE : 0},
-                            {(corner >> 1) & 1 ? 0 : CUBE_SIZE, 0,         corner & 1 ? CUBE_SIZE : 0},
-                            {(corner >> 1) & 1 ? CUBE_SIZE : 0, 0,         corner & 1 ? 0 : CUBE_SIZE}
-                    };
-                    loadTriangle(meshBuilder, blockPosition,
-                                 triangleVertexPositions, texCoordsOffset, (!xnzp || !xpzn));
+                        glm::vec3 triangleVertexPositions[VERTICES_PER_TRIANGLE] = {
+                                {(corner >> 1) & 1 ? CUBE_SIZE : 0, CUBE_SIZE, corner & 1 ? CUBE_SIZE : 0},
+                                {(corner >> 1) & 1 ? 0 : CUBE_SIZE, 0,         corner & 1 ? CUBE_SIZE : 0},
+                                {(corner >> 1) & 1 ? CUBE_SIZE : 0, 0,         corner & 1 ? 0 : CUBE_SIZE}
+                        };
+                        loadTriangle(meshBuilder, blockPosition,
+                                     triangleVertexPositions, texCoordsOffset, (!xnzp || !xpzn));
+                    }
+                    if(midX && midZ)
+                    {
+                        glm::vec3 triangleVertexPositions[VERTICES_PER_TRIANGLE];
+                        int i = 0;
+                        for (int point = 0; point < 4; ++point)
+                        {
+                            if (corners[point])
+                            {
+                                std::copy(CUBE_VERTEX_POSITIONS + 4 + point,
+                                          CUBE_VERTEX_POSITIONS + 4 + (point + 1),
+                                          triangleVertexPositions + i);
+                                ++i;
+                            }
+                        }
+                        unsigned int firstVertex = meshBuilder.vertexCount();
+                        loadTriangle(meshBuilder, blockPosition,
+                                     triangleVertexPositions, texCoordsOffset, xnd);
+                        meshBuilder.translateVertices(glm::vec3(0, -.5, 0), firstVertex);
+                    }
                 }
             }
         }
@@ -699,7 +731,10 @@ namespace Blocks
             meshBuilder.transformVertices(
                     [&](glm::vec3 &position, glm::vec2 &texCoords, glm::vec3 &normal)
                     {
-                        position.y -= (position.y - blockPosition.y < 0.01f) ? 0.0f : 0.5f;
+                        if (midZ && midX)
+                            position.y += (position.y - blockPosition.y < 0.01f) ? 0.5f : .0f;
+                        else
+                            position.y -= (position.y - blockPosition.y < 0.01f) ? 0.0f : 0.5f;
                     }, startTopFaceIndex);
         }
 

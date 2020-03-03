@@ -21,33 +21,57 @@ static void fillChunk(Block *blocks, Block block)
         blocks[i] = block;
 }
 
+const unsigned int MID_X = 1 << 6, MID_Y = 1 << 5, MID_Z = 1 << 4, INV = 1 << 7;
+
 static unsigned char generateState(double *cornerGroundLevels, int &cornerDownCount, int &underBlockCorner, int &y)
 {
     unsigned char state = 0;
-    int midYCornersCount = 0;
+    int sections[6] = {0, 0, 0, 0, 0, 0};
+    int cornerSections[4] = {0, 0, 0, 0};
 
     for (int corner = 0; corner < 4; ++corner)
     {
         double relativeLevel = cornerGroundLevels[corner] - y;
 
-        if (relativeLevel < Blocks::CUBE_SIZE / 2.0f)
-        {
-            ++cornerDownCount;
-            if (relativeLevel < -Blocks::CUBE_SIZE / 2.0f)
-                underBlockCorner = corner;
+        int section = (int) (relativeLevel / 0.25f);
+        ++sections[section < 0 ? 0 : (section > 5 ? 5 : section)];
 
-            //Set the corner flag
-            state += (unsigned char) 1 << corner;
-        }
-
-        if (Blocks::CUBE_SIZE * .25f < relativeLevel &&
-            relativeLevel < Blocks::CUBE_SIZE * .75f)
-            ++midYCornersCount;
+        cornerSections[corner] = section;
     }
 
     //Set the midY flag
-    if (midYCornersCount > 1)
-        state += (unsigned char) 0B00100000;
+    if (sections[2] + sections[3] >= 2)
+    {
+        state += MID_Y;
+        if (sections[0] + sections[1] + sections[2] > 1)
+        {
+            for (int corner = 0; corner < 4; ++corner)
+                if (cornerSections[corner] < 2)
+                {
+                    state += 1 << corner;
+                    ++cornerDownCount;
+                }
+        }
+        else
+        {
+            state += MID_X + MID_Z;
+            for (int corner = 0; corner < 4; ++corner)
+                if (cornerSections[corner] < 4)
+                {
+                    state += 1 << corner;
+                    ++cornerDownCount;
+                }
+        }
+    }
+    else
+    {
+        for (int corner = 0; corner < 4; ++corner)
+            if (cornerSections[corner] < 3)
+            {
+                state += 1 << corner;
+                ++cornerDownCount;
+            }
+    }
 
     return state;
 }
@@ -156,7 +180,7 @@ void WorldGenerator::run()
 
 
                             //If the block under in another chunk has more than 1 corner down, no block.
-                            if (y == 0 && state && underBlockCorner)
+                            if (y == 0 && state && underBlockCorner == -1)
                             {
                                 glm::ivec3 underChunkPosition = chunkPosition;
                                 --underChunkPosition.y;

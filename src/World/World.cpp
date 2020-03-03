@@ -163,7 +163,7 @@ World::World()
 {
     addEntity(std::shared_ptr<CGE::Entities::Entity>(player_));
 
-    /*
+/*
     Block *blocks = new Block[(int) pow(CHUNK_SIZE, 3)];
     for (int i = 0; i < CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE; ++i)
         blocks[i] = Blocks::AIR_BLOC;
@@ -225,21 +225,20 @@ World::World()
     blocks[8 + 4 * CHUNK_SIZE + 5 * SQUARED_CHUNK_SIZE] = {1, 0B00100111};
 
     //Up Slabs
-    blocks[2 + 6 * CHUNK_SIZE + SQUARED_CHUNK_SIZE] = {1, 0B00100001};
-    blocks[4 + 6 * CHUNK_SIZE + SQUARED_CHUNK_SIZE] = {1, 0B00100010};
-    blocks[6 + 6 * CHUNK_SIZE + SQUARED_CHUNK_SIZE] = {1, 0B00100100};
-    blocks[8 + 6 * CHUNK_SIZE + SQUARED_CHUNK_SIZE] = {1, 0B00101000};
+    blocks[2 + 6 * CHUNK_SIZE + 1 * SQUARED_CHUNK_SIZE] = {1, 0B01110001};
+    blocks[4 + 6 * CHUNK_SIZE + 1 * SQUARED_CHUNK_SIZE] = {1, 0B01110010};
+    blocks[6 + 6 * CHUNK_SIZE + 1 * SQUARED_CHUNK_SIZE] = {1, 0B01110100};
+    blocks[8 + 6 * CHUNK_SIZE + 1 * SQUARED_CHUNK_SIZE] = {1, 0B01111000};
 
-    blocks[2 + 6 * CHUNK_SIZE + 3 * SQUARED_CHUNK_SIZE] = {1, 0B00100011};
-    blocks[4 + 6 * CHUNK_SIZE + 3 * SQUARED_CHUNK_SIZE] = {1, 0B00101010};
-    blocks[6 + 6 * CHUNK_SIZE + 3 * SQUARED_CHUNK_SIZE] = {1, 0B00100101};
-    blocks[8 + 6 * CHUNK_SIZE + 3 * SQUARED_CHUNK_SIZE] = {1, 0B00101100};
+    blocks[2 + 6 * CHUNK_SIZE + 3 * SQUARED_CHUNK_SIZE] = {1, 0B01110011};
+    blocks[4 + 6 * CHUNK_SIZE + 3 * SQUARED_CHUNK_SIZE] = {1, 0B01111010};
+    blocks[6 + 6 * CHUNK_SIZE + 3 * SQUARED_CHUNK_SIZE] = {1, 0B01110101};
+    blocks[8 + 6 * CHUNK_SIZE + 3 * SQUARED_CHUNK_SIZE] = {1, 0B01111100};
 
-    blocks[2 + 6 * CHUNK_SIZE + 5 * SQUARED_CHUNK_SIZE] = {1, 0B00101110};
-    blocks[4 + 6 * CHUNK_SIZE + 5 * SQUARED_CHUNK_SIZE] = {1, 0B00101101};
-    blocks[6 + 6 * CHUNK_SIZE + 5 * SQUARED_CHUNK_SIZE] = {1, 0B00101011};
-    blocks[8 + 6 * CHUNK_SIZE + 5 * SQUARED_CHUNK_SIZE] = {1, 0B00100111};
-
+    blocks[2 + 6 * CHUNK_SIZE + 5 * SQUARED_CHUNK_SIZE] = {1, 0B01111110};
+    blocks[4 + 6 * CHUNK_SIZE + 5 * SQUARED_CHUNK_SIZE] = {1, 0B01111101};
+    blocks[6 + 6 * CHUNK_SIZE + 5 * SQUARED_CHUNK_SIZE] = {1, 0B01111011};
+    blocks[8 + 6 * CHUNK_SIZE + 5 * SQUARED_CHUNK_SIZE] = {1, 0B01110111};
 
 
     //int i = 0;
@@ -259,6 +258,7 @@ World::World()
     glm::ivec3 chunkPosition = {0, 0, 0};
     Chunk *newChunk = new Chunk(blocks, this, chunkPosition, false);
     chunks_[chunkPosition.x][chunkPosition.y][chunkPosition.z] = newChunk;
+
 */
 
     auto display = CGE::IO::getWindow();

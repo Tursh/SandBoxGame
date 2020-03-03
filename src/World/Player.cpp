@@ -117,32 +117,68 @@ namespace Entities
         {
             if (glfwGetTime() - lastHit > hitCooldown)
             {
-            glm::vec3 hitBlockPosition = world->getPickedBlock(6.0f);
+                glm::vec3 hitBlockPosition = world->getPickedBlock(6.0f);
 
-            unsigned char blockState = world->getBlock(hitBlockPosition).state;
+                unsigned char blockState = world->getBlock(hitBlockPosition).state;
 
+                Chunk *chunk = world->getChunk(hitBlockPosition);
 
-            double groundLevel[4] =
+                glm::ivec3 chunkPosition = chunk->getChunkPosition();
+
+                double groundLevel[19 * 19];
+                double higher = 0, lower = 256;
+
+                {
+                    int xEndPosition = (chunkPosition.x + 1) * CHUNK_SIZE + 2,
+                            zEndPosition = (chunkPosition.z + 1) * CHUNK_SIZE + 2,
+                            i = 0;
+
+                    for (int x = chunkPosition.x * CHUNK_SIZE - 1; x < xEndPosition; ++x)
+                        for (int z = chunkPosition.z * CHUNK_SIZE - 1; z < zEndPosition; ++z)
+                        {
+                            groundLevel[i] = pn.noise(x / (double) (CHUNK_SIZE * 4), z / (double) (CHUNK_SIZE * 4), 0) *
+                                             CHUNK_SIZE * 4;
+                            higher = std::max(higher, groundLevel[i]);
+                            lower = std::min(lower, groundLevel[i]);
+                            ++i;
+                        }
+                }
+
+                double averageGroundLevels[17 * 17];
+
+                for (int xa = 0; xa < 17; ++xa)
+                    for (int za = 0; za < 17; ++za)
                     {
-                            pn.noise((double) hitBlockPosition.x / (double) (CHUNK_SIZE * 4),
-                                     (double) hitBlockPosition.z / (double) (CHUNK_SIZE * 4), 0) * CHUNK_SIZE * 6,
-                            pn.noise((double) hitBlockPosition.x / (double) (CHUNK_SIZE * 4),
-                                     (double) (hitBlockPosition.z + 1) / (double) (CHUNK_SIZE * 4), 0) *
-                            CHUNK_SIZE * 6,
-                            pn.noise((double) (hitBlockPosition.x + 1) / (double) (CHUNK_SIZE * 4),
-                                     (double) hitBlockPosition.z / (double) (CHUNK_SIZE * 4), 0) * CHUNK_SIZE * 6,
-                            pn.noise((double) (hitBlockPosition.x + 1) / (double) (CHUNK_SIZE * 4),
-                                     (double) (hitBlockPosition.z + 1) / (double) (CHUNK_SIZE * 4), 0) *
-                            CHUNK_SIZE * 6,
-                    };
-            logInfo(glm::to_string(hitBlockPosition) << " => " << groundLevel[0] << ", " << groundLevel[1] << ", "
-                                                     << groundLevel[2] << ", " << groundLevel[3] << " - "
-                                                     << ((blockState >> 7) & 1) << ((blockState >> 6) & 1)
-                                                     << ((blockState >> 5) & 1)
-                                                     << ((blockState >> 4) & 1)
-                                                     << ((blockState >> 3) & 1) << ((blockState >> 2) & 1)
-                                                     << ((blockState >> 1) & 1)
-                                                     << (blockState & 1));
+                        double &averageGroundLevel = averageGroundLevels[xa * 17 + za] = 0;
+                        for (int xb = 0; xb < 3; ++xb)
+                            for (int zb = 0; zb < 3; ++zb)
+                            {
+                                averageGroundLevel += groundLevel[(xa + xb) * 19 + (za + zb)];
+                            }
+
+                        averageGroundLevel /= 9;
+                    }
+
+                glm::ivec3 blockPositionInChunk = world->getPositionInChunk(hitBlockPosition);
+
+                    int x = blockPositionInChunk.x, z = blockPositionInChunk.z;
+
+                double cornerGroundLevels[4] =
+                        {
+                                averageGroundLevels[x * 17 + z],
+                                averageGroundLevels[x * 17 + z + 1],
+                                averageGroundLevels[(x + 1) * 17 + z],
+                                averageGroundLevels[(x + 1) * 17 + z + 1]
+                        };
+
+                logInfo(glm::to_string(hitBlockPosition) << " => " << cornerGroundLevels[0] << ", " << cornerGroundLevels[1] << ", "
+                                                         << cornerGroundLevels[2] << ", " << cornerGroundLevels[3] << " - "
+                                                         << ((blockState >> 7) & 1) << ((blockState >> 6) & 1)
+                                                         << ((blockState >> 5) & 1)
+                                                         << ((blockState >> 4) & 1)
+                                                         << ((blockState >> 3) & 1) << ((blockState >> 2) & 1)
+                                                         << ((blockState >> 1) & 1)
+                                                         << (blockState & 1));
 
                 lastHit = glfwGetTime();
             }

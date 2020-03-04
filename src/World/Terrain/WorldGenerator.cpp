@@ -23,27 +23,32 @@ static void fillChunk(Block *blocks, Block block)
 
 const unsigned int MID_X = 1 << 6, MID_Y = 1 << 5, MID_Z = 1 << 4, INV = 1 << 7;
 
-static unsigned char generateState(double *cornerGroundLevels, int &cornerDownCount, int &underBlockCorner, int &y)
+static unsigned char generateState(float *cornerGroundLevels, int &cornerDownCount, int &underBlockCorner, int &y)
 {
     unsigned char state = 0;
     int sections[6] = {0, 0, 0, 0, 0, 0};
     int cornerSections[4] = {0, 0, 0, 0};
 
+    float average = 0;
+
     for (int corner = 0; corner < 4; ++corner)
     {
-        double relativeLevel = cornerGroundLevels[corner] - y;
+        auto relativeLevel = (float)(cornerGroundLevels[corner] - y);
 
-        int section = (int) (relativeLevel / 0.25f);
+        average += relativeLevel;
+
+        int section = (int) std::floor(relativeLevel / 0.25) + 1;
         ++sections[section < 0 ? 0 : (section > 5 ? 5 : section)];
 
         cornerSections[corner] = section;
     }
 
     //Set the midY flag
-    if (sections[2] + sections[3] >= 2)
+    if (sections[2] + sections[3] >= 1 && !((sections[4] + sections[5]) && (sections[1] + sections[0])))
     {
+        average /= 4;
         state += MID_Y;
-        if (sections[0] + sections[1] + sections[2] > 1)
+        if (average < 0.5f)
         {
             for (int corner = 0; corner < 4; ++corner)
                 if (cornerSections[corner] < 2)
@@ -66,7 +71,7 @@ static unsigned char generateState(double *cornerGroundLevels, int &cornerDownCo
     else
     {
         for (int corner = 0; corner < 4; ++corner)
-            if (cornerSections[corner] < 3)
+            if (cornerSections[corner] < 4)
             {
                 state += 1 << corner;
                 ++cornerDownCount;
@@ -104,8 +109,8 @@ void WorldGenerator::run()
         else
         {
             //Get all ground level in chunk and chunk border blocs
-            double groundLevel[19 * 19];
-            double higher = 0, lower = 256;
+            float groundLevel[19 * 19];
+            float higher = 0, lower = 256;
 
             {
                 int xEndPosition = (chunkPosition.x + 1) * CHUNK_SIZE + 2,
@@ -115,7 +120,7 @@ void WorldGenerator::run()
                 for (int x = chunkPosition.x * CHUNK_SIZE - 1; x < xEndPosition; ++x)
                     for (int z = chunkPosition.z * CHUNK_SIZE - 1; z < zEndPosition; ++z)
                     {
-                        groundLevel[i] = pn.noise(x / (double) (CHUNK_SIZE * 4), z / (double) (CHUNK_SIZE * 4), 0) *
+                        groundLevel[i] = (float)pn.noise(x / (double) (CHUNK_SIZE * 4), z / (double) (CHUNK_SIZE * 4), 0) *
                                          CHUNK_SIZE * 4;
                         higher = std::max(higher, groundLevel[i]);
                         lower = std::min(lower, groundLevel[i]);
@@ -136,12 +141,12 @@ void WorldGenerator::run()
             for (unsigned int i = 0; i < 19 * 19; ++i)
                 groundLevel[i] -= chunkPosition.y * CHUNK_SIZE;
 
-            double averageGroundLevels[17 * 17];
+            float averageGroundLevels[17 * 17];
 
             for (int xa = 0; xa < 17; ++xa)
                 for (int za = 0; za < 17; ++za)
                 {
-                    double &averageGroundLevel = averageGroundLevels[xa * 17 + za] = 0;
+                    float &averageGroundLevel = averageGroundLevels[xa * 17 + za] = 0;
                     for (int xb = 0; xb < 3; ++xb)
                         for (int zb = 0; zb < 3; ++zb)
                         {
@@ -154,7 +159,7 @@ void WorldGenerator::run()
             for (int x = 0; x < CHUNK_SIZE; ++x)
                 for (int z = 0; z < CHUNK_SIZE; ++z)
                 {
-                    double cornerGroundLevels[4] =
+                    float cornerGroundLevels[4] =
                             {
                                     averageGroundLevels[x * 17 + z],
                                     averageGroundLevels[x * 17 + z + 1],
@@ -162,21 +167,31 @@ void WorldGenerator::run()
                                     averageGroundLevels[(x + 1) * 17 + z + 1]
                             };
 
-                    double
-                            blockGroundLevel = 0;
+                    float blockGroundLevel = 0;
 
                     for (int corner = 0; corner < 4; ++corner)
-                        blockGroundLevel += cornerGroundLevels[corner];
-
-                    blockGroundLevel /= 4;
+                        blockGroundLevel = std::max(blockGroundLevel, cornerGroundLevels[corner]);
 
                     for (int y = std::min<int>(blockGroundLevel, CHUNK_SIZE - 1); y >= 0; --y)
                     {
                         if (y >= blockGroundLevel - 2)
                         {
+                            if(chunkPosition * 16 + glm::ivec3(x, -chunkPosition.y * 16, z) == glm::ivec3{30,0, 19})
+                                logInfo("");
                             int cornerDownCount = 0, underBlockCorner = -1;
                             unsigned char state = generateState(cornerGroundLevels, cornerDownCount, underBlockCorner,
                                                                 y);
+
+                            if (cornerDownCount == 4)
+                            {
+                                if (state & MID_Y)
+                                    state = MID_Y;
+                                else
+                                {
+                                    blocks[x + CHUNK_SIZE * (y + CHUNK_SIZE * z)] = Blocks::AIR_BLOC;
+                                    continue;
+                                }
+                            }
 
 
                             //If the block under in another chunk has more than 1 corner down, no block.

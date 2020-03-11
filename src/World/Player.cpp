@@ -192,6 +192,6 @@ namespace Entities
     {
         glm::vec3 hitBlockPosition = world->getPickedBlock(6.0f);
 
-        world->setBlock(hitBlockPosition, Blocks::AIR_BLOC);
+        world->setBlock(hitBlockPosition, Blocks::AIR_BLOCK);
     }
 }

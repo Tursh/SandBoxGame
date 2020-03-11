@@ -10,8 +10,6 @@
 #include <Utils/Log.h>
 #include <glm/gtx/string_cast.hpp>
 #include <algorithm>
-#include <CLucene.h>
-#include <CLucene/search/PhraseQuery.h>
 #include <iterator>
 
 using namespace CGE::Loader;
@@ -20,9 +18,11 @@ namespace Blocks
 {
     const short
             AIR = 0,
-            DIRT = 1;
+            DIRT = 1,
+            CLOUD = 2;
 
-    const Block AIR_BLOC = {AIR, 0};
+    const Block AIR_BLOCK = {AIR, 0};
+    const Block CLOUD_BLOCK = {CLOUD, 0};
 
     const float CUBE_SIZE = 1.0f;
 

@@ -135,7 +135,7 @@ const Block &World::getBlock(glm::ivec3 position)
     if (chunk != nullptr)
         return chunk->getBlock(position);
     else
-        return Blocks::AIR_BLOC;
+        return Blocks::AIR_BLOCK;
 }
 
 static glm::vec3 checkCollision(CGE::Entities::Entity *entity, World *world)
@@ -166,7 +166,7 @@ World::World()
 /*
     Block *blocks = new Block[(int) pow(CHUNK_SIZE, 3)];
     for (int i = 0; i < CHUNK_SIZE * CHUNK_SIZE * CHUNK_SIZE; ++i)
-        blocks[i] = Blocks::AIR_BLOC;
+        blocks[i] = Blocks::AIR_BLOCK;
 
 
     blocks[10 + CHUNK_SIZE + SQUARED_CHUNK_SIZE * 1] = {1, 0B00000000};
@@ -359,7 +359,7 @@ glm::ivec3 World::getPickedBlock(float raySize)
 
         blockPosition = glm::floor(rayPosition);
 
-        if (getBlock(blockPosition) != Blocks::AIR_BLOC)
+        if (getBlock(blockPosition) != Blocks::AIR_BLOCK)
             return blockPosition;
 
     }

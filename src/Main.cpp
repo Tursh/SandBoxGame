@@ -12,6 +12,7 @@ void init()
     CGE::Utils::TPSClock::init();
     //CGE::IO::input::grabMouse();
     CGE::State::stateManager::createCurrentState<PlayState>();
+    glClearColor(0.2, 0.3, 0.5,1);
 }
 
 void loopTick()

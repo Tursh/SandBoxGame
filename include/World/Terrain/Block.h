@@ -30,9 +30,10 @@ namespace Blocks
 
     extern const short
             AIR,
-            DIRT;
+            DIRT,
+            CLOUD;
 
-    extern const Block AIR_BLOC;
+    extern const Block AIR_BLOCK, CLOUD_BLOCK;
 
     extern const float CUBE_SIZE;
 

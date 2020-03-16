@@ -24,7 +24,8 @@ static void fillChunk(Block *blocks, Block block)
 
 const unsigned int MID_X = 1 << 6, MID_Y = 1 << 5, MID_Z = 1 << 4, INV = 1 << 7;
 
-static unsigned char generateState(float *cornerGroundLevels, int &cornerDownCount, int &underBlockCorner, int &y)
+static unsigned char
+generateState(const float *cornerGroundLevels, int &cornerDownCount, const int &y, bool recursive = false)
 {
     unsigned char state = 0;
     int sections[6] = {0, 0, 0, 0, 0, 0};
@@ -34,7 +35,7 @@ static unsigned char generateState(float *cornerGroundLevels, int &cornerDownCou
 
     for (int corner = 0; corner < 4; ++corner)
     {
-        auto relativeLevel = (float) (cornerGroundLevels[corner] - y);
+        float relativeLevel = cornerGroundLevels[corner] - (float) y;
 
         average += relativeLevel;
 
@@ -44,8 +45,9 @@ static unsigned char generateState(float *cornerGroundLevels, int &cornerDownCou
         cornerSections[corner] = section;
     }
 
+
     //Set the midY flag
-    if (sections[2] + sections[3] >= 1 && !((sections[4] + sections[5]) && (sections[1] + sections[0])))
+    if (sections[2] + sections[3] >= 1 && (!((sections[4] + sections[5]) && (sections[1] + sections[0])) || sections[5] + sections[4] >= 2 || sections[0]>= 2))
     {
         average /= 4;
         state += MID_Y;
@@ -79,6 +81,39 @@ static unsigned char generateState(float *cornerGroundLevels, int &cornerDownCou
             }
     }
 
+
+    if (sections[0] >= 1 && !recursive)
+    {
+        int underBlockCornerDown = 0;
+        unsigned char underBlockState = generateState(cornerGroundLevels, underBlockCornerDown, y - 1, true);
+        if (underBlockCornerDown > 0 && cornerDownCount < 3)
+        {
+            if (underBlockCornerDown == 1)
+            {
+                int c = 0;
+                for (int corner = 1; corner < 4; ++corner)
+                    c += underBlockState & 1 << corner ? corner : 0;
+                state = MID_Y + 15;
+                state -= 1 << (c ^ 3);
+            }
+            else
+            {
+                state = 0B00001111;
+                cornerDownCount = 4;
+            }
+        }
+    }
+    else if (sections[5] >= 1 && !recursive)
+    {
+        int upperBlockCornerDown = 0;
+        unsigned char upperBlockState = generateState(cornerGroundLevels, upperBlockCornerDown, y + 1, true);
+        if (upperBlockCornerDown < 4 && !(upperBlockState & MID_Y))
+        {
+            state = 0;
+            cornerDownCount = 0;
+        }
+    }
+
     return state;
 }
 
@@ -95,14 +130,14 @@ void WorldGenerator::run()
         }
 
         //Create the block 3D matrix and fill it with air
-        Block *blocks = new Block[CUBED_CHUNK_SIZE];
+        auto *blocks = new Block[CUBED_CHUNK_SIZE];
         fillChunk(blocks, Blocks::AIR_BLOCK);
 
         //If the chunk is under the world generation range, it is going to be only stone blocs
         if (chunkPosition.y < 0)
         {
             //Set all stone blocks
-            fillChunk(blocks, {2, 0});
+            fillChunk(blocks, {Blocks::STONE, 0});
         }
             //If the chunk is higher than the world generation range, it is going to be only air blocs
         else if (chunkPosition.y > MAX_WORLD_GENERATION_HEIGHT / CHUNK_SIZE);
@@ -155,8 +190,8 @@ void WorldGenerator::run()
                 }
 
                 //Make ground level relative to the chunk
-                for (unsigned int i = 0; i < 19 * 19; ++i)
-                    groundLevel[i] -= chunkPosition.y * CHUNK_SIZE;
+                for (float &level : groundLevel)
+                    level -= chunkPosition.y * CHUNK_SIZE;
 
                 float averageGroundLevels[17 * 17];
 
@@ -186,20 +221,15 @@ void WorldGenerator::run()
 
                         float blockGroundLevel = 0;
 
-                        for (int corner = 0; corner < 4; ++corner)
-                            blockGroundLevel = std::max(blockGroundLevel, cornerGroundLevels[corner]);
+                        for (float cornerGroundLevel : cornerGroundLevels)
+                            blockGroundLevel = std::max(blockGroundLevel, cornerGroundLevel);
 
                         for (int y = std::min<int>(blockGroundLevel, CHUNK_SIZE - 1); y >= 0; --y)
                         {
                             if (y >= blockGroundLevel - 2)
                             {
-                                if (chunkPosition * 16 + glm::ivec3(x, -chunkPosition.y * 16, z) ==
-                                    glm::ivec3{30, 0, 19})
-                                    logInfo("");
                                 int cornerDownCount = 0, underBlockCorner = -1;
-                                unsigned char state = generateState(cornerGroundLevels, cornerDownCount,
-                                                                    underBlockCorner,
-                                                                    y);
+                                unsigned char state = generateState(cornerGroundLevels, cornerDownCount, y);
 
                                 if (cornerDownCount == 4)
                                 {
@@ -253,25 +283,15 @@ void WorldGenerator::run()
                                     }
                                 }
 
-                                //
-                                if (underBlockCorner != -1)
-                                {
-                                    if (!(state >> (underBlockCorner ^ 1) & 1))
-                                        state += (unsigned char) 1 << (underBlockCorner ^ 1);
-
-                                    if (!(state >> (underBlockCorner ^ 2) & 1))
-                                        state += (unsigned char) 1 << (underBlockCorner ^ 2);
-                                }
-
                                 //Set the block
-                                blocks[x + CHUNK_SIZE * (y + CHUNK_SIZE * z)] = {1, state};
+                                blocks[x + CHUNK_SIZE * (y + CHUNK_SIZE * z)] = {Blocks::DIRT, state};
 
                             }
                             else
                             {
                                 //Set grass block or stone block
                                 blocks[x + CHUNK_SIZE * (y + CHUNK_SIZE * z)] =
-                                        {(short) (y + chunkPosition.y * CHUNK_SIZE < higher - 3 ? 2 : 1), 0};
+                                        {(short) (y + chunkPosition.y * CHUNK_SIZE < higher - 3 ? Blocks::STONE : Blocks::DIRT), 0};
                             }
 
                         }

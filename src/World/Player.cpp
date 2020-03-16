@@ -22,7 +22,7 @@
 namespace Entities
 {
 
-    const glm::vec3 PLAYER_SIZE(0.9f, 1.8f, 0.9f);
+    const glm::vec3 PLAYER_SIZE = {0.9f, 1.8f, 0.9f};
 
     const float hitCooldown = 0.5f;
 
@@ -161,7 +161,7 @@ namespace Entities
 
                 glm::ivec3 blockPositionInChunk = world->getPositionInChunk(hitBlockPosition);
 
-                    int x = blockPositionInChunk.x, z = blockPositionInChunk.z;
+                int x = blockPositionInChunk.x, z = blockPositionInChunk.z;
 
                 double cornerGroundLevels[4] =
                         {
@@ -171,8 +171,10 @@ namespace Entities
                                 averageGroundLevels[(x + 1) * 17 + z + 1]
                         };
 
-                logInfo(glm::to_string(hitBlockPosition) << " => " << cornerGroundLevels[0] << ", " << cornerGroundLevels[1] << ", "
-                                                         << cornerGroundLevels[2] << ", " << cornerGroundLevels[3] << " - "
+                logInfo(glm::to_string(hitBlockPosition) << " => " << cornerGroundLevels[0] << ", "
+                                                         << cornerGroundLevels[1] << ", "
+                                                         << cornerGroundLevels[2] << ", " << cornerGroundLevels[3]
+                                                         << " - "
                                                          << ((blockState >> 7) & 1) << ((blockState >> 6) & 1)
                                                          << ((blockState >> 5) & 1)
                                                          << ((blockState >> 4) & 1)

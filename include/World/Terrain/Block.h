@@ -31,6 +31,7 @@ namespace Blocks
     extern const short
             AIR,
             DIRT,
+            STONE,
             CLOUD;
 
     extern const Block AIR_BLOCK, CLOUD_BLOCK;

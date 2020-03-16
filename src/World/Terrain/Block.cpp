@@ -19,7 +19,8 @@ namespace Blocks
     const short
             AIR = 0,
             DIRT = 1,
-            CLOUD = 2;
+            STONE = 2,
+            CLOUD = 3;
 
     const Block AIR_BLOCK = {AIR, 0};
     const Block CLOUD_BLOCK = {CLOUD, 0};

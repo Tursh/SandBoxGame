@@ -44,9 +44,15 @@ void World::render()
                     chunk->render();
                 }
             }
-    glDisable(GL_DEPTH_TEST);
-    glDisable(GL_CULL_FACE);
+
     shader.stop();
+
+    cloudManager_.render(camera_);
+
+    glDisable(GL_CULL_FACE);
+
+    glDisable(GL_DEPTH_TEST);
+
 
     CGE::Text::textRenderer::renderText("FPS: " + std::to_string(CGE::Utils::getFPS()).substr(0, 4) + " TPS: " +
                                         std::to_string(CGE::Utils::TPSClock::getTPS()).substr(0, 4), 0.66f, 0.95f, 0.1f,
@@ -159,7 +165,9 @@ static glm::vec3 checkCollision(CGE::Entities::Entity *entity, World *world)
 World::World()
         : player_(new Entities::Player(nullptr, camera_, {0, 60, 0})),
           collisionFunction_(std::bind(&checkCollision, std::placeholders::_1, this)),
-          chunkManager_(player_, this, chunks_)
+          worldGenerator_(this, chunkManager_, cloudManager_),
+          cloudManager_(player_, worldGenerator_),
+          chunkManager_(player_, this, chunks_, worldGenerator_, cloudManager_)
 {
     addEntity(std::shared_ptr<CGE::Entities::Entity>(player_));
 

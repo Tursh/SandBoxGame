@@ -10,6 +10,7 @@
 #include "World/Player.h"
 #include "Chunk.h"
 #include "WorldGenerator.h"
+#include <World/Cloud/CloudManager.h>
 
 /*
  * Goal: Render and update only chunks around the player
@@ -38,14 +39,18 @@ class ChunkManager : public CGE::Utils::ThreadProcess
 
     World *world_;
 
-    WorldGenerator worldGenerator_;
+    WorldGenerator &worldGenerator_;
+
+    CloudManager &cloudManager_;
 
     void run() override;
 
 public:
     ChunkManager(Entities::Player *player,
                  World *world,
-                 std::map<int, std::map<int, std::map<int, Chunk *>>> &chunks);
+                 std::map<int, std::map<int, std::map<int, Chunk *>>> &chunks,
+                 WorldGenerator &worldGenerator,
+                 CloudManager &cloudManager);
 
     ~ChunkManager();
 
@@ -65,5 +70,7 @@ public:
      * @return A chunk position to load a chunk
      */
     glm::vec3 getChunkToLoad();
+
+
 
 };

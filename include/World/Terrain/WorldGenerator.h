@@ -15,6 +15,7 @@
 #include <Utils/PerlinNoise.h>
 
 class ChunkManager;
+class CloudManager;
 
 extern const unsigned int MAX_WORLD_GENERATION_HEIGHT;
 
@@ -26,10 +27,14 @@ class WorldGenerator : public CGE::Utils::ThreadProcess
 
     ChunkManager &chunkManager_;
 
+    CloudManager &cloudManager_;
+
     void run() override;
 
 public:
-    WorldGenerator(World *world, ChunkManager &chunkManager);
+    WorldGenerator(World *world, ChunkManager &chunkManager, CloudManager &cloudManager);
+
+    ~WorldGenerator();
 
 };
 

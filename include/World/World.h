@@ -4,9 +4,10 @@
 
 #pragma once
 
-#include "World/Terrain/Block.h"
-#include "World/Terrain/Chunk.h"
-#include "World/Terrain/ChunkManager.h"
+#include <World/Terrain/Block.h>
+#include <World/Terrain/Chunk.h>
+#include <World/Terrain/ChunkManager.h>
+#include <World/Cloud/CloudManager.h>
 #include <map>
 #include <glm/vec3.hpp>
 #include <View/Camera.h>
@@ -30,6 +31,10 @@ private:
     const std::function<glm::vec3(CGE::Entities::Entity *)> collisionFunction_;
 
     ChunkManager chunkManager_;
+
+    CloudManager cloudManager_;
+
+    WorldGenerator worldGenerator_;
 
     //Chunk buffer for chunks that need to be deleted
     std::vector<Chunk *> chunksToDelete_;

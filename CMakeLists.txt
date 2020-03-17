@@ -49,7 +49,9 @@ add_executable(SandBoxGame
         src/World/Terrain/Block.cpp
         src/World/Player.cpp
         src/World/Terrain/ChunkManager.cpp
-        src/World/Terrain/WorldGenerator.cpp)
+        src/World/Terrain/WorldGenerator.cpp
+        src/World/Cloud/CloudManager.cpp
+        src/World/Cloud/CloudShader.cpp)
 
 add_custom_command(TARGET SandBoxGame PRE_BUILD
         COMMAND ${CMAKE_COMMAND} -E create_symlink

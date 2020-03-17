@@ -16,8 +16,10 @@ std::shared_ptr<CGE::Loader::Texture> tex;
 
 ChunkManager::ChunkManager(Entities::Player *player,
                            World *world,
-                           std::map<int, std::map<int, std::map<int, Chunk *>>> &chunks)
-        : player_(player), chunks_(chunks), worldGenerator_(world, *this), world_(world)
+                           std::map<int, std::map<int, std::map<int, Chunk *>>> &chunks,
+                           WorldGenerator &worldGenerator,
+                           CloudManager &cloudManager)
+        : player_(player), chunks_(chunks), worldGenerator_(worldGenerator), world_(world), cloudManager_(cloudManager)
 {
     tex = CGE::Loader::resManager::getTexture(1);
     CGE::Utils::TPSClock::init(2);
@@ -27,7 +29,6 @@ ChunkManager::ChunkManager(Entities::Player *player,
     chunkCount_ = (int) pow(diameter, 3);
     loaded = new bool[chunkCount_];
 
-    worldGenerator_.start();
 }
 
 ChunkManager::~ChunkManager()
@@ -135,8 +136,10 @@ glm::vec3 ChunkManager::getChunkToLoad()
 
 void ChunkManager::run()
 {
+    worldGenerator_.start();
     while (running_)
     {
         tick();
+        cloudManager_.tick();
     }
 }

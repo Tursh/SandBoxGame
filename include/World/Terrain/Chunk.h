@@ -25,12 +25,6 @@ class Chunk : public CGE::Loader::TexturedModel
 
     void loadToTexModel();
 
-    void loadBlock(const glm::ivec3 &position, std::vector<float> &vertices, std::vector<float> &texCoords,
-                   std::vector<unsigned int> &indices, Chunk **chunkList);
-
-    void loadFace(const Block &currentBlock, std::vector<float> &vertices, std::vector<float> &texCoords,
-                  std::vector<unsigned int> &indices, const int &x, const int &y, const int &z, Blocks::Face face);
-
 public:
     Chunk(Block *blocks, World *world, glm::ivec3 &chunkPosition, bool empty);
 

@@ -62,7 +62,7 @@ static bool isBlockObstructed(const std::array<const Block *, 6> &neighbors)
     bool isObstructed = true;
 
     for (int i = 0; i < 6; ++i)
-        if (neighbors[i] == nullptr || !neighbors[i]->ID || !neighbors[i]->state)
+        if (neighbors[i] == nullptr || !neighbors[i]->ID || neighbors[i]->state)
         {
             isObstructed = false;
             break;
@@ -95,15 +95,16 @@ void Chunk::loadToTexModel()
                 //If it's a block of air or the block is obstructed there is nothing to load
                 if (currentBlock->ID != Blocks::AIR && !isBlockObstructed(neighbors))
                 {
-                    glm::vec4 blockTexCoords = texture_->getTextureLimits(currentBlock->ID);
+                    const short *texAtlas = Blocks::TEX_ATLAS[currentBlock->ID];
+                    glm::vec4 top = texture_->getTextureLimits(texAtlas[0]),
+                            side = texture_->getTextureLimits(texAtlas[1]),
+                            bottom = texture_->getTextureLimits(texAtlas[2]);
 
-                    Blocks::loadBlock(meshBuilder, blockPosition, currentBlock, neighbors.data(), blockTexCoords);
+                    Blocks::loadBlock(meshBuilder, blockPosition, currentBlock, neighbors.data(), top, side, bottom);
                 }
             }
 
     delete[] neighborChunks;
-
-    CGE::Loader::MeshData meshData = meshBuilder.toMeshData();
 
     if (!meshBuilder.isValid())
     {

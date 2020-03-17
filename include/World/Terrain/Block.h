@@ -34,6 +34,13 @@ namespace Blocks
             STONE,
             CLOUD;
 
+    extern const short
+            DIRT_TEX_ATLAS[3],
+            STONE_TEX_ATLAS[3],
+            CLOUD_TEX_ATLAS[3];
+
+    extern const short* TEX_ATLAS[];
+
     extern const Block AIR_BLOCK, CLOUD_BLOCK;
 
     extern const float CUBE_SIZE;
@@ -60,5 +67,6 @@ namespace Blocks
      */
     void
     loadBlock(CGE::Loader::MeshBuilder &meshBuilder,
-              glm::ivec3 &blockPosition, Block *blockToLoad, const Block **neighbors, glm::vec4 &texCoordsOffset);
+              glm::ivec3 &blockPosition, Block *blockToLoad, const Block **neighbors, const glm::vec4 &topTexCoords,
+              glm::vec4 sideTexCoords = glm::vec4(-1), glm::vec4 bottomTexCoords = glm::vec4(-1));
 }

@@ -31,13 +31,15 @@ generateState(const float *cornerGroundLevels, int &cornerDownCount, const int &
     int sections[6] = {0, 0, 0, 0, 0, 0};
     int cornerSections[4] = {0, 0, 0, 0};
 
-    float average = 0;
+    float average = 0, lower = 1000, higher = -1000;
 
     for (int corner = 0; corner < 4; ++corner)
     {
         float relativeLevel = cornerGroundLevels[corner] - (float) y;
 
         average += relativeLevel;
+        lower = std::min(cornerGroundLevels[corner], lower);
+        higher = std::max(cornerGroundLevels[corner], higher);
 
         int section = (int) std::floor(relativeLevel / 0.25) + 1;
         ++sections[section < 0 ? 0 : (section > 5 ? 5 : section)];
@@ -45,11 +47,14 @@ generateState(const float *cornerGroundLevels, int &cornerDownCount, const int &
         cornerSections[corner] = section;
     }
 
+    average /= 4;
+
 
     //Set the midY flag
-    if (sections[2] + sections[3] >= 1 && (!((sections[4] + sections[5]) && (sections[1] + sections[0])) || sections[5] + sections[4] >= 2 || sections[0]>= 2))
+    if (sections[5] >= 3 || (sections[2] + sections[3] >= 1 &&
+                             (!((sections[4] + sections[5]) && (sections[1] + sections[0])) ||
+                              sections[5] + sections[4] >= 2 || sections[0] + sections[1] >= 2)))
     {
-        average /= 4;
         state += MID_Y;
         if (average < 0.5f)
         {
@@ -86,9 +91,9 @@ generateState(const float *cornerGroundLevels, int &cornerDownCount, const int &
     {
         int underBlockCornerDown = 0;
         unsigned char underBlockState = generateState(cornerGroundLevels, underBlockCornerDown, y - 1, true);
-        if (underBlockCornerDown > 0 && cornerDownCount < 3)
+        if (underBlockCornerDown > 0 && cornerDownCount < 4)
         {
-            if (underBlockCornerDown == 1)
+            if (underBlockCornerDown == 1 && higher - lower < 2.5f)
             {
                 int c = 0;
                 for (int corner = 1; corner < 4; ++corner)
@@ -107,7 +112,7 @@ generateState(const float *cornerGroundLevels, int &cornerDownCount, const int &
     {
         int upperBlockCornerDown = 0;
         unsigned char upperBlockState = generateState(cornerGroundLevels, upperBlockCornerDown, y + 1, true);
-        if (upperBlockCornerDown < 4 && !(upperBlockState & MID_Y))
+        if (upperBlockCornerDown < 3 && !(upperBlockState & MID_Y) && higher - lower < 2)
         {
             state = 0;
             cornerDownCount = 0;
@@ -172,7 +177,7 @@ void WorldGenerator::run()
                         for (int z = chunkPosition.z * CHUNK_SIZE - 1; z < zEndPosition; ++z)
                         {
                             groundLevel[i] =
-                                    (float) pn.noise(x / (double) (CHUNK_SIZE * 4), z / (double) (CHUNK_SIZE * 4), 0) *
+                                    (float) pn.noise(x / (double) (CHUNK_SIZE * 3), z / (double) (CHUNK_SIZE * 3), 0) *
                                     CHUNK_SIZE * 4;
                             higher = std::max(higher, groundLevel[i]);
                             lower = std::min(lower, groundLevel[i]);
@@ -226,7 +231,7 @@ void WorldGenerator::run()
 
                         for (int y = std::min<int>(blockGroundLevel, CHUNK_SIZE - 1); y >= 0; --y)
                         {
-                            if (y >= blockGroundLevel - 2)
+                            if (y >= blockGroundLevel - 3)
                             {
                                 int cornerDownCount = 0, underBlockCorner = -1;
                                 unsigned char state = generateState(cornerGroundLevels, cornerDownCount, y);
@@ -291,7 +296,8 @@ void WorldGenerator::run()
                             {
                                 //Set grass block or stone block
                                 blocks[x + CHUNK_SIZE * (y + CHUNK_SIZE * z)] =
-                                        {(short) (y + chunkPosition.y * CHUNK_SIZE < higher - 3 ? Blocks::STONE : Blocks::DIRT), 0};
+                                        {(short) (y + chunkPosition.y * CHUNK_SIZE < higher - 3 ? Blocks::STONE
+                                                                                                : Blocks::DIRT), 0};
                             }
 
                         }

@@ -136,7 +136,7 @@ namespace Entities
                     for (int x = chunkPosition.x * CHUNK_SIZE - 1; x < xEndPosition; ++x)
                         for (int z = chunkPosition.z * CHUNK_SIZE - 1; z < zEndPosition; ++z)
                         {
-                            groundLevel[i] = pn.noise(x / (double) (CHUNK_SIZE * 4), z / (double) (CHUNK_SIZE * 4), 0) *
+                            groundLevel[i] = pn.noise(x / (double) (CHUNK_SIZE * 3), z / (double) (CHUNK_SIZE * 3), 0) *
                                              CHUNK_SIZE * 4;
                             higher = std::max(higher, groundLevel[i]);
                             lower = std::min(lower, groundLevel[i]);

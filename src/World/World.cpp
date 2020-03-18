@@ -265,7 +265,7 @@ World::World()
     shader.start();
 
     shader.loadMatrix(CGE::Shader::PROJECTION,
-                      glm::perspectiveFov(45.0f, (float) display->getWidth(), (float) display->getHeight(), 0.1f,
+                      glm::perspectiveFov(std::atan(std::tan(45.0f * 0.00872664625997164788461845384244f) / ((float) display->getWidth() / (float) display->getHeight() < 16.0f / 9.0f) ? ((float) display->getWidth() / (float) display->getHeight() / 16.0f / 9.0f) : (16.0f / 9.0f) / (16.0f / 9.0f)) / 0.00872664625997164788461845384244f, (float) display->getWidth(), (float) display->getHeight(), 0.1f,
                                           1000.0f)
     );
     shader.stop();

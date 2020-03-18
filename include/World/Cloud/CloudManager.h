@@ -20,7 +20,9 @@ class CloudManager
 
     std::vector<glm::ivec2> cloudChunksToLoad_;
 
-    int radius_ = 15;
+    std::vector<unsigned int> chunkToDelete_;
+
+    int radius_ = 20;
 
     unsigned int chunkCount_;
 
@@ -31,6 +33,8 @@ class CloudManager
     Entities::Player *player_;
 
     WorldGenerator& worldGenerator_;
+
+    bool rendering = false;
 
 public:
 
@@ -45,6 +49,8 @@ public:
     glm::ivec2 getChunkToLoad();
 
     void addChunk(Chunk *cloudChunk);
+
+    void deleteChunk(unsigned int index);
 
     void updateCloudChunkAround(const glm::ivec2 &cloudPosition);
 

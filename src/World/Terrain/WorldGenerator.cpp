@@ -125,13 +125,23 @@ void WorldGenerator::run()
 {
     while (running_)
     {
+        glm::ivec3 chunkPosition;
+        glm::ivec2 cloudChunkPosition;
         {
-            glm::ivec3 chunkPosition = chunkManager_.getChunkToLoad();
+            chunkPosition = chunkManager_.getChunkToLoad();
+
+            chunkLoadStart:
             //If the chunk manager returns this position, it means, there no chunk to load
             if (chunkPosition == glm::ivec3(INT_MIN))
             {
-                wait();
-                continue;
+                cloudChunkPosition = cloudManager_.getChunkToLoad();
+                if(cloudChunkPosition == glm::ivec2(INT_MIN))
+                {
+                    wait();
+                    continue;
+                }
+                else
+                    goto cloudLoadStart;
             }
 
             //Create the block 3D matrix and fill it with air
@@ -301,12 +311,20 @@ void WorldGenerator::run()
         }
         //Cloud loading
         {
-            glm::ivec2 cloudChunkPosition = cloudManager_.getChunkToLoad();
+            cloudChunkPosition = cloudManager_.getChunkToLoad();
+            cloudLoadStart:
 
             //If the chunk manager returns this position, it means, there no chunk to load
             if (cloudChunkPosition == glm::ivec2(INT_MIN))
             {
-                continue;
+                chunkPosition = chunkManager_.getChunkToLoad();
+                if(chunkPosition == glm::ivec3(INT_MIN))
+                {
+                    wait();
+                    continue;
+                }
+                else
+                    goto chunkLoadStart;
             }
             glm::ivec3 chunkPosition = glm::vec3(cloudChunkPosition.x, CLOUD_CHUNK_HEIGHT, cloudChunkPosition.y);
 
@@ -320,7 +338,7 @@ void WorldGenerator::run()
                         blocks[x + y * CHUNK_SIZE + z * SQUARED_CHUNK_SIZE] =
                                 pn.noise((chunkPosition.x * CHUNK_SIZE + x) / (double) (CHUNK_SIZE * 4),
                                          (chunkPosition.y * CHUNK_SIZE + y) / (double) (CHUNK_SIZE * 4),
-                                         (chunkPosition.z * CHUNK_SIZE + z) / (double) (CHUNK_SIZE * 4)) > .5f
+                                         (chunkPosition.z * CHUNK_SIZE + z) / (double) (CHUNK_SIZE * 4)) - std::abs(y - 8) / 16.0f > .5f
                                 ? Blocks::CLOUD_BLOCK : Blocks::AIR_BLOCK;
                     }
 

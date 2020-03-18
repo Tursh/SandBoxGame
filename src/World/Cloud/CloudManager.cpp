@@ -24,8 +24,8 @@ CloudManager::CloudManager(Entities::Player *player, WorldGenerator &worldGenera
     shader_.start();
 
     shader_.loadMatrix(CGE::Shader::PROJECTION,
-                      glm::perspectiveFov(45.0f, (float) display->getWidth(), (float) display->getHeight(), 0.1f,
-                                          1000.0f)
+                       glm::perspectiveFov(45.0f, (float) display->getWidth(), (float) display->getHeight(), 0.1f,
+                                           1000.0f)
     );
     shader_.stop();
 }
@@ -37,66 +37,77 @@ CloudManager::~CloudManager()
 
 void CloudManager::tick()
 {
-    if (CGE::Utils::TPSClock::shouldTick(2))
+    for (int i = 0; i < chunkCount_; ++i)
+        loaded_[i] = false;
+    unsigned int diameter = radius_ * 2 + 1;
+    glm::ivec3 playerChunkPosition_ = World::getChunkPosition(player_->getPosition());
+    glm::ivec2 centerChunkPosition_ = glm::ivec2(playerChunkPosition_.x, playerChunkPosition_.z);
+
+    while(rendering)
+        std::this_thread::sleep_for(std::chrono::milliseconds(5));
+    if (std::abs((int) CLOUD_CHUNK_HEIGHT - playerChunkPosition_.y) >= radius_)
     {
-        for(int i = 0; i < chunkCount_; ++i)
-            loaded_[i] = false;
-        unsigned int diameter = radius_ * 2 + 1;
-        glm::ivec3 playerChunkPosition_ = World::getChunkPosition(player_->getPosition());
-        glm::ivec2 centerChunkPosition_ = glm::ivec2(playerChunkPosition_.x, playerChunkPosition_.z);
-
-        if (std::abs((int) CLOUD_CHUNK_HEIGHT - playerChunkPosition_.y) >= radius_)
+        if (!cloudChunks_.empty() && !rendering)
         {
-            if (!cloudChunks_.empty())
-            {
-                for (Chunk *chunk : cloudChunks_)
-                    delete chunk;
-                cloudChunks_.clear();
-            }
-            return;
+            for (Chunk *chunk : cloudChunks_)
+                delete chunk;
+            cloudChunks_.clear();
         }
-
-        for (int i = 0; i < cloudChunks_.size(); ++i)
-        {
-            //Get position relative to player
-            glm::ivec3 chunkPosition = cloudChunks_[i]->getChunkPosition();
-            glm::ivec2 relativeChunkPosition = glm::ivec2(chunkPosition.x, chunkPosition.z) - centerChunkPosition_;
-
-            //Remove chunk if too far from player
-            glm::ivec2 absDelta = glm::abs(relativeChunkPosition);
-            for (int axis = 0; axis < 2; ++axis)
-                if (absDelta[axis] > radius_ + 2)
-                {
-                    //delete cloudChunks_[i];
-                    //cloudChunks_.erase(cloudChunks_.begin() + i);
-                    --i;
-                    continue;
-                }
-
-            if (absDelta.x <= radius_ && absDelta.y <= radius_)
-            {
-                relativeChunkPosition += radius_;
-                int index = relativeChunkPosition.x + diameter * relativeChunkPosition.y;
-                if (0 <= index && index < chunkCount_)
-                    loaded_[index] = true;
-            }
-        }
-
-        cloudChunksToLoad_.clear();
-
-
-        for (int x = -radius_; x <= radius_; ++x)
-            for (int y = -radius_; y <= radius_; ++y)
-            {
-
-                if (!loaded_[x + radius_ + (y + radius_) * diameter])
-                    cloudChunksToLoad_.push_back(centerChunkPosition_ + glm::ivec2{x, y});
-            }
-
-        //If there are chunk to load notify the world generator
-        if (!cloudChunksToLoad_.empty())
-            worldGenerator_.notify();
+        return;
     }
+
+    for (int i = 0; i < cloudChunks_.size(); ++i)
+    {
+        //Get position relative to player
+        glm::ivec3 chunkPosition = cloudChunks_[i]->getChunkPosition();
+        glm::ivec2 relativeChunkPosition = glm::ivec2(chunkPosition.x, chunkPosition.z) - centerChunkPosition_;
+
+        //Remove chunk if too far from player
+        glm::ivec2 absDelta = glm::abs(relativeChunkPosition);
+        for (int axis = 0; axis < 2; ++axis)
+            if (absDelta[axis] > radius_ + 2)
+            {
+                deleteChunk(i);
+                continue;
+            }
+
+        if (absDelta.x <= radius_ && absDelta.y <= radius_)
+        {
+            relativeChunkPosition += radius_;
+            int index = relativeChunkPosition.x + diameter * relativeChunkPosition.y;
+            if(loaded_[index])
+            {
+                delete cloudChunks_[i];
+                cloudChunks_.erase(cloudChunks_.begin() + i);
+            }
+
+            if (0 <= index && index < chunkCount_)
+                loaded_[index] = true;
+        }
+    }
+
+    cloudChunksToLoad_.clear();
+
+
+    for (int x = -radius_; x <= radius_; ++x)
+        for (int y = -radius_; y <= radius_; ++y)
+        {
+            if (!loaded_[x + radius_ + (y + radius_) * diameter])
+                cloudChunksToLoad_.push_back(centerChunkPosition_ + glm::ivec2{x, y});
+        }
+
+    while(!rendering && !chunkToDelete_.empty())
+    {
+        unsigned int index = chunkToDelete_.back();
+        chunkToDelete_.pop_back();
+        delete cloudChunks_[index];
+        cloudChunks_.erase(cloudChunks_.begin() + index);
+    }
+
+    //If there are chunk to load notify the world generator
+    if (!cloudChunksToLoad_.empty())
+        worldGenerator_.notify();
+
 }
 
 void CloudManager::render(CGE::View::Camera camera)
@@ -105,13 +116,15 @@ void CloudManager::render(CGE::View::Camera camera)
 
     shader_.loadMatrix(CGE::Shader::VIEW, camera.toViewMatrix());
 
+    rendering = true;
     for (Chunk *chunk : cloudChunks_)
     {
         shader_.loadMatrix(CGE::Shader::TRANSFORMATION,
-                          glm::translate(glm::mat4(1), (glm::vec3) chunk->getChunkPosition() *
-                                                       (float) CHUNK_SIZE));
+                           glm::translate(glm::mat4(1), (glm::vec3) chunk->getChunkPosition() *
+                                                        (float) CHUNK_SIZE));
         chunk->render();
     }
+    rendering = false;
 
     shader_.stop();
 }
@@ -139,5 +152,15 @@ void CloudManager::updateCloudChunkAround(const glm::ivec2 &cloudPosition)
         if ((absDelta.x == 1 && absDelta.y == 0) || (absDelta.x == 0 && absDelta.y == 1))
             chunk->update();
     }
+}
+
+void CloudManager::deleteChunk(unsigned int index)
+{
+    //To not add the chunk multiple times
+    for(unsigned int i : chunkToDelete_)
+        if(index == i)
+            return;
+
+    chunkToDelete_.push_back(index);
 }
 

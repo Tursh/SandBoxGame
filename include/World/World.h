@@ -10,7 +10,7 @@
 #include <map>
 #include <glm/vec3.hpp>
 #include <View/Camera.h>
-#include <Shader/ModelShader/BasicShader.h>
+#include <Shader/MeshShader/BasicShader.h>
 #include <Utils/PerlinNoise.h>
 #include <World/Player.h>
 

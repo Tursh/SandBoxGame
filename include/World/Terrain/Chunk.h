@@ -6,14 +6,14 @@
 
 
 #include <glm/vec3.hpp>
-#include <Loader/Models/TexturedModel.h>
+#include <Loader/Meshes/TexturedMesh.h>
 #include "Block.h"
 
 extern const int CHUNK_SIZE, SQUARED_CHUNK_SIZE, CUBED_CHUNK_SIZE;
 
 class World;
 
-class Chunk : public CGE::Loader::TexturedModel
+class Chunk : public CGE::Loader::TexturedMesh
 {
     World *world_;
 
@@ -23,7 +23,7 @@ class Chunk : public CGE::Loader::TexturedModel
 
     bool empty_ = false;
 
-    void loadToTexModel();
+    void loadToTexMesh();
 
 public:
     Chunk(Block *blocks, World *world, glm::ivec3 &chunkPosition, bool empty);

@@ -9,7 +9,7 @@
 #include <glm/vec3.hpp>
 #include <glm/vec4.hpp>
 #include <glm/vec2.hpp>
-#include <Loader/Models/MeshBuilder.h>
+#include <Loader/Meshes/MeshBuilder.h>
 
 
 struct Block

@@ -7,7 +7,7 @@
 #include <World/World.h>
 #include <Loader/RessourceManager.h>
 #include <glm/gtx/string_cast.hpp>
-#include <Loader/Models/MeshBuilder.h>
+#include <Loader/Meshes/MeshBuilder.h>
 
 const int CHUNK_SIZE = 16, SQUARED_CHUNK_SIZE = CHUNK_SIZE * CHUNK_SIZE, CUBED_CHUNK_SIZE =
         SQUARED_CHUNK_SIZE * CHUNK_SIZE;
@@ -71,7 +71,7 @@ static bool isBlockObstructed(const std::array<const Block *, 6> &neighbors)
     return isObstructed;
 }
 
-void Chunk::loadToTexModel()
+void Chunk::loadToTexMesh()
 {
     if (empty_)
         return;
@@ -119,10 +119,10 @@ void Chunk::loadToTexModel()
 
 
 Chunk::Chunk(Block *blocks, World *world, glm::ivec3 &chunkPosition, bool empty)
-        : TexturedModel(nullptr, CGE::Loader::resManager::getTexture(1), true),
+        : TexturedMesh(nullptr, CGE::Loader::resManager::getTexture(1), true),
           blocks_(blocks), world_(world), chunkPosition_(chunkPosition), empty_(empty)
 {
-    loadToTexModel();
+    loadToTexMesh();
 }
 
 Chunk::~Chunk()
@@ -134,7 +134,7 @@ Chunk::~Chunk()
 void Chunk::update()
 {
     //Reload the Blocks to the textured model
-    loadToTexModel();
+    loadToTexMesh();
 }
 
 void Chunk::updateChunksAround()
@@ -182,7 +182,7 @@ void Chunk::setBlock(const glm::ivec3 &position, const Block &newBlock)
         if (neighbourChunk != nullptr)
         {
             neighbourChunk->empty_ = false;
-            neighbourChunk->loadToTexModel();
+            neighbourChunk->loadToTexMesh();
         }
     }
     else if (position.x == CHUNK_SIZE - 1)
@@ -192,7 +192,7 @@ void Chunk::setBlock(const glm::ivec3 &position, const Block &newBlock)
         if (neighbourChunk != nullptr)
         {
             neighbourChunk->empty_ = false;
-            neighbourChunk->loadToTexModel();
+            neighbourChunk->loadToTexMesh();
         }
     }
     if (position.y == 0)
@@ -202,7 +202,7 @@ void Chunk::setBlock(const glm::ivec3 &position, const Block &newBlock)
         if (neighbourChunk != nullptr)
         {
             neighbourChunk->empty_ = false;
-            neighbourChunk->loadToTexModel();
+            neighbourChunk->loadToTexMesh();
         }
     }
     else if (position.y == CHUNK_SIZE - 1)
@@ -212,7 +212,7 @@ void Chunk::setBlock(const glm::ivec3 &position, const Block &newBlock)
         if (neighbourChunk != nullptr)
         {
             neighbourChunk->empty_ = false;
-            neighbourChunk->loadToTexModel();
+            neighbourChunk->loadToTexMesh();
         }
     }
 
@@ -223,7 +223,7 @@ void Chunk::setBlock(const glm::ivec3 &position, const Block &newBlock)
         if (neighbourChunk != nullptr)
         {
             neighbourChunk->empty_ = false;
-            neighbourChunk->loadToTexModel();
+            neighbourChunk->loadToTexMesh();
         }
     }
     else if (position.z == CHUNK_SIZE - 1)
@@ -233,7 +233,7 @@ void Chunk::setBlock(const glm::ivec3 &position, const Block &newBlock)
         if (neighbourChunk != nullptr)
         {
             neighbourChunk->empty_ = false;
-            neighbourChunk->loadToTexModel();
+            neighbourChunk->loadToTexMesh();
         }
     }
 

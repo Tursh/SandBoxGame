@@ -10,7 +10,7 @@
 #include <World/Player.h>
 #include <World/World.h>
 #include <Loader/Meshes/TwoDAnimatedMesh.h>
-#include <Text/TextRenderer.h>
+#include <GUI/Text/TextRenderer.h>
 #include <Utils/Log.h>
 
 #define GLM_ENABLE_EXPERIMENTAL

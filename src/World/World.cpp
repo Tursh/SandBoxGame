@@ -8,7 +8,7 @@
 #include <climits>
 #include <IO/Window.h>
 #include <Utils/TimeUtils.h>
-#include <Text/TextRenderer.h>
+#include <GUI/Text/TextRenderer.h>
 #include <Utils/Log.h>
 
 void World::tick()
@@ -48,23 +48,23 @@ void World::render()
     glDisable(GL_CULL_FACE);
     shader.stop();
 
-    CGE::Text::textRenderer::renderText("FPS: " + std::to_string(CGE::Utils::getFPS()).substr(0, 4) + " TPS: " +
-                                        std::to_string(CGE::Utils::TPSClock::getTPS()).substr(0, 4), 0.66f, 0.95f, 0.1f,
-                                        glm::vec3(1, 1, 1),
-                                        false);
+    CGE::GUI::Text::TextRenderer::renderText("FPS: " + std::to_string(CGE::Utils::getFPS()).substr(0, 4) + " TPS: " +
+                                             std::to_string(CGE::Utils::TPSClock::getTPS()).substr(0, 4), {0.66f, 0.95f}, 0.1f,
+                                             glm::vec3(1, 1, 1),
+                                             false);
 
-    CGE::Text::textRenderer::renderText(glm::to_string(camera_.position_), -1, 0.95f, 0.1f, glm::vec3(1, 1, 1),
-                                        false);
+    CGE::GUI::Text::TextRenderer::renderText(glm::to_string(camera_.position_), {-1, 0.95f}, 0.1f, glm::vec3(1, 1, 1),
+                                             false);
 
-    CGE::Text::textRenderer::renderText("X", 0, 0, 0.2f, glm::vec3(1, 1, 1),
-                                        false);
+    CGE::GUI::Text::TextRenderer::renderText("+", {0, 0}, 0.2f, glm::vec3(1, 1, 1),
+                                             false);
 
-    CGE::Text::textRenderer::renderText(glm::to_string(player_->getSpeed()), -1, 0.90f, 0.1f,
-                                        glm::vec3(1, 1, 1),
-                                        false);
-    CGE::Text::textRenderer::renderText(glm::to_string(getChunkPosition(camera_.position_)), -1, 0.85f, 0.1f,
-                                        glm::vec3(1, 1, 1),
-                                        false);
+    CGE::GUI::Text::TextRenderer::renderText(glm::to_string(player_->getSpeed()), {-1, 0.90f}, 0.1f,
+                                             glm::vec3(1, 1, 1),
+                                             false);
+    CGE::GUI::Text::TextRenderer::renderText(glm::to_string(getChunkPosition(camera_.position_)), {-1, 0.85f}, 0.1f,
+                                             glm::vec3(1, 1, 1),
+                                             false);
     deleteBufferedChunks();
 }
 

@@ -144,14 +144,14 @@ namespace SBG
             return Blocks::AIR_BLOCK;
     }
 
-    static glm::vec3 checkCollision(Entities::Entity *entity, World *world)
+    static glm::vec3 checkCollision(CGE::Entities::Entity *entity, World *world)
     {
-        Hitbox entityHitbox = entity->getHitbox();
+        Physics::Hitbox entityHitbox = entity->getHitbox();
         glm::vec3 movement = entity->getSpeed();
 
-        std::vector<Hitbox> blockHitboxes = world->getBlockHitboxes(entityHitbox.expand(1));
+        std::vector<Physics::Hitbox> blockHitboxes = world->getBlockHitboxes(entityHitbox.expand(1));
 
-        for (Hitbox hitbox : blockHitboxes)
+        for (Physics::Hitbox hitbox : blockHitboxes)
         {
             for (int axis = 0; axis < 3; ++axis)
                 movement[axis] = hitbox.checkIfCollideInAxis(entityHitbox, axis, movement[axis]);
@@ -167,7 +167,7 @@ namespace SBG
               collisionFunction_(std::bind(&checkCollision, std::placeholders::_1, this)),
               chunkManager_(player_, this, chunks_)
     {
-        addEntity(std::shared_ptr<Entities::Entity>(player_));
+        addEntity(std::shared_ptr<CGE::Entities::Entity>(player_));
 
 /*
     Block *blocks = new Block[(int) pow(CHUNK_SIZE, 3)];
@@ -279,7 +279,7 @@ namespace SBG
         chunkManager_.start();
     }
 
-    void World::addEntity(std::shared_ptr<Entities::Entity> newEntity)
+    void World::addEntity(std::shared_ptr<CGE::Entities::Entity> newEntity)
     {
         entities_.push_back(newEntity);
         newEntity->setCollisionFunc(collisionFunction_);

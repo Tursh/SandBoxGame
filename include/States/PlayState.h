@@ -10,19 +10,22 @@
 #include <GUI/Panel.h>
 #include <GLFW/glfw3.h>
 
-class PlayState : public CGE::State::State
+namespace SBG
 {
-    World world;
-public:
-    PlayState();
 
-    void tick() override;
+    class PlayState : public CGE::State::State
+    {
+        World world;
+    public:
+        PlayState();
 
-    void draw() override;
+        void tick() override;
 
-    CGE::GUI::Panel *pausePanel;
+        void draw() override;
 
-    void keyCallback(GLFWwindow *window, int key, int action);
-};
+        CGE::GUI::Panel *pausePanel;
 
+        void keyCallback(GLFWwindow *window, int key, int action);
+    };
 
+}

@@ -7,12 +7,14 @@
 #include <Entities/Entity.h>
 #include <View/Camera.h>
 
-//To dodge some stupid errors
-class World;
-
-namespace Entities
+namespace SBG
 {
+    //To dodge some stupid errors
+    class World;
+}
 
+namespace SBG::Entities
+{
     extern const float PLAYER_HEIGHT, PLAYER_WIDTH;
 
     class Player : public CGE::Entities::Entity

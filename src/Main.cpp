@@ -10,7 +10,7 @@ void init()
     CGE::initEngine("Sand Box Game", 1280, 720, false);
     CGE::GUI::Text::TextRenderer::init("res/graphics/fonts/Archivo-Regular.ttf");
     CGE::Utils::TPSClock::init();
-    CGE::State::StateManager::constructAndSetCurrentState<PlayState>();
+    CGE::State::StateManager::constructAndSetCurrentState<SBG::PlayState>();
     glClearColor(0.2, 0.3, 0.5,1);
 }
 

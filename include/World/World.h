@@ -14,114 +14,117 @@
 #include <Utils/PerlinNoise.h>
 #include <World/Player.h>
 
-class World
+namespace SBG
 {
-private:
-    CGE::Shader::BasicShader shader;
 
-    std::map<int, std::map<int, std::map<int, Chunk *>>> chunks_;
+    class World
+    {
+    private:
+        CGE::Shader::BasicShader shader;
 
-    std::vector<std::shared_ptr<CGE::Entities::Entity>> entities_;
+        std::map<int, std::map<int, std::map<int, Chunk *>>> chunks_;
 
-    Entities::Player *player_;
+        std::vector<std::shared_ptr<CGE::Entities::Entity>> entities_;
 
-    CGE::View::Camera camera_;
+        Entities::Player *player_;
 
-    const std::function<glm::vec3(CGE::Entities::Entity *)> collisionFunction_;
+        CGE::View::Camera camera_;
 
-    ChunkManager chunkManager_;
+        const std::function<glm::vec3(CGE::Entities::Entity *)> collisionFunction_;
 
-    //Chunk buffer for chunks that need to be deleted
-    std::vector<Chunk *> chunksToDelete_;
+        ChunkManager chunkManager_;
 
-    //Recursive function that delete buffered chunks
-    void deleteBufferedChunks();
+        //Chunk buffer for chunks that need to be deleted
+        std::vector<Chunk *> chunksToDelete_;
 
-public:
-    World();
+        //Recursive function that delete buffered chunks
+        void deleteBufferedChunks();
 
-    ~World();
+    public:
+        World();
 
-    /**
-     * Update the terrain and entities
-     */
-    void tick();
+        ~World();
 
-    /**
-     * Render the terrain and the entities
-     */
-    void render();
+        /**
+         * Update the terrain and entities
+         */
+        void tick();
 
-    void addChunk(Chunk *chunk);
+        /**
+         * Render the terrain and the entities
+         */
+        void render();
 
-    /**
-     * Get the chunk where the block at "position" location
-     * @param position block location
-     * @return the chunk where the block is located
-     */
-    Chunk *getChunk(glm::ivec3 position);
+        void addChunk(Chunk *chunk);
 
-    /**
-     * Get the chunk where the block at "position" location
-     * @param position block location
-     * @return the chunk where the block is located
-     */
-    Chunk *getChunk(const glm::vec3 &position);
+        /**
+         * Get the chunk where the block at "position" location
+         * @param position block location
+         * @return the chunk where the block is located
+         */
+        Chunk *getChunk(glm::ivec3 position);
 
-    /**
-     * Get neighbor chunks around the chunk at 'chunkPosition'
-     * @param chunkPosition Chunk position to get neighbors
-     * @return Chunk array (x-, x+, y-, y+, z-, z+)
-     */
-    Chunk **getAroundChunk(glm::ivec3 chunkPosition);
+        /**
+         * Get the chunk where the block at "position" location
+         * @param position block location
+         * @return the chunk where the block is located
+         */
+        Chunk *getChunk(const glm::vec3 &position);
 
-    /**
-     * Get the chunk at "chunkPosition"
-     * @param chunkPosition chunk location (in chunk position = block position / 16)
-     * @return The chunk at "chunkPosition"
-     */
-    Chunk *getChunkByChunkPosition(glm::ivec3 chunkPosition);
+        /**
+         * Get neighbor chunks around the chunk at 'chunkPosition'
+         * @param chunkPosition Chunk position to get neighbors
+         * @return Chunk array (x-, x+, y-, y+, z-, z+)
+         */
+        Chunk **getAroundChunk(glm::ivec3 chunkPosition);
 
-    /**
-     * Translate the position in world to position in chunk
-     * @param blockPosition Block position in the world
-     * @return Block position in its chunk
-     */
-    static glm::ivec3 getPositionInChunk(glm::ivec3 blockPosition);
+        /**
+         * Get the chunk at "chunkPosition"
+         * @param chunkPosition chunk location (in chunk position = block position / 16)
+         * @return The chunk at "chunkPosition"
+         */
+        Chunk *getChunkByChunkPosition(glm::ivec3 chunkPosition);
 
-    /**
-     * Get the position of the chunk that the block is located
-     * @param blockPosition The position of the block in the world
-     * @return The position of the chunk
-     */
-    static glm::ivec3 getChunkPosition(glm::ivec3 blockPosition);
+        /**
+         * Translate the position in world to position in chunk
+         * @param blockPosition Block position in the world
+         * @return Block position in its chunk
+         */
+        static glm::ivec3 getPositionInChunk(glm::ivec3 blockPosition);
 
-    /**
-     * Set a block at a specific location
-     * @param position Where the block will be placed
-     * @param block The block
-     */
-    void setBlock(glm::ivec3 position, Block block);
+        /**
+         * Get the position of the chunk that the block is located
+         * @param blockPosition The position of the block in the world
+         * @return The position of the chunk
+         */
+        static glm::ivec3 getChunkPosition(glm::ivec3 blockPosition);
 
-    const Block &getBlock(glm::ivec3 position);
+        /**
+         * Set a block at a specific location
+         * @param position Where the block will be placed
+         * @param block The block
+         */
+        void setBlock(glm::ivec3 position, Block block);
 
-    /**
-     * Return the list of hitbox in an area
-     * @param area The to check for blocks
-     * @return The list of block hitboxes
-     */
-    auto getBlockHitboxes(Hitbox area) -> std::vector<Hitbox>;
+        const Block &getBlock(glm::ivec3 position);
 
-    void addEntity(std::shared_ptr<CGE::Entities::Entity> newEntity);
+        /**
+         * Return the list of hitbox in an area
+         * @param area The to check for blocks
+         * @return The list of block hitboxe
+         */
+        auto getBlockHitboxes(CGE::Physics::Hitbox area) -> std::vector<CGE::Physics::Hitbox>;
 
-    /**
-     * Get the position of the block the camera is looking at
-     * @param raySize The maximum distance from the camera
-     * @return The block location / If not block, return glm::ivec3(INT_MAX)
-     */
-    glm::ivec3 getPickedBlock(float raySize);
+        void addEntity(std::shared_ptr<CGE::Entities::Entity> newEntity);
 
-    void deleteChunk(Chunk *chunk);
-};
+        /**
+         * Get the position of the block the camera is looking at
+         * @param raySize The maximum distance from the camera
+         * @return The block location / If not block, return glm::ivec3(INT_MAX)
+         */
+        glm::ivec3 getPickedBlock(float raySize);
 
+        void deleteChunk(Chunk *chunk);
+    };
 
+}

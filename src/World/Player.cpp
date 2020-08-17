@@ -20,9 +20,8 @@
 
 #include "IO/Input.h"
 
-namespace Entities
+namespace SBG::Entities
 {
-
     const glm::vec3 PLAYER_SIZE = {0.9f, 1.8f, 0.9f};
 
     const float hitCooldown = 0.5f;

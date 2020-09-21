@@ -9,8 +9,9 @@
 #include <cmath>
 #include <World/Player.h>
 #include <World/World.h>
-#include <Loader/Models/TwoDAnimatedModel.h>
-#include <Text/TextRenderer.h>
+#include <Loader/Meshes/TwoDAnimatedMesh.h>
+#include <GUI/Text/TextRenderer.h>
+#include <Utils/Log.h>
 
 #define GLM_ENABLE_EXPERIMENTAL
 
@@ -19,19 +20,18 @@
 
 #include "IO/Input.h"
 
-namespace Entities
+namespace SBG::Entities
 {
-
     const glm::vec3 PLAYER_SIZE = {0.9f, 1.8f, 0.9f};
 
     const float hitCooldown = 0.5f;
 
-    Player::Player(unsigned int texModelID, CGE::View::Camera &camera)
-            : Entity(texModelID, glm::vec3(0, 0, 0.1f), glm::vec3(0.7853f * 2, 0, 0)), camera_(camera) {}
+    Player::Player(unsigned int texMeshID, CGE::View::Camera &camera)
+            : Entity(texMeshID, glm::vec3(0, 0, 0.1f), glm::vec3(0.7853f * 2, 0, 0)), camera_(camera) {}
 
-    Player::Player(CGE::Loader::TexturedModel *texModel, CGE::View::Camera &camera, glm::vec3 position,
+    Player::Player(CGE::Loader::TexturedMesh *texMesh, CGE::View::Camera &camera, glm::vec3 position,
                    glm::vec3 rotation)
-            : Entity(std::shared_ptr<CGE::Loader::TexturedModel>(texModel), position, rotation),
+            : Entity(std::shared_ptr<CGE::Loader::TexturedMesh>(texMesh), position, rotation),
               camera_(camera) {}
 
     void Player::move(float speed, World *world)

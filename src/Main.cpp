@@ -3,15 +3,14 @@
 #include <Utils/TimeUtils.h>
 #include <thread>
 #include <State/StateManager.h>
-#include <Text/TextRenderer.h>
+#include <GUI/Text/TextRenderer.h>
 
 void init()
 {
     CGE::initEngine("Sand Box Game", 1280, 720, false);
-    CGE::Text::textRenderer::init("res/graphics/fonts/Archivo-Regular.ttf");
+    CGE::GUI::Text::TextRenderer::init("res/graphics/fonts/Archivo-Regular.ttf");
     CGE::Utils::TPSClock::init();
-    //CGE::IO::input::grabMouse();
-    CGE::State::stateManager::createCurrentState<PlayState>();
+    CGE::State::StateManager::constructAndSetCurrentState<SBG::PlayState>();
     glClearColor(0.2, 0.3, 0.5,1);
 }
 
@@ -22,7 +21,7 @@ void loopTick()
     {
         while (!display->shouldClose() && CGE::Utils::TPSClock::shouldTick())
         {
-            CGE::State::stateManager::getCurrentState()->tick();
+            CGE::State::StateManager::getCurrentState()->tick();
         }
     }
 }
@@ -33,14 +32,14 @@ void loopRender()
 
     while (!display->shouldClose())
     {
-        CGE::State::stateManager::getCurrentState()->draw();
+        CGE::State::StateManager::getCurrentState()->draw();
         display->update();
     }
 }
 
 void terminate()
 {
-    CGE::State::stateManager::deleteCurrentState();
+    CGE::State::StateManager::deleteCurrentState();
     CGE::stopEngine();
 }
 

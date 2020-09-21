@@ -14,23 +14,26 @@
 #include <Utils/ThreadProcess.h>
 #include <Utils/PerlinNoise.h>
 
-class ChunkManager;
-
-extern const unsigned int MAX_WORLD_GENERATION_HEIGHT;
-
-class WorldGenerator : public CGE::Utils::ThreadProcess
+namespace SBG
 {
-    World *world_;
 
-    CGE::Utils::PerlinNoise pn;
+    class ChunkManager;
 
-    ChunkManager &chunkManager_;
+    extern const unsigned int MAX_WORLD_GENERATION_HEIGHT;
 
-    void run() override;
+    class WorldGenerator : public CGE::Utils::ThreadProcess
+    {
+        World *world_;
 
-public:
-    WorldGenerator(World *world, ChunkManager &chunkManager);
+        CGE::Utils::PerlinNoise pn;
 
-};
+        ChunkManager &chunkManager_;
 
+        void run() override;
 
+    public:
+        WorldGenerator(World *world, ChunkManager &chunkManager);
+
+    };
+
+}

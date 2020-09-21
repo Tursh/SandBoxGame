@@ -6,59 +6,62 @@
 
 
 #include <glm/vec3.hpp>
-#include <Loader/Models/TexturedModel.h>
+#include <Loader/Meshes/TexturedMesh.h>
 #include "Block.h"
 
-extern const int CHUNK_SIZE, SQUARED_CHUNK_SIZE, CUBED_CHUNK_SIZE;
-
-class World;
-
-class Chunk : public CGE::Loader::TexturedModel
+namespace SBG
 {
-    World *world_;
 
-    glm::ivec3 chunkPosition_;
+    extern const int CHUNK_SIZE, SQUARED_CHUNK_SIZE, CUBED_CHUNK_SIZE;
 
-    Block *blocks_;
+    class World;
 
-    bool empty_ = false;
+    class Chunk : public CGE::Loader::TexturedMesh
+    {
+        World *world_;
 
-    void loadToTexModel();
+        glm::ivec3 chunkPosition_;
 
-public:
-    Chunk(Block *blocks, World *world, glm::ivec3 &chunkPosition, bool empty);
+        Block *blocks_;
 
-    ~Chunk();
+        bool empty_ = false;
 
-    /**
-     * Reload the textured model
-     */
-    void update();
+        void loadToTexMesh();
 
-    /**
-     * Unload the textured model of the chunk
-     */
-    void unload();
+    public:
+        Chunk(Block *blocks, World *world, glm::ivec3 &chunkPosition, bool empty);
 
-    /**
-     * Reload the 6 chunks that share borders with this chunk
-     */
-    void updateChunksAround();
+        ~Chunk();
 
-    const glm::ivec3 &getChunkPosition() const;
+        /**
+         * Reload the textured model
+         */
+        void update();
 
-    /**
-     * Set the block at this position in the chunk
-     * @param position The position in the chunk
-     * @param newBlock The new block
-     */
-    void setBlock(const glm::ivec3 &position, const Block &newBlock);
+        /**
+         * Unload the textured model of the chunk
+         */
+        void unload();
 
-    const Block &getBlock(const glm::ivec3 &position) const;
+        /**
+         * Reload the 6 chunks that share borders with this chunk
+         */
+        void updateChunksAround();
 
-    bool isLoaded();
+        const glm::ivec3 &getChunkPosition() const;
 
-    bool isEmpty();
-};
+        /**
+         * Set the block at this position in the chunk
+         * @param position The position in the chunk
+         * @param newBlock The new block
+         */
+        void setBlock(const glm::ivec3 &position, const Block &newBlock);
 
+        const Block &getBlock(const glm::ivec3 &position) const;
 
+        bool isLoaded();
+
+        bool isEmpty();
+    };
+
+}
